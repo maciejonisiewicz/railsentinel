@@ -3,6 +3,7 @@
 Użycie: python src/07_build_doc.py "Imię Nazwisko"
 """
 import json
+import pickle
 import re
 import subprocess
 import sys
@@ -100,6 +101,7 @@ def main():
     vals["n_ups"] = rm["with_upstream"]
     vals["n_gauges"] = len({c for c in json.load(open(ROOT / "data" / "processed" / "station_meta.json"))["meta"]})
     vals["n_mapped"] = len(hm["segment_station"])
+    vals["n_trees"] = len(pickle.load(open(ROOT / "data" / "processed" / "flood_model.pkl", "rb"))["model"]._predictors)
     vals["n_lines"] = len({x["line"] for x in segs})
     vals["n_cells"] = len({(round(x["lat"] * 4) / 4, round(x["lon"] * 4) / 4) for x in segs})
     for key, tag in (("era5/fizyczne", "e"), ("era5/wszystkie", "a"), ("gauge/fizyczne", "g")):

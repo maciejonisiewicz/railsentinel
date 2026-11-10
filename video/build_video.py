@@ -170,6 +170,10 @@ CAPTION_JS = """(txt) => { const d = document.createElement('div'); d.id='rsCap'
 
 def record(sid, kind, dur, caption, v):
     from playwright.sync_api import sync_playwright
+    done = TMP / f"s_{sid}.mp4"
+    if done.exists() and abs(float(subprocess.run([FF, "-i", str(done)], capture_output=True, text=True).stderr
+                                     .split("Duration: ")[1].split(",")[0].split(":")[2]) - dur) < 0.15:
+        return done   # scena już nagrana (ten sam czas trwania)
     out = TMP / f"rec_{sid}"
     shutil.rmtree(out, ignore_errors=True)
     with sync_playwright() as p:
@@ -208,9 +212,9 @@ def record(sid, kind, dur, caption, v):
             start = time.time() - t0
             ms = int(dur * 1000)
             if sid == "live":
-                pg.evaluate("RS_MAP.setView([52.0, 19.2], 6, {animate:false})")
+                pg.evaluate("void RS_MAP.setView([52.0, 19.2], 6, {animate:false})")
                 pg.wait_for_timeout(int(ms * 0.35))
-                pg.evaluate("RS_MAP.flyTo([50.5, 16.8], 9, {duration: 5})")
+                pg.evaluate("void RS_MAP.flyTo([50.5, 16.8], 9, {duration: 5})")
                 pg.wait_for_timeout(int(ms * 0.65))
             elif sid == "replay":
                 pg.click("#play")

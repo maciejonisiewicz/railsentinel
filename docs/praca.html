@@ -52,16 +52,16 @@
   <div class="band">
     <span class="chip">Wyzwanie 2 · Czy AI może przewidzieć zagrożenie?</span>
     <h1>RailSentinel</h1>
-    <p style="margin-top:10px">Prognoza zagrożeń infrastruktury kolejowej na 72 godziny.<br>
+    <p style="margin-top:10px">Prognoza zagrożeń infrastruktury kolejowej na 72 godziny – dla całej Polski.<br>
     Uczenie maszynowe + prognoza pogody + wodowskazy IMGW + teren → lista odcinków, które trzeba sprawdzić, zanim stanie się wypadek.</p>
   </div>
   <img src="fig/screen_replay.png" alt="Dashboard RailSentinel – backtest powodzi 2024">
   <p class="small muted" style="margin-top:6px">Dashboard RailSentinel: odcinki linii kolejowych Dolnego Śląska i Opolszczyzny pokolorowane według ryzyka, prognoza z wieczora 11.09.2024; przerywana obwódka – odcinki faktycznie zniszczone w powodzi.</p>
   <div class="meta">
-    <div><b>Autor</b>[Imię i nazwisko autora]</div>
+    <div><b>Autor</b>Maciej Onisiewicz</div>
     <div><b>Uczelnia / kierunek</b>Politechnika Wrocławska · Informatyczne Systemy Automatyki</div>
     <div><b>Forma pracy</b>Działający prototyp (model ML + aplikacja webowa z symulatorem) i koncepcja wdrożenia</div>
-    <div><b>Materiały dodatkowe</b>Kod źródłowy, dashboard demo, nagranie wideo</div>
+    <div><b>Aplikacja i strona</b>railsentinel.pl · film · kod: github.com/maciejonisiewicz/railsentinel</div>
   </div>
 </section>
 
@@ -69,17 +69,17 @@
 <section class="page">
   <h2><span class="n">01</span>Streszczenie</h2>
   <p><b>Problem.</b> Ulewy, powodzie, upały i wichury są coraz częstsze, a kolej jest na nie szczególnie wrażliwa. Powódź z września 2024 r. spowodowała straty w infrastrukturze PLK wstępnie szacowane na <b>880 mln zł</b>. Podczas orkanu Eunice (19.02.2022) PLK odnotowały <b>400 zdarzeń pogodowych jednego dnia</b>. Ostrzeżenia meteorologiczne i hydrologiczne wydaje się dziś dla powiatów i rzek, a nie dla kilometrów toru. Nikt nie mówi dyżurnemu, <i>który konkretnie odcinek</i> jest zagrożony.</p>
-  <p><b>Rozwiązanie.</b> RailSentinel codziennie przelicza ryzyko dla każdego ok. 5-kilometrowego odcinka sieci. Powódź modeluje jako <b>dwa mechanizmy</b>: (A) lokalną ulewę i podmycie toru, którą ocenia model uczenia maszynowego z wbudowaną wiedzą fizyczną, oraz (B) falę wezbraniową, która przychodzi rzeką z gór, ocenianą na podstawie stanów wód z ok. 200 wodowskazów IMGW. Do tego dochodzą moduły wyboczenia toru w upale, wichury i oblodzenia sieci. Wynikiem są mapa ryzyka, ranking odcinków i gotowy raport dla dyżurnego z zalecanymi działaniami. Każdy alarm ma wyjaśnienie: <i>dlaczego</i> ten odcinek.</p>
-  <p><b>Dowód na dwóch powodziach.</b> Prototyp obejmuje 925 odcinków (5 571 km torów) na Dolnym Śląsku i Opolszczyźnie i działa wyłącznie na danych publicznych. W backteście 2024 korzysta tylko z <b>prognoz ECMWF dostępnych przed powodzią</b>, a każdy odcinek ocenia model, który nie widział jego linii. Następnie <b>bez żadnego douczania</b> sprawdziłem go na powodzi tysiąclecia z 1997 r.</p>
+  <p><b>Rozwiązanie.</b> RailSentinel codziennie przelicza ryzyko dla każdego ok. 5-kilometrowego odcinka sieci. Powódź modeluje jako <b>dwa mechanizmy</b>: (A) lokalną ulewę i podmycie toru, którą ocenia model uczenia maszynowego z wbudowaną wiedzą fizyczną, oraz (B) falę wezbraniową, która przychodzi rzeką z gór, ocenianą przez drugi model ML, który prognozuje stany ok. 800 wodowskazów IMGW na 3 dni. Do tego dochodzą moduły wyboczenia toru w upale, wichury i oblodzenia sieci. Wynikiem są mapa ryzyka, ranking odcinków i gotowy raport dla dyżurnego z zalecanymi działaniami. Każdy alarm ma wyjaśnienie: <i>dlaczego</i> ten odcinek.</p>
+  <p><b>Dowód na dwóch powodziach.</b> System obejmuje <b>całą Polskę</b>: 4606 odcinków (27 293 km torów) i 814 wodowskazów, wyłącznie na danych publicznych. Etykiety zniszczeń zebrałem dla Dolnego Śląska i Opolszczyzny, więc tam odbywa się trening i walidacja. W backteście 2024 korzysta tylko z <b>prognoz ECMWF dostępnych przed powodzią</b>, a każdy odcinek ocenia model, który nie widział jego linii. Następnie <b>bez żadnego douczania</b> sprawdziłem go na powodzi tysiąclecia z 1997 r.</p>
   <div class="kpis">
-    <div class="kpi"><b>36/37</b><small>odcinków zniszczonych w 2024 r. z alarmem przed czasem, mediana <b>52 h</b> przed pierwszymi zniszczeniami</small></div>
-    <div class="kpi"><b>3/3</b><small>udokumentowanych miejsc zniszczeń z 1997 r. wykrytych w niezależnym teście (sam model ML: 1/3)</small></div>
-    <div class="kpi"><b>0,941</b><small>AUC w strefie ulewy: trafność wskazania <i>właściwych</i> odcinków (reguła opadowa: 0,863)</small></div>
-    <div class="kpi"><b>2,6×</b><small>więcej km toru do sprawdzenia przy opadach intensywniejszych o 20% (symulator klimatyczny)</small></div>
+    <div class="kpi"><b>37/37</b><small>odcinków zniszczonych w 2024 r. z alarmem przed czasem, mediana <strong>52 h</strong> przed pierwszymi zniszczeniami</small></div>
+    <div class="kpi"><b>3/3</b><small>udokumentowanych miejsc zniszczeń z 1997 r. wykrytych w niezależnym teście (sam model ML: 0/3)</small></div>
+    <div class="kpi"><b>0,948</b><small>AUC w strefie ulewy: trafność wskazania <i>właściwych</i> odcinków (reguła opadowa: 0,864)</small></div>
+    <div class="kpi"><b>+46%</b><small>więcej przekroczeń stanu rzek wykrytych z 2-dniowym wyprzedzeniem dzięki ML-owej prognozie fali</small></div>
   </div>
   <p><b>Odbiorcy.</b> Dyżurni i dyspozytorzy (Centra Zarządzania Ruchem), zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
   <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ograniczenia prędkości na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
-  <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową oraz pokazanie, co <i>nie</i> zadziałało; (2) model ML działający bezpośrednio w przeglądarce, z symulatorem ulewy, fali na rzece i scenariuszy klimatycznych; (3) wyłącznie otwarte dane i kod, a architektura od razu przyjmie dane wewnętrzne PLK.</div>
+  <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) wyłącznie otwarte dane i kod.</div>
 </section>
 
 <!-- 02 PROBLEM -->
@@ -108,9 +108,9 @@
     <div><b>Opad</b>1/3/7 dni, uwilgotnienie gruntu (30 dni), ekstremalność względem klimatu komórki</div>
     <div><b>A · Ulewa – ML</b>gradient boosting z ograniczeniami monotoniczności</div>
     <div><b>Mapa ryzyka</b>każdy odcinek, horyzont 72 h</div>
-    <div><b>Wodowskazy IMGW</b>~200 stacji, stany wód (API na żywo)</div>
+    <div><b>Wodowskazy IMGW</b>~850 stacji w Polsce, stany wód (API na żywo)</div>
     <div><b>Hydrologia</b>indeks stanu wody największej rzeki przy torze, ekspozycja (most / brzeg)</div>
-    <div><b>B · Fala wezbraniowa</b>reguła hydrologiczna, próg ustalony z góry</div>
+    <div><b>B · Fala wezbraniowa</b>prognoza stanów rzek ML na 3 dni + próg ustalony z góry</div>
     <div><b>Raport dyżurnego</b>alarmy po liniach + zalecane działania</div>
     <div><b>Infrastruktura i teren</b>OSM: linie, mosty, nasypy; DEM ~50 m; rzeki</div>
     <div><b>Teren</b>położenie w dolinie (TPI), stromość, odległość i wielkość rzeki, mosty, nasypy</div>
@@ -118,9 +118,9 @@
     <div><b>Symulator</b>model ML w przeglądarce: „co jeśli?”</div>
   </div>
   <h3>A · Model ML ulewy i podmycia (physics-informed)</h3>
-  <p><b>Gradient boosting</b> (HistGradientBoosting, scikit-learn), uczony na 791 800 odcinko-dniach z lat 2021–2024. Wymuszam <b>monotoniczność</b>: ryzyko <i>nigdy nie maleje</i>, gdy rośnie opad lub uwilgotnienie gruntu i gdy tor leży bliżej rzeki albo niżej w dolinie. Model korzysta tylko z cech o fizycznym związku z podmyciem. Cechy eksploatacyjne (prędkość, elektryfikacja, kategoria linii) usunąłem, bo w walidacji „uczyły się regionu”, a nie zjawiska. Rozdz. 05 pokazuje, że ten wybór nie zawyżył wyniku testu niezależnego.</p>
+  <p><b>Gradient boosting</b> (HistGradientBoosting, scikit-learn), uczony na 780 672 odcinko-dniach z lat 2021–2024. Wymuszam <b>monotoniczność</b>: ryzyko <i>nigdy nie maleje</i>, gdy rośnie opad lub uwilgotnienie gruntu i gdy tor leży bliżej rzeki albo niżej w dolinie. Model korzysta tylko z cech o fizycznym związku z podmyciem. Cechy eksploatacyjne (prędkość, elektryfikacja, kategoria linii) usunąłem, bo w walidacji „uczyły się regionu”, a nie zjawiska. Rozdz. 05 pokazuje, że ten wybór nie zawyżył wyniku testu niezależnego.</p>
   <h3>B · Moduł fali wezbraniowej</h3>
-  <p>Dla każdego odcinka szukam <b>największej rzeki w promieniu 1,5 km</b>, która ma wodowskaz IMGW. Odcinek przypisuję do najbliższego wodowskazu na tej rzece (552 z 925 odcinków). Indeks stanu wody: 0 oznacza medianę, a 1 poziom 1% najwyższych dni z lat 2021–2024. Alarm włącza się przy indeksie ok. 2, z pełną wagą dla toru, który przecina rzekę mostem lub biegnie do 300 m od brzegu. <b>Próg ustaliłem z góry i nie dostrajałem go na teście z 1997 r.</b> W trybie na żywo stany wód pochodzą z publicznego API IMGW.</p>
+  <p>Dla każdego odcinka szukam <b>największej rzeki w promieniu 1,5 km</b>, która ma wodowskaz IMGW. Odcinek przypisuję do najbliższego wodowskazu na tej rzece (2153 z 4606 odcinków w Polsce). Indeks stanu wody: 0 oznacza medianę, a 1 poziom 1% najwyższych dni z lat 2021–2024. Alarm włącza się przy indeksie ok. 2, z pełną wagą dla toru, który przecina rzekę mostem lub biegnie do 300 m od brzegu. <b>Próg ustaliłem z góry i nie dostrajałem go na teście z 1997 r.</b> W trybie na żywo stany wód pochodzą z publicznego API IMGW.</p>
   <h3>Moduły fizyczne i raport</h3>
   <p><b>Wyboczenie:</b> temperatura szyny ≈ T<sub>pow.</sub> + k·nasłonecznienie, a ryzyko rośnie powyżej ok. 50–55 °C. <b>Wiatr:</b> progi ostrzeżeń IMGW (70/90/110 km/h). <b>Oblodzenie:</b> opad przy temperaturze ok. 0 °C. Wszystkie moduły łączy wzór P = 1 − Π(1 − P<sub>i</sub>). Raport dla dyżurnego pogrupowany jest według linii i zawiera miejscowość, rzekę, wartości opadu, stanu wody, temperatury szyny lub wiatru oraz <b>zalecane działanie</b>. Generują go deterministyczne szablony, więc w komunikacie bezpieczeństwa nie ma „halucynacji” AI.</p>
   <figure><img src="fig/popup_crop.png" style="max-height:58mm"><figcaption>Rys. 2. Szczegóły odcinka: ryzyko w podziale na mechanizmy, parametry i wyjaśnienie, które czynniki spowodowały alarm.</figcaption></figure>
@@ -135,7 +135,7 @@
     <tr><td>Sieć i obiekty</td><td>OpenStreetMap: linie, numery, mosty, nasypy, przekopy, tunele, elektryfikacja</td><td>Ewidencja PLK z kilometrażem, przepusty, stan obiektów</td></tr>
     <tr><td>Pogoda – historia</td><td>Reanaliza ERA5 (ok. 25 km), 2021–2024 i 1997; <b>~300 posterunków opadowych IMGW</b></td><td>Telemetria IMGW, radar</td></tr>
     <tr><td>Pogoda – prognoza</td><td>ECMWF IFS / ICON / GFS; archiwum prognoz do backtestu</td><td>ICON-D2 (ok. 2 km), nowcasting radarowy</td></tr>
-    <tr><td>Hydrologia</td><td><b>Dobowe stany wód z ok. 200 wodowskazów IMGW</b> (1997, 2021–2024) + API IMGW na żywo</td><td>Prognozy hydrologiczne IMGW, mapy zagrożenia powodziowego ISOK</td></tr>
+    <tr><td>Hydrologia</td><td><b>Dobowe stany wód z ok. 850 wodowskazów IMGW w całej Polsce</b> (1997, 2021–2024) + API IMGW na żywo</td><td>Prognozy hydrologiczne IMGW, mapy zagrożenia powodziowego ISOK</td></tr>
     <tr><td>Teren</td><td>Model wysokościowy (AWS Terrain Tiles: SRTM/EU-DEM)</td><td>LiDAR z Geoportalu (1 m)</td></tr>
     <tr><td>Etykiety</td><td>2024: 37 odcinków (komunikaty PLK/PAP); <b>1997: 3 miejsca zniszczeń (test)</b> – „Z Biegiem Szyn” nr 133</td><td><b>Rejestr zdarzeń i usterek PLK</b> (tysiące przypadków)</td></tr>
   </table>
@@ -146,7 +146,7 @@
     <li>Etykiety 2024 to bufory korytarzy zniszczeń opisanych w komunikatach, a etykiety 1997 to odcinki przy trzech zniszczonych mostach. Każdy korytarz ma w repozytorium źródło (<code>data/labels_flood_*.json</code>). Linii zlikwidowanych po 1997 r. (Kędzierzyn – Baborów, Kamieniec Ząbk. – Złoty Stok) nie uwzględniam, bo nie istnieją w dzisiejszej sieci.</li>
     <li>Model uczę na wszystkich odcinko-dniach kwiecień–październik. Zwykłe lata uczą go, kiedy deszcz <i>nie</i> niszczy toru. Rok 1997 nie bierze udziału w treningu ani w doborze parametrów.</li>
   </ol>
-  <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 13 i w pliku README.</div>
+  <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 15 i w pliku README.</div>
 </section>
 
 <!-- 05 WYNIKI -->
@@ -155,20 +155,20 @@
   <p>Dla każdego dnia 9–15 września odtworzyłem stan wiedzy z wieczora poprzedniego dnia: obserwacje do tego momentu, <b>archiwalną prognozę ECMWF IFS</b> na 3 dni (opad w przyszłości pochodzi wyłącznie z prognozy) oraz ostatni pomiar wodowskazów. Każdy odcinek ocenia model, który nie widział jego linii w treningu.</p>
   <figure><img src="fig/backtest.png" style="max-height:52mm"><figcaption>Rys. 3. Odsetek odcinków w alarmie w zależności od daty wydania prognozy: czerwone słupki to odcinki faktycznie zniszczone, szare to reszta sieci.</figcaption></figure>
   <div class="kpis">
-    <div class="kpi"><b>36/37</b><small>zniszczonych odcinków z alarmem (sam model ML: 32)</small></div>
+    <div class="kpi"><b>37/37</b><small>zniszczonych odcinków z alarmem (sam model ML: 31)</small></div>
     <div class="kpi"><b>52 h</b><small>mediana wyprzedzenia przed pierwszymi zniszczeniami (14.09)</small></div>
-    <div class="kpi"><b>13%</b><small>pozostałych odcinków w alarmie w szczycie</small></div>
-    <div class="kpi"><b>27%</b><small>precyzja alarmów w dniach powodzi (reguła: 13%)</small></div>
+    <div class="kpi"><b>25%</b><small>pozostałych odcinków w alarmie w szczycie</small></div>
+    <div class="kpi"><b>36%</b><small>precyzja alarmów w dniach powodzi (reguła: 14%)</small></div>
   </div>
   <h3>Walidacja krzyżowa po liniach (GroupKFold) i porównanie z regułą progową</h3>
   <p>Punkt odniesienia to reguła „alarm, gdy opad 3-dobowy przekracza próg”, odpowiadająca dzisiejszym ostrzeżeniom meteorologicznym. Najważniejszy jest środkowy wykres. W dniach powodzi wszystkie odcinki w strefie ulewy mają „dużo deszczu”, a model dzięki terenowi i infrastrukturze lepiej wskazuje te, które faktycznie ulegną zniszczeniu, i <b>o połowę rzadziej alarmuje niepotrzebnie</b>.</p>
   <figure><img src="fig/metrics.png" style="max-height:46mm"><figcaption>Rys. 4. Model (moduł A) vs reguła opadowa, walidacja krzyżowa 2024.</figcaption></figure>
   <table>
     <tr><th>Wariant (moduł A)</th><th>PR-AUC</th><th>AUC w strefie ulewy</th><th>Sieć w alarmie (dni powodzi)</th><th>AUC – test 1997</th></tr>
-    <tr><td><b>ERA5 + cechy fizyczne (wybrany)</b></td><td><b>0,544</b></td><td><b>0,941</b></td><td><b>10%</b></td><td>0,617</td></tr>
-    <tr><td>ERA5 + wszystkie cechy</td><td>0,392</td><td>0,925</td><td>14%</td><td>0,637</td></tr>
-    <tr><td>Posterunki IMGW + cechy fizyczne</td><td>0,465</td><td>0,929</td><td>11%</td><td>0,356</td></tr>
-    <tr><td>Reguła opadowa (ERA5)</td><td>0,347</td><td>0,863</td><td>27%</td><td>0,730</td></tr>
+    <tr><td><b>ERA5 + cechy fizyczne (wybrany)</b></td><td><b>0,518</b></td><td><b>0,948</b></td><td><b>7%</b></td><td>0,673</td></tr>
+    <tr><td>ERA5 + wszystkie cechy</td><td>0,453</td><td>0,935</td><td>11%</td><td>0,685</td></tr>
+    <tr><td>Posterunki IMGW + cechy fizyczne</td><td>0,531</td><td>0,948</td><td>10%</td><td>0,382</td></tr>
+    <tr><td>Reguła opadowa (ERA5)</td><td>0,349</td><td>0,864</td><td>27%</td><td>0,731</td></tr>
   </table>
   <p class="small muted">Wybór cech nie zawyżył wyniku: na niezależnym teście 1997 oba zestawy cech wypadają podobnie. Gęstsze dane z posterunków poprawiają samą regułę opadową (AUC w strefie ulewy 0,880 wobec 0,863), ale nie model, bo interpolacja z 2–3 posterunków jest zaszumiona. Prawdziwy zysk przyniosła hydrologia (rozdz. 06).</p>
 </section>
@@ -179,24 +179,24 @@
   <p>System, <b>bez żadnych zmian</b>, uruchomiłem na danych z lipca 1997 r. (reanaliza ERA5 i wodowskazy IMGW). Zadanie: czy wskaże trzy udokumentowane miejsca zniszczeń, czyli mosty w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym?</p>
   <table>
     <tr><th>Metoda</th><th>Wykryte miejsca zniszczeń</th><th>Odcinki (z 10 oznaczonych)</th><th>Sieć w alarmie w oknie powodzi</th></tr>
-    <tr><td>Reguła opadowa</td><td>2/3</td><td>7/10</td><td>47% (ok. 2,5 tys. km)</td></tr>
-    <tr><td>Sam model ML (moduł A)</td><td>1/3</td><td>1/10</td><td>14%</td></tr>
-    <tr><td><b>System: moduł A + moduł B (fala)</b></td><td><b>3/3</b></td><td><b>5/10</b></td><td><b>34%</b></td></tr>
+    <tr><td>Reguła opadowa</td><td>2/3</td><td>7/10</td><td>46% (ok. 2,5 tys. km)</td></tr>
+    <tr><td>Sam model ML (moduł A)</td><td>0/3</td><td>0/10</td><td>9%</td></tr>
+    <tr><td><b>System: moduł A + moduł B (fala)</b></td><td><b>3/3</b></td><td><b>8/10</b></td><td><b>35%</b></td></tr>
   </table>
   <p><b>Czego nauczył mnie ten test.</b> Sam model ML, uczony na podgórskiej powodzi z 2024 r., zawiódł: zniszczenia z 1997 r. spowodowała fala na nizinnej Odrze, a nie lokalny deszcz. Dodanie stanu wód <i>jako cechy</i> ML nie pomogło, bo z jednego zdarzenia nie da się nauczyć drugiego mechanizmu. Dlatego RailSentinel ma <b>osobny moduł hydrologiczny</b> z progiem ustalonym z góry, a system wykrywa wszystkie trzy miejsca. Pięć niewykrytych odcinków leży w 9-kilometrowym korytarzu, którym oznaczyłem <i>jeden</i> most.</p>
   <h3>Moduły wyboczenia i wiatru na udokumentowanych zdarzeniach</h3>
-  <figure><img src="fig/module_validation.png" style="max-height:50mm"><figcaption>Rys. 5. Ranking dni według odsetka sieci w alarmie. <b>Orkan Eunice (19.02.2022; PLK: 400 zdarzeń pogodowych)</b> to 3. najgorszy dzień z 1096 w danych, z 62% sieci w alarmie (typowy dzień: 0%). <b>Upał 3.07.2025 (PLK: 133 pociągi opóźnione przez ograniczenia prędkości)</b> to 9. dzień z 460 dni letnich, z szyną do 54 °C.</figcaption></figure>
+  <figure><img src="fig/module_validation.png" style="max-height:50mm"><figcaption>Rys. 5. Ranking dni według odsetka sieci w alarmie. <b>Orkan Eunice (19.02.2022; PLK: 400 zdarzeń pogodowych)</b> to 3. najgorszy dzień z 1096 w danych, z 60% sieci w alarmie (typowy dzień: 0%). <b>Upał 3.07.2025 (PLK: 133 pociągi opóźnione przez ograniczenia prędkości)</b> to 10. dzień z 460 dni letnich, z szyną do 54 °C.</figcaption></figure>
   <div class="two">
     <figure><img src="fig/screen_1997.png" style="max-height:50mm"><figcaption>Rys. 6. Lipiec 1997: alarmy systemu.</figcaption></figure>
     <figure><img src="fig/importance.png" style="max-height:50mm"><figcaption>Rys. 7. Co decyduje o ryzyku w module A (permutation importance).</figcaption></figure>
   </div>
-  <div class="box warn"><b>Ograniczenia, które zostają.</b> (1) Model ML zna tylko mechanizm podgórski. Ulewa na nizinie (np. nad Wrocławiem) daje w nim niskie ryzyko podmycia, a tam zagrożenie pokrywa moduł B. (2) Przy pełnej informacji hydrologicznej system w szczycie powodzi obejmuje alarmem więcej sieci (29%). To cena wykrycia fali, dlatego raport pokazuje falę jako osobną kategorię z innymi działaniami. (3) Moduł upału jest ostrożny: w dniu 3.07.2025 alarmował tylko 1,7% odcinków regionu. Wszystkie trzy punkty poprawi podłączenie rejestru zdarzeń PLK.</div>
+  <div class="box warn"><b>Ograniczenia, które zostają.</b> (1) Model ML zna tylko mechanizm podgórski. Ulewa na nizinie (np. nad Wrocławiem) daje w nim niskie ryzyko podmycia, a tam zagrożenie pokrywa moduł B. (2) Przy pełnej informacji hydrologicznej system w szczycie powodzi obejmuje alarmem więcej sieci (28%). To cena wykrycia fali, dlatego raport pokazuje falę jako osobną kategorię z innymi działaniami. (3) Moduł upału jest ostrożny: w dniu 3.07.2025 alarmował tylko 1,5% odcinków regionu. Wszystkie trzy punkty poprawi podłączenie rejestru zdarzeń PLK.</div>
 </section>
 
 <!-- 07 SYMULATOR -->
 <section class="page">
   <h2><span class="n">07</span>Symulator „co jeśli?” i test klimatyczny</h2>
-  <p>Cały model ML, czyli 289 drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko 925 odcinków przelicza się w ok. 10 ms. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 160 mm?”</i>.</p>
+  <p>Cały model ML, czyli 300 drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko 4606 odcinków w całej Polsce przelicza się w ułamku sekundy. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 160 mm?”</i>.</p>
   <figure><img src="fig/screen_sim.png" style="max-height:112mm"><figcaption>Rys. 8. Symulator: ulewa 160 mm w Karkonoszach, scenariusz klimatyczny +20% intensywności opadu.</figcaption></figure>
   <h3>Test klimatyczny</h3>
   <p>Suwak „scenariusz klimatyczny” zwiększa intensywność opadu. Ponieważ zniszczenia mają charakter progowy, skutki rosną nieproporcjonalnie: dla ulewy 160 mm w Karkonoszach wzrost intensywności o 20% oznacza <b>7 zamiast 4 odcinków w alarmie i 26 zamiast 10 km toru do sprawdzenia (2,6×)</b>. Taka analiza wskazuje, gdzie inwestycje adaptacyjne (przepusty, umocnienia skarp) dadzą największy efekt w zmieniającym się klimacie.</p>
@@ -204,9 +204,49 @@
   <p>W trybie backtestu przycisk „▶ Odtwórz” odtwarza kolejne prognozy z 9–15.09.2024 razem z warstwą opadu. Widać, jak ulewa nasuwa się na Sudety, a alarmy zapalają się na odcinkach, które dwa dni później zostały zniszczone.</p>
 </section>
 
+<!-- 08 PROGNOZA RZEK -->
+<section class="page">
+  <h2><span class="n">08</span>Nowy model ML: prognoza stanów rzek na 3 dni</h2>
+  <p>Moduł B zakładał wcześniej, że stan rzeki się utrzyma. Fala jednak <b>wędruje</b>: to, co dziś widać w górnym biegu, jutro dochodzi do mostu niżej. Drugi model ML prognozuje indeks stanu wody dla <b>814 wodowskazów IMGW w całej Polsce</b> z wyprzedzeniem 1, 2 i 3 dni.</p>
+  <ul>
+    <li><b>Zwiastuny fali:</b> dla każdego wodowskazu model automatycznie wybiera do 3 wodowskazów na tej samej rzece, których przyrost stanu poprzedza przyrost tutaj (korelacja z opóźnieniem 1–2 dni, dane 2021–2023). Znalazł je dla 315 stacji.</li>
+    <li><b>Cechy:</b> bieżący stan i trend, stany zwiastunów, opad z ok. 1000 posterunków IMGW (przeszły i prognozowany).</li>
+    <li><b>System:</b> alarm, gdy rzeka <i>już jest</i> wysoko <b>albo</b> model <i>przewiduje</i> przekroczenie. Próg modelu dobrałem wyłącznie na danych treningowych.</li>
+  </ul>
+  <table>
+    <tr><th>Test (model ich nie widział)</th><th>Wyprzedzenie</th><th>Wykryte przekroczenia: system / persystencja</th><th>CSI: system / persystencja</th><th>Błąd przy wysokich stanach: model / persystencja</th></tr>
+    <tr><td rowspan="3">Powódź 09.2024</td><td>1 dzień</td><td>72% / 68%</td><td>0,52 / 0,52</td><td>0,66 / 0,75</td></tr>
+    <tr><td><b>2 dni</b></td><td><b>66% / 45%</b></td><td><b>0,40 / 0,29</b></td><td>0,95 / 1,28</td></tr>
+    <tr><td>3 dni</td><td>39% / 28%</td><td>0,22 / 0,16</td><td>1,23 / 1,62</td></tr>
+    <tr><td rowspan="3">Powódź 07.1997</td><td>1 dzień</td><td>79% / 76%</td><td>0,59 / 0,62</td><td>0,51 / 0,49</td></tr>
+    <tr><td><b>2 dni</b></td><td><b>66% / 58%</b></td><td><b>0,46 / 0,43</b></td><td>0,76 / 0,83</td></tr>
+    <tr><td>3 dni</td><td>57% / 45%</td><td>0,35 / 0,30</td><td>0,95 / 1,05</td></tr>
+  </table>
+  <p><b>Wniosek:</b> z 2-dniowym wyprzedzeniem system wykrywa o <b>46% więcej</b> przekroczeń niż założenie „rzeka się nie zmieni”, a błąd prognozy przy wysokich stanach spada o ok. 26%. To dodatkowe godziny na obserwację mostów i usuwanie zatorów. Prognoza rzek zasila moduł B w backteście i w trybie na żywo, gdzie bieżące stany pochodzą z API IMGW.</p>
+  <div class="box warn"><b>Uczciwie:</b> w tym teście opad „przyszły” pochodzi z pomiarów, czyli jest to idealna prognoza opadu. W backteście 2024 (rozdz. 05) model korzysta z prawdziwych prognoz ECMWF. Na żywo API IMGW podaje tylko bieżący stan, bez historii z ostatnich dni, więc trend przyjmuję jako zerowy. Pełny dostęp do telemetrii IMGW usunie to ograniczenie.</div>
+</section>
+
+<!-- 09 CAŁA POLSKA I APLIKACJA -->
+<section class="page">
+  <h2><span class="n">09</span>Cała Polska i aplikacja dla kolejarzy</h2>
+  <p><b>Zasięg krajowy.</b> Sieć 4606 odcinków (27 293 km torów, 647 linii) zbudowałem z OpenStreetMap dla całej Polski. Cechy terenu liczę z modelu wysokościowego, a stany wód pochodzą z 814 wodowskazów IMGW (2153 odcinków ma wodowskaz na pobliskiej rzece). Prognoza pogody obejmuje 562 komórek siatki. Dla komórek spoza obszaru treningu klimatologię opadu (poziom 1% najwyższych sum 3-dniowych) szacuję regresją względem wysokości terenu.</p>
+  <div class="two">
+    <figure><img src="fig/screen_live_pl.png" style="max-height:78mm"><figcaption>Rys. 9. Prognoza na żywo dla całej Polski.</figcaption></figure>
+    <figure><img src="fig/screen_phone.png" style="max-height:78mm"><figcaption>Rys. 10. „Moja linia” na telefonie.</figcaption></figure>
+  </div>
+  <p><b>Aplikacja (PWA) pod adresem <u>railsentinel.pl</u>.</b> Działa jako strona i jako aplikacja instalowana na telefonie z Androidem lub iPhonie oraz na komputerze. Nie wymaga sklepu z aplikacjami ani logowania.</p>
+  <ul>
+    <li><b>„Moja linia”</b>: dyżurny, toromistrz czy kierownik sekcji wpisuje numer linii albo klika <b>📍 Gdzie jestem</b> i od razu widzi status linii (bez zagrożeń / uwaga / alarm), każdy odcinek z ryzykiem na 3 dni i zalecane działanie. Przycisk „Udostępnij komunikat” wysyła go do zespołu.</li>
+    <li><b>Praca w terenie:</b> aplikacja zapamiętuje ostatnią prognozę i mapę (Service Worker), więc działa także bez zasięgu na szlaku. Duże przyciski są wygodne w rękawicach.</li>
+    <li><b>Dla sztabu i analityków:</b> mapa całej Polski, backtest 2024, test 1997, symulator, opis modelu i metryki.</li>
+  </ul>
+  <p><b>Film prezentacyjny</b> (ok. 4 min, lektor, muzyka) pokazuje działanie aplikacji na tle historycznych powodzi. Jest dostępny na stronie <b>railsentinel.pl/about.html</b> i dołączony do zgłoszenia.</p>
+  <div class="box">Koszt uruchomienia: hosting strony i aplikacji 0 zł (GitHub Pages, HTTPS); jedyny wydatek to domena railsentinel.pl. Odświeżanie prognozy to jedno polecenie (<code>src/05_predict.py live</code>). W pilotażu uruchamiałby je co kilka godzin harmonogram po stronie PLK.</div>
+</section>
+
 <!-- 08 UŻYTKOWNICY, ZMIANA, WPŁYW -->
 <section class="page">
-  <h2><span class="n">08</span>Użytkownicy, oczekiwana zmiana i wpływ</h2>
+  <h2><span class="n">10</span>Użytkownicy, oczekiwana zmiana i wpływ</h2>
   <table>
     <tr><th style="width:26%">Użytkownik</th><th>Co dostaje</th><th style="width:32%">Jak używa</th></tr>
     <tr><td><b>Dyżurny / dyspozytor</b></td><td>Raport poranny i wieczorny, alarmy dla swojego obszaru</td><td>Ograniczenia prędkości, zamknięcia, kolejność obchodów</td></tr>
@@ -234,7 +274,7 @@
 
 <!-- 09 WDROŻENIE + AI -->
 <section class="page">
-  <h2><span class="n">09</span>Zastosowanie w rzeczywistym środowisku kolejowym</h2>
+  <h2><span class="n">11</span>Zastosowanie w rzeczywistym środowisku kolejowym</h2>
   <table>
     <tr><th style="width:18%">Etap</th><th>Zakres</th><th style="width:16%">Czas</th></tr>
     <tr><td><b>0. Prototyp</b></td><td>Gotowy: dane publiczne, Dolny Śląsk i Opolszczyzna, backtest 2024, test 1997, symulator</td><td>zrobione</td></tr>
@@ -251,7 +291,7 @@
     <tr><td>Mechanizm nieobecny w danych uczących</td><td>Architektura modułowa (A + B + fizyka), testy na zdarzeniach historycznych przed każdym wdrożeniem</td></tr>
     <tr><td>Cyberbezpieczeństwo</td><td>System tylko odczytuje dane i niczym nie steruje; osobna strefa sieciowa, uwierzytelnianie, dziennik zdarzeń</td></tr>
   </table>
-  <h2 style="margin-top:10px"><span class="n">10</span>Odpowiedzialne stosowanie AI</h2>
+  <h2 style="margin-top:10px"><span class="n">12</span>Odpowiedzialne stosowanie AI</h2>
   <ul>
     <li><b>Człowiek decyduje.</b> System rekomenduje, a o ograniczeniu prędkości czy zamknięciu decyduje uprawniony pracownik.</li>
     <li><b>Wyjaśnialność i fizyka.</b> Każdy alarm ma listę przyczyn. Model ma wymuszoną monotoniczność, a moduły hydrologiczny i fizyczne są w pełni przejrzyste.</li>
@@ -263,7 +303,7 @@
 
 <!-- 11 BIZNES + 12 ROZWÓJ -->
 <section class="page">
-  <h2><span class="n">11</span>Model rozwoju i model biznesowy</h2>
+  <h2><span class="n">13</span>Model rozwoju i model biznesowy</h2>
   <p>RailSentinel może być narzędziem wewnętrznym PLK albo produktem SaaS dla zarządców infrastruktury. Rachunek opieram na <b>opublikowanych danych</b>. Tam, gdzie liczba jest założeniem, zaznaczam to wprost.</p>
   <table>
     <tr><th style="width:42%">Fakt (źródło)</th><th>Wartość</th></tr>
@@ -288,9 +328,9 @@
     <tr><td><b>Przewaga</b></td><td>Dwa mechanizmy powodzi, walidacja na dwóch zdarzeniach, wyjaśnialność, brak sprzętu w torze, więc szybkie wdrożenie.</td></tr>
   </table>
   <div class="box">Prawa autorskie pozostają przy autorze, a Organizator otrzymuje licencję na analizę, testy i pilotaż (§10 Regulaminu). Jestem gotowy rozwijać system wspólnie z ekspertami PLK.</div>
-  <h2 style="margin-top:10px"><span class="n">12</span>Dalszy rozwój</h2>
+  <h2 style="margin-top:10px"><span class="n">14</span>Dalszy rozwój</h2>
   <ul>
-    <li><b>Propagacja fali:</b> wykorzystanie wodowskazów w górnym biegu rzeki i prognoz hydrologicznych IMGW, co da dodatkowe godziny wyprzedzenia dla mostów.</li>
+    <li><b>Telemetria IMGW na żywo</b> (historia stanów z ostatnich godzin) i oficjalne prognozy hydrologiczne jako dodatkowe wejście modelu fali.</li>
     <li><b>Nowcasting radarowy</b> (0–6 h) dla burz i nawalnych opadów lokalnych.</li>
     <li><b>Dane satelitarne:</b> wilgotność gleby i deformacje terenu (Sentinel-1/InSAR) dla osuwisk; zadrzewienia przy torze (Sentinel-2/LiDAR) dla modułu wiatru.</li>
     <li><b>Douczenie na rejestrze zdarzeń PLK</b>, co pozwoli nauczyć model nizinnych mechanizmów i skalibrować moduły fizyczne.</li>
@@ -299,7 +339,7 @@
 
 <!-- 13 ŹRÓDŁA -->
 <section class="page">
-  <h2><span class="n">13</span>Źródła, dane i narzędzia</h2>
+  <h2><span class="n">15</span>Źródła, dane i narzędzia</h2>
   <h3>Fakty i etykiety</h3>
   <ul class="small">
     <li>PAP: „880 mln zł. PKP PLK szacuje straty w związku z powodzią” (19.09.2024); „Utrudnienia na kolei i drogach krajowych – najnowsze informacje”.</li>
@@ -322,8 +362,8 @@
   <h3>Materiały dołączone do zgłoszenia</h3>
   <ul class="small">
     <li>Kod źródłowy i dane pośrednie (ZIP / link)</li>
-    <li>Dashboard z symulatorem (<code>web/index.html</code>, działa lokalnie bez instalacji)</li>
-    <li>Nagranie wideo z demonstracją (MP4, do 5 min)</li>
+    <li>Aplikacja i strona: <b>https://railsentinel.pl</b> (kopia lokalna: <code>web/index.html</code>)</li>
+    <li>Film prezentacyjny <code>RailSentinel_film.mp4</code> (ok. 4 min) – także na railsentinel.pl/about.html</li>
   </ul>
   <p class="small muted" style="margin-top:16px">Praca nie zawiera informacji niejawnych, tajemnicy przedsiębiorstwa ani danych osobowych osób trzecich. RailSentinel jest prototypem studenckim i nie jest systemem operacyjnym PKP PLK S.A.</p>
 </section>
