@@ -1,0 +1,21 @@
+{
+  "_opis": "Etykiety TESTOWE (niezależne od treningu) - powódź tysiąclecia, lipiec 1997. Tylko zniszczenia na liniach, które istnieją w dzisiejszej sieci. Okno zdarzenia obejmuje przejście fali na Odrze.",
+  "event_days": ["1997-07-06", "1997-07-07", "1997-07-08", "1997-07-09", "1997-07-10", "1997-07-11", "1997-07-12", "1997-07-13", "1997-07-14"],
+  "buffer_km": 3.0,
+  "corridors": [
+    {"name": "Kędzierzyn-Koźle Zachodni - Twardawa (most, drugi tor nieprzejezdny od 1997)", "line": "137",
+     "points": [[50.3429, 17.9903], [50.3449, 18.2110]],
+     "source": "K. Trammer, 'Powódź na dekady', Z Biegiem Szyn nr 6 (133), s. 7-8"},
+    {"name": "Krapkowice - most na Odrze (linia Prudnik - Gogolin)", "line": "306",
+     "points": [[50.4747, 17.9671]],
+     "source": "K. Trammer, 'Powódź na dekady', Z Biegiem Szyn nr 6 (133), s. 7"},
+    {"name": "Księginice - Brzeg Dolny - most na Odrze (Magistrala Nadodrzańska)", "line": "273",
+     "points": [[51.2390, 16.7621], [51.2691, 16.7081]],
+     "source": "K. Trammer, 'Powódź na dekady', Z Biegiem Szyn nr 6 (133), s. 8"}
+  ],
+  "excluded": [
+    "Kędzierzyn-Koźle - Baborów (podmyty nasyp) - linia zlikwidowana w 2004 r., nie istnieje w OSM",
+    "Kamieniec Ząbkowicki - Złoty Stok (zerwany most) - linia rozebrana w 2017 r."
+  ],
+  "references": ["https://www.zbs.net.pl/zbs133.pdf"]
+}

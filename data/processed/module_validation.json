@@ -1,0 +1,23 @@
+{
+ "heat_2025_07_03": {
+  "network_alarm_pct": 1.5080113100848256,
+  "rank": 10.0,
+  "of_days": 460,
+  "rail_temp_max": 54.254999999999995,
+  "median_day_alarm_pct": 0.0
+ },
+ "wind_2022-02-18": {
+  "network_alarm_pct": 0.3770028275212064,
+  "rank": 17.0,
+  "of_days": 1096,
+  "gust_max_kmh": 86.0,
+  "median_day_alarm_pct": 0.0
+ },
+ "wind_2022-02-19": {
+  "network_alarm_pct": 60.226201696512724,
+  "rank": 2.0,
+  "of_days": 1096,
+  "gust_max_kmh": 105.1,
+  "median_day_alarm_pct": 0.0
+ }
+}

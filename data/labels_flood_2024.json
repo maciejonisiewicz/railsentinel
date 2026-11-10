@@ -1,0 +1,99 @@
+{
+ "_opis": "Słabe etykiety (weak labels) zniszczeń infrastruktury kolejowej - powódź wrzesień 2024. Odcinek = pozytywny, jeśli leży w buforze korytarza zniszczeń w dniach event_days. Współrzędne miejscowości przybliżone (centra/stacje), bufor kompensuje niedokładność.",
+ "event_days": [
+  "2024-09-14",
+  "2024-09-15",
+  "2024-09-16"
+ ],
+ "buffer_km": 3.0,
+ "corridors": [
+  {
+   "name": "Węzeł Kłodzko",
+   "points": [
+    [
+     50.4386,
+     16.6539
+    ]
+   ],
+   "buffer_km": 4.0,
+   "source": "PAP 19.09.2024 - PLK: najtrudniejsza sytuacja w węźle Kłodzko; Kłodzko Główne nieprzejezdne"
+  },
+  {
+   "name": "Kłodzko - Bystrzyca Kłodzka - Długopole-Zdrój",
+   "points": [
+    [
+     50.4386,
+     16.6539
+    ],
+    [
+     50.298,
+     16.651
+    ],
+    [
+     50.247,
+     16.648
+    ]
+   ],
+   "source": "PAP / gov.pl - utrudniony dostęp do Bystrzycy Kłodzkiej i tunelu w Długopolu-Zdroju, zalane urządzenia sterowania"
+  },
+  {
+   "name": "Kłodzko Nowe - początek linii do Kudowy-Zdroju (ujście Bystrzycy Dusznickiej)",
+   "points": [
+    [
+     50.4386,
+     16.6539
+    ],
+    [
+     50.425,
+     16.615
+    ]
+   ],
+   "source": "PLK (M. Pabiańska) za: K. Trammer, Z Biegiem Szyn nr 6 (133), s. 6 - zniszczone torowisko i 300 m nasypu na początku linii do Kudowy; PLK inf. pras. 30.12.2024",
+   "line": "309",
+   "buffer_km": 2.0
+  },
+  {
+   "name": "Nysa - Głuchołazy - Prudnik",
+   "points": [
+    [
+     50.474,
+     17.334
+    ],
+    [
+     50.313,
+     17.383
+    ],
+    [
+     50.322,
+     17.577
+    ]
+   ],
+   "source": "PAP 15/19.09.2024 - zdeformowane tory i podtorze, wypłukany tłuczeń: Nysa - Prudnik, stacja Głuchołazy, Prudnik - Nowy Świętów"
+  },
+  {
+   "name": "Otmuchów - Paczków - Kamieniec Ząbkowicki",
+   "points": [
+    [
+     50.466,
+     17.172
+    ],
+    [
+     50.462,
+     17.004
+    ],
+    [
+     50.524,
+     16.877
+    ]
+   ],
+   "source": "PAP 15.09.2024 - nieprzejezdne: Otmuchów - Paczków, Paczków - Kamieniec Ząbkowicki"
+  }
+ ],
+ "references": [
+  "https://www.pap.pl/aktualnosci/880-mln-zl-pkp-plk-szacuje-straty-w-zwiazku-z-powodzia-kwota-bedzie-rosnac",
+  "https://www.pap.pl/aktualnosci/utrudnienia-na-kolei-i-drogach-krajowych-najnowsze-informacje",
+  "https://plk-sa.pl/files/user_upload/PLK_inf_pras_Lepsze_i_szybsze_podroze_na_Dolnym_Slasku_30.12.2024.docx",
+  "https://www.gov.pl/web/premier/100-milionow-zlotych-na-odbudowe-infrastruktury-kolejowej-bedzie-remont-zapory-w-pilchowicach",
+  "https://www.zbs.net.pl/zbs133.pdf"
+ ]
+}
