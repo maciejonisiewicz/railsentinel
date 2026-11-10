@@ -362,11 +362,12 @@
     const f = (x, d = 3) => (x == null || isNaN(x) ? "–" : (+x).toFixed(d));
     $("#panel-model").innerHTML = `
       <h3>Jak działa RailSentinel</h3>
-      <p>Dla każdego z ${SEG.length} odcinków (ok. 4–5 km) sieci na Dolnym Śląsku i Opolszczyźnie model łączy prognozę pogody
+      <p>Dla każdego z ${SEG.length} odcinków (ok. 4–5 km) sieci kolejowej w Polsce model łączy prognozę pogody
       z cechami terenu i infrastruktury i liczy prawdopodobieństwo uszkodzenia w horyzoncie 72 h.</p>
       <ul>
         <li><b>Ulewa / podmycie</b> – model ML (gradient boosting) z ograniczeniami monotoniczności: więcej deszczu, bliżej rzeki, niżej w dolinie ⇒ ryzyko nigdy nie maleje.</li>
-        <li><b>Fala wezbraniowa</b> – moduł hydrologiczny: stany wód z ${"~200"} wodowskazów IMGW, próg ustalony z góry.</li>
+        <li><b>Fala wezbraniowa</b> – drugi model ML prognozuje stany ok. 800 wodowskazów IMGW na 1–3 dni (sam znajduje „zwiastuny” fali w górnym biegu); alarm przy przekroczeniu progu ustalonego z góry.</li>
+        <li><b>Cała Polska</b> – ${SEG.length} odcinków sieci; trening i walidacja na obszarze ze zweryfikowanymi etykietami (Dolny Śląsk, Opolszczyzna).</li>
         <li><b>Wyboczenie, wiatr, oblodzenie</b> – moduły fizyczne (temperatura szyny, progi IMGW, marznący opad).</li>
         <li><b>Wyjaśnialność</b> – każdy alarm pokazuje, które czynniki go spowodowały.</li>
       </ul>
