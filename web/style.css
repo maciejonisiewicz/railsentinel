@@ -218,3 +218,25 @@ dialog::backdrop { background: rgba(0,0,0,.45); backdrop-filter: blur(3px); }
 .pp .vm-row small { opacity: .7; font-size: 10.5px; }
 .pp .vm-row b { font: 700 22px/1.1 "JetBrains Mono", monospace; }
 .pp .vm-n { font-size: 11px; opacity: .7; }
+
+/* raport w wydruku dla dyżurnego */
+.brief .km { color: var(--muted, #6b7785); font-size: 12px; }
+.brief .vm { font-size: 12px; font-weight: 600; }
+#printArea { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  html, body { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
+  #app { display: none !important; }
+  #printArea { display: block !important; font: 11pt/1.4 Inter, Arial, sans-serif; color: #000; }
+  #printArea header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px solid #ffb020; padding-bottom: 6px; font-size: 12pt; }
+  #printArea header b { font-size: 16pt; }
+  #printArea .meta { margin: 8px 0 10px; font-size: 10pt; color: #333; }
+  #printArea .body ul { margin: 4px 0 10px 18px; padding: 0; }
+  #printArea .body li { margin: 3px 0; break-inside: avoid; }
+  #printArea .tag { border: 1px solid #000; padding: 0 4px; border-radius: 3px; font-weight: 700; font-size: 9pt; }
+  #printArea .km, #printArea .vm { font-size: 9.5pt; color: #222; }
+  #printArea table.sign { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9pt; break-inside: avoid; }
+  #printArea table.sign td { border: 1px solid #000; padding: 4px 6px; width: 33%; }
+  #printArea table.sign tr:last-child td { height: 16mm; }
+  #printArea footer { margin-top: 10px; font-size: 8pt; color: #444; }
+}

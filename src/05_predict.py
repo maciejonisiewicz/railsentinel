@@ -422,9 +422,21 @@ if __name__ == "__main__":
     if "live" in modes:
         live()
     # geometria odcinków dla mapy
-    geo = [{"id": s["id"], "line": s["line"], "g": [simplify(l) for l in s["geometry"]], "river": s["river_name"],
-            "place": s.get("place", ""), "cell": f"{round(s['lat'] * 4) / 4},{round(s['lon'] * 4) / 4}",
-            "elev": round(s["elev"]), "len": s["length_km"]} for s in segs]
+    kmf = P / "kilometraz.json"
+    KM = json.load(open(kmf)) if kmf.exists() else {}
+    geo = []
+    for s in segs:
+        g = {"id": s["id"], "line": s["line"], "g": [simplify(l) for l in s["geometry"]], "river": s["river_name"],
+             "place": s.get("place", ""), "cell": f"{round(s['lat'] * 4) / 4},{round(s['lon'] * 4) / 4}",
+             "elev": round(s["elev"]), "len": s["length_km"]}
+        k = KM.get(s["id"], {})
+        if k.get("km"):
+            g["km"] = k["km"]
+        if k.get("od"):
+            g["od"], g["do"] = k["od"], k.get("do") or k["od"]
+        if s.get("maxspeed") and s["maxspeed"] == s["maxspeed"]:
+            g["v"] = int(s["maxspeed"])
+        geo.append(g)
     write_js("segments", geo)
     json.dump(json.load(open(P / "metrics.json")), open(WEB / "metrics.json", "w"), indent=1)
     write_js("metrics", json.load(open(P / "metrics.json")))

@@ -20,11 +20,18 @@
     wind:  { warn: [100, 80], alarm: [60, 40], note: "jazda z gotowością do zatrzymania przed przeszkodą" },
     ice:   { warn: [100, 80], alarm: [60, 50], note: "przy oblodzeniu sieci – rozważyć trakcję spalinową" },
   };
-  const speedOf = (h, x) => (x >= ALARM ? SPEED[h].alarm : x >= WARN ? SPEED[h].warn : null);
-  const speedTxt = (h, x) => { const v = speedOf(h, x); return v ? `pasażerskie ${v[0]} km/h, towarowe ${v[1]} km/h (${SPEED[h].note})` : ""; };
-  const speedBox = (h, x) => { const v = speedOf(h, x); return v ? `<div class="vmax"><div class="vm-h">Proponowana prędkość maks.</div>
+  // prędkość nie wyższa niż maksymalna na odcinku (OSM maxspeed)
+  const speedOf = (h, x, sg) => { const v = x >= ALARM ? SPEED[h].alarm : x >= WARN ? SPEED[h].warn : null;
+    return v && sg && sg.v ? v.map((a) => Math.min(a, sg.v)) : v; };
+  const speedTxt = (h, x, sg) => { const v = speedOf(h, x, sg); return v ? `pasażerskie ${v[0]} km/h, towarowe ${v[1]} km/h (${SPEED[h].note})` : ""; };
+  // kilometraż i miejscowości
+  const kmf = (k) => k.toFixed(1).replace(".", ",");
+  const kmTxt = (sg) => (sg.km ? `km ${kmf(sg.km[0])}–${kmf(sg.km[1])}` : "");
+  const odDo = (sg) => (sg.od && sg.do && sg.od !== sg.do ? `${sg.od} – ${sg.do}` : sg.od || sg.place || "");
+  const segTitle = (sg) => `Linia ${sg.line}${sg.km ? " · " + kmTxt(sg) : sg.place ? " · " + sg.place : ""}`;
+  const speedBox = (h, x, sg) => { const v = speedOf(h, x, sg); return v ? `<div class="vmax"><div class="vm-h">Proponowana prędkość maks.</div>
       <div class="vm-row"><span><small>pasażerskie</small><b>${v[0]}</b> km/h</span><span><small>towarowe</small><b>${v[1]}</b> km/h</span></div>
-      <div class="vm-n">${SPEED[h].note} · nie więcej niż prędkość rozkładowa</div></div>` : ""; };
+      <div class="vm-n">${SPEED[h].note}${sg && sg.v ? ` · maks. na odcinku ${sg.v} km/h` : ""} · nie więcej niż prędkość rozkładowa</div></div>` : ""; };
   const VIEWS = { live: [[52.0, 19.3], 6], line: [[52.0, 19.3], 6], heat: [[52.0, 19.3], 6],
     replay2024: [[50.55, 16.95], 8], y1997: [[50.85, 17.45], 8], sim: [[50.45, 16.9], 9] };
 
@@ -151,8 +158,8 @@
     $("#top").innerHTML = list.length ? list.map(([x, i]) => {
       const s = SEG[i], h = st.hz === "total" ? domHz(r, i) : st.hz;
       return `<li data-i="${i}"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span>
-        <span class="t"><b>Linia ${s.line}${s.place ? " · " + s.place : ""}${dmg.has(s.id) ? " <span class='tag r'>zniszczony</span>" : ""}</b>
-        <small>${HZS[h]}${detail(h, r, i)}${s.river ? " · dolina " + s.river : ""}</small></span></li>`;
+        <span class="t"><b>${segTitle(s)}${dmg.has(s.id) ? " <span class='tag r'>zniszczony</span>" : ""}</b>
+        <small>${s.km ? odDo(s) + " · " : ""}${HZS[h]}${detail(h, r, i)}${s.river ? " · dolina " + s.river : ""}</small></span></li>`;
     }).join("") : `<li class="empty">Brak odcinków z podwyższonym ryzykiem w tym dniu. ✓</li>`;
 
     renderBrief(v, r, alarm.map(([, i]) => i), warn.map(([, i]) => i));
@@ -191,6 +198,8 @@
   st.line = LS.get("rs_line") || "";
   $("#lineInput").value = st.line;
   function lineOrder(ii) {
+    if (ii.filter((i) => SEG[i].km).length >= ii.length * 0.8)   // kolejność wg kilometrażu linii
+      return [...ii].sort((a, b) => (SEG[a].km ? SEG[a].km[0] : 1e9) - (SEG[b].km ? SEG[b].km[0] : 1e9));
     const c = ii.map((i) => centers[i]);
     const mx = c.reduce((a, p) => a + p[1], 0) / c.length, my = c.reduce((a, p) => a + p[0], 0) / c.length;
     let sxx = 0, syy = 0, sxy = 0;
@@ -219,9 +228,9 @@
     $("#lineStatus").innerHTML = `<b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>
       <span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span><br>
       ${lvl === "ok" ? "W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi." :
-        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, rejon ${SEG[worst.i].place || "?"}.<br><i>Prędkość maks.:</i> ${speedTxt(worst.h, worst.x)}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
+        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, ${kmTxt(SEG[worst.i]) ? kmTxt(SEG[worst.i]) + " (" + odDo(SEG[worst.i]) + ")" : "rejon " + (SEG[worst.i].place || "?")}.<br><i>Prędkość maks.:</i> ${speedTxt(worst.h, worst.x, SEG[worst.i])}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
     $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d, k) => `<th class="c">${dayLbl(d, k)}</th>`).join("")}</tr>` +
-      ord.map((i) => `<tr data-i="${i}"><td>${SEG[i].place || "–"}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
+      ord.map((i) => `<tr data-i="${i}"><td>${odDo(SEG[i]) || "–"}${SEG[i].km ? ` <span class="muted small">· ${kmTxt(SEG[i])}</span>` : ""}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
         v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
     $("#lineUpd").textContent = `prognoza z ${fmtDay(v.meta.issued || v.days[0])}`;
     ord.forEach((i) => L.polyline(SEG[i].g, { color: "#3b82f6", weight: 12, opacity: 0.3, interactive: false }).addTo(lineLayer));
@@ -346,7 +355,12 @@
         if (h === "heat") det = `szyna do ${Math.max(...ii.map((i) => r.trail[i])).toFixed(0)} °C`;
         if (h === "wind") det = `porywy do ${Math.max(...ii.map((i) => r.gust[i])).toFixed(0)} km/h`;
         if (h === "ice") det = `marznący opad do ${Math.max(...ii.map((i) => r.p1[i])).toFixed(1)} mm`;
-        return `<li><b>Linia ${ln}</b> (${ii.length} odc.${places ? ", " + places : ""}${rivers ? ", dolina " + rivers : ""}) – ${det}, ryzyko ${pct(mx)}</li>`;
+        const kms = ii.filter((i) => SEG[i].km).sort((a, b) => SEG[a].km[0] - SEG[b].km[0]).slice(0, 4)
+          .map((i) => `${kmTxt(SEG[i])} (${odDo(SEG[i])})`).join("; ");
+        const vm = speedOf(h, mx, { v: Math.min(...ii.map((i) => SEG[i].v || 999)) });
+        return `<li><b>Linia ${ln}</b> (${ii.length} odc.${places ? ", " + places : ""}${rivers ? ", dolina " + rivers : ""}) – ${det}, ryzyko ${pct(mx)}` +
+          `${kms ? `<br><span class="km">${kms}${ii.length > 4 ? " i inne" : ""}</span>` : ""}` +
+          `${vm ? `<br><span class="vm">V maks.: pas. ${vm[0]} / tow. ${vm[1]} km/h</span>` : ""}</li>`;
       }).join("");
       html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Proponowana prędkość maks. na odcinkach w alarmie:</i> ${speedTxt(h, 1)}.<br><i>Zalecane działania:</i> ${ACTION[h]}.</p>`;
     }
@@ -364,8 +378,8 @@
     const lead = st.mode === "replay2024" && D.replay2024.lead_hours_by_segment[s.id];
     const lvl = x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie ryzyko";
     L.popup({ autoPanPadding: [30, 30], maxWidth: 340, autoPanPaddingTopLeft: mobile() ? [20, 140] : [400, 90] }).setLatLng(latlng).setContent(`<div class="pp">
-      <h4>Linia ${s.line}${s.place ? " · " + s.place : ""}</h4>
-      <div class="sub">${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km · ${fmtDay(v.days[st.day])}</div>
+      <h4>${segTitle(s)}</h4>
+      <div class="sub">${s.km ? odDo(s) + " · " : ""}${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km · ${fmtDay(v.days[st.day])}</div>
       <div class="score"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span><span><b>${lvl}</b><br>główne zagrożenie: ${HZS[h]}</span></div>
       <div class="grid">
         <div><small>Woda${r.flash ? " (ulewa / rzeka)" : ""}</small><b>${pct(r.flood[i])}</b>${r.flash ? ` <span class="muted small">${pct(r.flash[i])} / ${pct(r.river[i])}</span>` : ""}</div>
@@ -374,7 +388,7 @@
         <div><small>Wiatr · porywy</small><b>${pct(r.wind[i])}</b> <span class="muted small">${r.gust[i]} km/h</span></div>
       </div>
       ${why ? `<div class="why"><b>Dlaczego? Wkład czynników do ryzyka</b>${why}</div>` : ""}
-      ${speedBox(h, x)}
+      ${speedBox(h, x, s)}
       ${x >= WARN ? `<div class="act"><b>Zalecane:</b> ${ACTION[h]}.</div>` : ""}
       ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed zniszczeniem` : ""}</div>` : ""}
     </div>`).openOn(map);
@@ -441,6 +455,18 @@
   $("#briefBtn").addEventListener("click", () => (dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "")));
   $("#closeDlg").addEventListener("click", () => dlg.close());
   dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  // wydruk A4: jednostronicowy komunikat do wywieszenia / przekazania na zmianie
+  $("#print").addEventListener("click", () => {
+    const v = view();
+    const now = new Date().toLocaleString("pl-PL", { dateStyle: "long", timeStyle: "short" });
+    $("#printArea").innerHTML = `<header><div><b>RailSentinel</b> · Raport dla dyżurnego ruchu</div><div>${v.meta.title || ""}</div></header>
+      <p class="meta">Prognoza wydana: <b>${fmtDay(v.meta.issued || v.days[0])}</b> · wydruk: ${now} · widok: ${st.hz === "total" ? "wszystkie zagrożenia" : HZS[st.hz]}</p>
+      <div class="body">${$("#brief").innerHTML}</div>
+      <table class="sign"><tr><td>Przyjął (dyżurny / toromistrz)</td><td>Data i godzina</td><td>Podjęte działania</td></tr><tr><td></td><td></td><td></td></tr></table>
+      <footer>Proponowane prędkości i działania są wsparciem decyzji – ostateczną decyzję podejmuje zarządca infrastruktury zgodnie z obowiązującymi przepisami. ` +
+      `Kilometraż orientacyjny (OpenStreetMap). Prototyp studencki, nie jest systemem PKP PLK. railsentinel.pl</footer>`;
+    window.print();
+  });
   $("#copy").addEventListener("click", () => { navigator.clipboard && navigator.clipboard.writeText($("#brief").innerText); $("#copy").textContent = "✓ Skopiowano"; setTimeout(() => ($("#copy").textContent = "Kopiuj"), 1500); });
   $("#theme").addEventListener("click", () => {
     const r = document.documentElement;
