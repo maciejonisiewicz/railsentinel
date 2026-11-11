@@ -1,6 +1,7 @@
 # Wywiad z kolejarzami do filmu RailSentinel – instrukcja dla Taty
 
-Plan: **2 krótkie rozmowy nagrane telefonem**, z toromistrzem i z dyżurnym ruchu. Każda trwa 5–10 minut.
+Plan: **2 krótkie spotkania nagrane telefonem**, z toromistrzem i z dyżurnym ruchu. Każde trwa 10–15 minut:
+najpierw **3 krótkie zadania w aplikacji** (test użyteczności, mierzymy czas), potem **3 pytania do kamery**.
 Do filmu wejdzie po 20–40 sekund z każdej rozmowy, a do pracy pisemnej 1–2 cytaty.
 **Nagrania prześlij najpóźniej 17.11**, żebym zdążył zmontować film przed terminem 22.11.
 
@@ -12,12 +13,12 @@ Cześć Tato,
 
 robię projekt na konkurs PKP PLK „Kolej na bezpieczeństwo” (termin 22 listopada). To aplikacja, która na podstawie
 prognozy pogody, stanów rzek z IMGW i uczenia maszynowego wskazuje z wyprzedzeniem do 3 dni, które odcinki torów
-w Polsce mogą być zagrożone przez ulewę i wodę, upał, wichurę albo oblodzenie. Dla każdego takiego odcinka proponuje też
-prędkość maksymalną, osobno dla pociągów pasażerskich i towarowych (to dzięki Twojej podpowiedzi).
-Działa na telefonie: **https://railsentinel.pl**
+w Polsce mogą być zagrożone przez ulewę i wodę, upał, wichurę albo oblodzenie. Pokazuje numer linii, kilometraż,
+przyczynę zagrożenia i kolejność, w jakiej warto sprawdzać odcinki. Działa na telefonie: **https://railsentinel.pl**
 
-Czy mógłbyś nagrać krótką rozmowę z toromistrzem i z dyżurnym ruchu, których znasz? Jedna rozmowa to 5–10 minut,
-do filmu wezmę z niej pół minuty. Instrukcja, pytania i zgoda do podpisania są niżej. Najważniejsze:
+Czy mógłbyś spotkać się z toromistrzem i z dyżurnym ruchu, których znasz? Każdy najpierw wykonuje 3 krótkie zadania
+w aplikacji (mierzysz czas stoperem w telefonie), a potem odpowiada na 3 pytania do kamery. Razem 10–15 minut,
+do filmu wezmę pół minuty. Instrukcja, pytania i zgoda do podpisania są niżej. Najważniejsze:
 - nagrywamy **telefonem w poziomie**, w cichym miejscu, **poza terenem kolejowym** i bez mundurów ani logo firmy;
 - przed nagraniem każdy **podpisuje zgodę** (wzór niżej), może też wybrać wersję anonimową: bez twarzy, tylko głos
   i podpis „dyżurny ruchu, 20 lat stażu”;
@@ -29,19 +30,34 @@ Dzięki!
 
 ---
 
-## 2. Przed rozmową (5 minut)
+## 2. Zgoda i zasady (2 minuty)
 
-1. **Pokaż aplikację na telefonie**, żeby rozmówca przez 2–3 minuty sam się nią pobawił:
-   - zakładka **„Powódź 2024”** – kliknij na czerwony odcinek, otworzy się okienko z ryzykiem,
-     proponowaną prędkością i zaleceniami;
-   - zakładka **„Moja linia”** – wpisz numer linii, na której pracuje (np. 2 Warszawa–Terespol).
-2. **Zgoda na piśmie** (wzór w punkcie 6): rozmówca czyta, wybiera wariant (z twarzą lub anonimowo) i podpisuje.
+1. **Zgoda na piśmie** (wzór w punkcie 8): rozmówca czyta, wybiera wariant (z twarzą lub anonimowo) i podpisuje.
    Zrób zdjęcie podpisanej kartki i wyślij mi razem z nagraniem.
-3. Powiedz jasno, że rozmówca **mówi we własnym imieniu, jako praktyk, a nie w imieniu PKP PLK** ani swojego
+2. Powiedz jasno, że rozmówca **mówi we własnym imieniu, jako praktyk, a nie w imieniu PKP PLK** ani swojego
    pracodawcy. Jeśli ktoś nie jest pewien, czy może wystąpić z twarzą, wybieramy wersję anonimową. To w zupełności
    wystarczy.
+3. Powiedz: **„Testujemy aplikację, nie Pana. Jeśli coś jest niejasne, to wina aplikacji.”**
 
-## 3. Jak nagrywać
+## 3. Trzy zadania w aplikacji – test użyteczności (5 minut)
+
+**Nie pokazuj wcześniej aplikacji i nie podpowiadaj.** Chodzi o to, czy da się ją zrozumieć bez autora.
+
+Przygotowanie: otwórz na telefonie rozmówcy ten link (wszyscy zaczynają od tego samego widoku – powódź 2024):
+**https://railsentinel.pl/#mode=replay2024&issue=4&day=1**
+
+Włącz stoper przy każdym zadaniu i zatrzymaj, gdy rozmówca poda odpowiedź. Jeśli po 2 minutach nie da rady, przerwij
+i zapisz „nie udało się”. Najlepiej nagraj ten etap (ekran albo ręce z telefonem) – to dobry materiał do filmu.
+
+| Zadanie (przeczytaj dokładnie tak) | Co zapisać |
+|---|---|
+| **Z1.** „Proszę znaleźć odcinek, który według aplikacji trzeba sprawdzić jako pierwszy, i podać numer linii i kilometr.” | czas; odpowiedź; bez pomocy / z podpowiedzią / nie udało się |
+| **Z2.** „Proszę wyjaśnić własnymi słowami, dlaczego aplikacja uważa ten odcinek za zagrożony.” | czas; co powiedział (w punktach); bez pomocy / z podpowiedzią |
+| **Z3.** „Co zrobiłby Pan po takiej informacji, w ramach swoich obowiązków?” | co powiedział; czy by kogoś powiadomił, zlecił obchód itp. |
+
+Zapisz też: **co sprawiło trudność** albo było niezrozumiałe (np. słowa, kolory, liczby).
+
+## 4. Jak nagrywać pytania do kamery
 
 - Telefon **poziomo**, oparty o coś stabilnego albo na statywie, na wysokości oczu rozmówcy, z odległości 1–1,5 m.
 - **Światło z przodu** (twarzą do okna), nie za plecami.
@@ -52,17 +68,17 @@ Dzięki!
 - Odpowiedź może trwać 30–60 sekund. Jeśli się nie uda, nagrajcie ją jeszcze raz, to nic złego.
 - Na początku nagrania rozmówca mówi: **„Jestem toromistrzem / dyżurnym ruchu, pracuję od … lat.”** Nazwisko podaje
   tylko wtedy, gdy wybrał wariant z twarzą i nazwiskiem.
-- Przyda się dodatkowo **10–15 sekund nagrania samych rąk**, które przewijają aplikację na telefonie. Taki fragment
-  wstawię do filmu jako przerywnik.
+- Przyda się dodatkowo **10–15 sekund nagrania samych rąk**, które przewijają aplikację na telefonie (np. z zadań).
+  Taki fragment wstawię do filmu jako przerywnik.
 
-## 4. Trzy pytania do kamery
+## 5. Trzy pytania do kamery
 
 **Pytanie 1 – jak jest dziś**
 > Skąd dziś dowiaduje się Pan o zagrożeniu pogodowym na swoim odcinku, takim jak ulewa, wezbranie rzeki, upał czy
 > wichura? Ile czasu wcześniej trzeba wiedzieć, żeby zdążyć zareagować?
 
 **Pytanie 2 – o aplikacji** (po obejrzeniu okienka odcinka)
-> Aplikacja wskazuje konkretny odcinek 1–3 dni wcześniej i proponuje prędkość osobno dla pasażerskich i towarowych.
+> Aplikacja wskazuje 1–3 dni wcześniej konkretną linię i kilometr oraz kolejność sprawdzania odcinków.
 > Czy to ma sens w praktyce? Co by Pan zmienił?
 
 **Pytanie 3 – zaufanie**
@@ -70,25 +86,31 @@ Dzięki!
 
 Kogo o co dopytać:
 - **Toromistrz**: obchody, przepusty, nasypy, wyboczenia przy upale, ile trwa zorganizowanie obchodu albo brygady.
-- **Dyżurny ruchu**: jak wprowadza się ostrzeżenia i ograniczenia prędkości, kto o tym decyduje, czy propozycja
-  prędkości mu pomaga, czy raczej przeszkadza.
+- **Dyżurny ruchu**: jak dziś dostaje ostrzeżenia, kto podejmuje decyzje o ograniczeniach ruchu, czy taka lista
+  odcinków by mu pomogła, czy raczej przeszkadzała.
 
-## 5. Poza kamerą (2 minuty, wystarczy zapisać w punktach)
+## 6. Poza kamerą (2 minuty, wystarczy zapisać w punktach)
 
 1. **Ocena przydatności w skali 1–10.**
-2. **Czy proponowane prędkości są rozsądne?** Pokaż tabelę i zapisz poprawki:
-
-| Zagrożenie | Uwaga: pas. / tow. | Alarm: pas. / tow. | Warunek |
-|---|---|---|---|
-| Woda (podmycie, fala) | 80 / 60 km/h | 40 / 30 km/h | po obchodzie toru; woda na torowisku = wstrzymanie ruchu |
-| Upał (wyboczenie) | 100 / 70 km/h | 70 / 50 km/h | w godz. 13–19 |
-| Wiatr (drzewa na torze) | 100 / 80 km/h | 60 / 40 km/h | jazda z gotowością do zatrzymania |
-| Oblodzenie sieci | 100 / 80 km/h | 60 / 50 km/h | rozważyć trakcję spalinową |
-
+2. **Czy jest jasne, kiedy dane były aktualizowane** i co znaczy „UWAGA” i „ALARM”?
 3. **Czego brakuje** w aplikacji? Przykłady: powiadomienia SMS, inne zagrożenia, mapa przepustów.
 4. **Czego się obawiają** w takim systemie, np. fałszywych alarmów, odpowiedzialności albo nadmiaru informacji?
+5. Czy pamiętają **konkretny przypadek** wyboczenia toru w upał albo podmycia (gdzie i kiedy, w przybliżeniu)?
+   Sprawdzę go w modelu.
 
-## 6. Zgoda na nagranie (wydrukuj 2 sztuki albo przepisz na kartkę)
+## 7. Arkusz do wypełnienia (jeden na rozmówcę)
+
+```
+Stanowisko / staż: ..........................   Wariant zgody: twarz+nazwisko / twarz / tylko głos
+Z1: czas ....... s   odpowiedź: linia ..... km .......   bez pomocy / z podpowiedzią / nie udało się
+Z2: czas ....... s   wyjaśnienie: ...........................................   bez pomocy / z podpowiedzią
+Z3: co by zrobił: .......................................................................
+Trudności / niejasne: ...................................................................
+Ocena 1–10: .....   Czego brakuje: .........................   Obawy: .........................
+Konkretny przypadek z pamięci (gdzie, kiedy): ...........................................
+```
+
+## 8. Zgoda na nagranie (wydrukuj 2 sztuki albo przepisz na kartkę)
 
 > **Zgoda na nagranie i wykorzystanie wypowiedzi**
 >
@@ -110,7 +132,7 @@ Kogo o co dopytać:
 
 ---
 
-## 7. Co dalej z materiałem
+## 9. Co dalej z materiałem
 
 - **Film**: przed zakończeniem filmu wstawię blok „Głos z terenu” z **oryginalnymi nagraniami**, czyli obrazem
   i głosem rozmówców, a nie cytatami czytanymi przez lektora. Z każdej rozmowy wejdzie jeden ciągły fragment
@@ -118,6 +140,7 @@ Kogo o co dopytać:
   W wariancie anonimowym zamiast twarzy pojawi się wykres fali głosu, ale głos zostaje prawdziwy.
 - **Pliki**: oryginalne nagrania z telefonu (.mp4 albo .mov), przesłane w pełnej jakości razem ze zdjęciami podpisanych zgód.
   Pełne nagrania zachowuję. Gdyby komisja zapytała, mogę pokazać całą rozmowę.
-- **Praca pisemna**: dodam sekcję „Opinie praktyków” z liczbą i rodzajem rozmówców, średnią oceną, cytatami
-  i listą zmian wprowadzonych po ich uwagach, np. poprawionymi prędkościami.
+- **Praca pisemna**: dodam tabelę „Test z praktykami”: kto (stanowisko, staż), czasy i wyniki 3 zadań, ocena,
+  najważniejsze uwagi i lista zmian wprowadzonych w aplikacji po ich uwagach. Opiszę uczciwie, że to kilka rozmów,
+  a nie reprezentatywne badanie.
 - Cytuję **dokładnie to, co padło w rozmowie, łącznie z krytyką**. Niczego nie dopisuję.

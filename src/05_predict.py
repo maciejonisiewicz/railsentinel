@@ -158,6 +158,14 @@ def score(df, out_of_fold=False):
     return df
 
 
+def quality(sub):
+    q = np.zeros(len(sub), dtype=int)
+    gauged = sub.index.isin(list(HM["segment_station"].keys()))
+    q[gauged & sub["h3"].isna().values] = 1
+    q[(sub["p1"].isna() | sub["tmax"].isna()).values] = 2
+    return q
+
+
 def pack(df, days, meta):
     """Kompaktowy JSON: dla każdego dnia lista wartości per odcinek (kolejność = segments)."""
     out = {"meta": meta, "days": [], "risk": {}}
@@ -179,6 +187,8 @@ def pack(df, days, meta):
             "gust": sub["gust"].round(0).fillna(0).tolist(),
             "trail": sub["t_rail"].round(1).fillna(0).tolist(),
             "why": [w if isinstance(w, list) else [] for w in sub["why"].tolist()],
+            # jakość danych: 0 = komplet, 1 = brak aktualnego stanu wody (odcinek ma wodowskaz), 2 = brak danych pogodowych
+            "q": quality(sub).tolist(),
         }
     return out
 
@@ -229,6 +239,7 @@ def live():
     today = date.today()
     # bieżące stany wód z API IMGW (wodowskazy przypisane do odcinków), utrwalone na 3 dni
     hyd = pd.DataFrame(columns=["id", "date", "h3"])
+    n_gauges = 0
     try:
         import river_fc
         api = {x["id_stacji"]: x for x in requests.get("https://danepubliczne.imgw.pl/api/data/hydro/",
@@ -268,12 +279,17 @@ def live():
         fcst = river_fc.forecast(W, RH, {k: pd.Series(v, dtype=float) for k, v in rf.items()}, t)
         cur_seg = {sid: cur.get(code, np.nan) for sid, code in HM["segment_station"].items()}
         hyd = river_fc.segments_h3(fcst, HM["segment_station"], t, cur_seg)
+        n_gauges = len(cur)
         print(f"rzeki: {len(cur)} wodowskazów z API, {hyd.id.nunique()} odcinków z prognozą fali")
     except Exception as e:  # brak API nie blokuje prognozy opadowej
         print("IMGW hydro / prognoza rzek niedostępne:", e)
     df = score(frame_from_daily({c: x["daily"] for c, x in raw.items()}, hydro=hyd))
     days = [today + timedelta(days=k) for k in range(3)]
+    from datetime import datetime
+    ok_cells = sum(1 for x in raw.values() if x.get("daily", {}).get("precipitation_sum"))
     write_js("live", pack(df, days, {"title": "Prognoza bieżąca – cała Polska", "issued": str(today),
+                                      "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                                      "status": {"cells_ok": ok_cells, "cells": len(CELLS), "gauges": n_gauges},
                                       "source": "Open-Meteo Forecast API (ECMWF/ICON/GFS) + IMGW hydro API + prognoza rzek ML"}))
 
 

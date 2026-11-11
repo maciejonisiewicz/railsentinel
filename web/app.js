@@ -11,27 +11,11 @@
     ice: "kursy pociągów odladzających sieć trakcyjną; rozważenie trakcji spalinowej na odcinkach krytycznych",
   };
   const ALARM = 0.5, WARN = 0.3;
-  // Proponowana prędkość maksymalna na zagrożonym odcinku [pasażerskie, towarowe] w km/h.
-  // Towarowe niżej: większe naciski osi (nasyp, siły poprzeczne przy upale) i dłuższa droga hamowania.
-  // To propozycja do decyzji zarządcy – nigdy nie więcej niż prędkość rozkładowa.
-  const SPEED = {
-    flood: { warn: [80, 60], alarm: [40, 30], note: "po obchodzie toru; przy wodzie na torowisku – wstrzymanie ruchu" },
-    heat:  { warn: [100, 70], alarm: [70, 50], note: "w godz. 13–19" },
-    wind:  { warn: [100, 80], alarm: [60, 40], note: "jazda z gotowością do zatrzymania przed przeszkodą" },
-    ice:   { warn: [100, 80], alarm: [60, 50], note: "przy oblodzeniu sieci – rozważyć trakcję spalinową" },
-  };
-  // prędkość nie wyższa niż maksymalna na odcinku (OSM maxspeed)
-  const speedOf = (h, x, sg) => { const v = x >= ALARM ? SPEED[h].alarm : x >= WARN ? SPEED[h].warn : null;
-    return v && sg && sg.v ? v.map((a) => Math.min(a, sg.v)) : v; };
-  const speedTxt = (h, x, sg) => { const v = speedOf(h, x, sg); return v ? `pasażerskie ${v[0]} km/h, towarowe ${v[1]} km/h (${SPEED[h].note})` : ""; };
   // kilometraż i miejscowości
   const kmf = (k) => k.toFixed(1).replace(".", ",");
   const kmTxt = (sg) => (sg.km ? `km ${kmf(sg.km[0])}–${kmf(sg.km[1])}` : "");
   const odDo = (sg) => (sg.od && sg.do && sg.od !== sg.do ? `${sg.od} – ${sg.do}` : sg.od || sg.place || "");
   const segTitle = (sg) => `Linia ${sg.line}${sg.km ? " · " + kmTxt(sg) : sg.place ? " · " + sg.place : ""}`;
-  const speedBox = (h, x, sg) => { const v = speedOf(h, x, sg); return v ? `<div class="vmax"><div class="vm-h">Proponowana prędkość maks.</div>
-      <div class="vm-row"><span><small>pasażerskie</small><b>${v[0]}</b> km/h</span><span><small>towarowe</small><b>${v[1]}</b> km/h</span></div>
-      <div class="vm-n">${SPEED[h].note}${sg && sg.v ? ` · maks. na odcinku ${sg.v} km/h` : ""} · nie więcej niż prędkość rozkładowa</div></div>` : ""; };
   const VIEWS = { live: [[52.0, 19.3], 6], line: [[52.0, 19.3], 6], heat: [[52.0, 19.3], 6],
     replay2024: [[50.55, 16.95], 8], y1997: [[50.85, 17.45], 8], sim: [[50.45, 16.9], 9] };
 
@@ -108,6 +92,26 @@
     if (st.mode === "sim") return simRisk;
     const v = view(); return v && v.risk[v.days[Math.min(st.day, v.days.length - 1)]];
   };
+  // ---------- jakość danych i pewność oceny ----------
+  const today = () => new Date().toLocaleDateString("sv-SE");   // RRRR-MM-DD w czasie lokalnym
+  const isLive = () => st.mode === "live" || st.mode === "line";
+  const stale = (v) => isLive() && v && v.meta && v.meta.issued && v.meta.issued < today();
+  const qOf = (r, i) => (r && r.q ? r.q[i] : 0);
+  function confidence(r, i) {
+    if (qOf(r, i) === 2) return { lvl: "brak", txt: "ocena niedostępna – brak danych pogodowych" };
+    if (st.mode === "sim") return { lvl: "symulacja", txt: "scenariusz symulacji, nie prognoza" };
+    if (st.mode === "y1997" || st.mode === "heat") return { lvl: "test historyczny", txt: "reanaliza – pogoda znana po fakcie" };
+    if (stale(view())) return { lvl: "niska", txt: "prognoza nieaktualna – nie opieraj się na niej" };
+    const L = ["wysoka", "średnia", "niższa"];
+    let k = Math.min(st.day, 2);
+    let txt = ["prognoza na dziś", "prognoza na jutro", "prognoza na pojutrze"][k];
+    if (qOf(r, i) === 1) { k = Math.min(k + 1, 2); txt += "; brak aktualnego stanu wody z wodowskazu"; }
+    return { lvl: L[k], txt };
+  }
+  const DECIDE = "Decyzję o działaniach podejmuje uprawniony pracownik zgodnie z obowiązującymi procedurami. RailSentinel wspiera ocenę zagrożenia i nie zastępuje procedur ani ostrzeżeń IMGW.";
+  const STALE_TXT = "Dane nieaktualne: brak alarmu NIE oznacza braku zagrożenia. Postępuj według standardowych procedur i ostrzeżeń IMGW.";
+  let RANK = {}, NWARN = 0;
+
   const domHz = (r, i) => ["flood", "heat", "wind", "ice"].reduce((a, h) => (r[h][i] > r[a][i] ? h : a), "flood");
 
   // ---------- render ----------
@@ -135,6 +139,8 @@
     const low = lowCol();
     layers.forEach((pl, i) => {
       const x = vals[i] || 0;
+      if (qOf(r, i) === 2) { pl.setStyle({ color: "#8a94a3", weight: 2, opacity: 0.6, dashArray: "2 6" }); return; }
+      pl.setStyle({ dashArray: null });
       pl.setStyle(x >= WARN ? { color: color(x), weight: x >= ALARM ? 5 : 3.5, opacity: 1 }
         : x >= 0.12 ? { color: color(x), weight: 2.2, opacity: 0.8 } : { color: low, weight: 1.6, opacity: 0.7 });
     });
@@ -148,6 +154,7 @@
 
     const idx = vals.map((x, i) => [x, i]).sort((a, b) => b[0] - a[0]);
     const alarm = idx.filter(([x]) => x >= ALARM), warn = idx.filter(([x]) => x >= WARN && x < ALARM);
+    RANK = {}; idx.forEach(([x, i], k) => { if (x >= WARN) RANK[i] = k + 1; }); NWARN = alarm.length + warn.length;
     $("#kAlarm").textContent = alarm.length.toLocaleString("pl-PL");
     $("#kAlarmLbl").textContent = alarm.length === 1 ? "odcinek w alarmie" : "odcinków w alarmie";
     $("#kWarn").textContent = warn.length.toLocaleString("pl-PL");
@@ -165,8 +172,15 @@
     renderBrief(v, r, alarm.map(([, i]) => i), warn.map(([, i]) => i));
     renderRain(r);
     if (st.mode === "line") renderLine();
-    $("#updChip").innerHTML = st.mode === "live" || st.mode === "line"
-      ? `Prognoza wydana <b>${fmtDay(v.meta.issued || v.days[0], 0, true)}</b> <span class="hm"> · ${SEG.length.toLocaleString("pl-PL")} odcinków · 27 tys. km toru</span>` : "";
+    const stt = v.meta && v.meta.status;
+    const nq2 = r.q ? r.q.filter((q) => q === 2).length : 0;
+    $("#updChip").classList.toggle("stale", !!stale(v));
+    $("#updChip").innerHTML = isLive()
+      ? (stale(v) ? `⚠ <b>Prognoza nieaktualna</b> (z ${fmtDay(v.meta.issued, 0, true)}). ${STALE_TXT}`
+        : `Prognoza wydana <b>${fmtDay(v.meta.issued || v.days[0], 0, true)}</b>${v.meta.generated ? " " + v.meta.generated.slice(11) : ""}` +
+          `<span class="hm">${stt ? ` · IMGW: ${stt.gauges ? stt.gauges + " wodowskazów" : "<b>brak danych</b>"}` : ""}` +
+          `${nq2 ? ` · ${nq2} odc. bez oceny` : ""}</span>`) : "";
+    $("#statusCard").classList.toggle("stale", !!stale(v));
   }
   function detail(h, r, i) {
     if (h === "flood") return r.river && r.flash && r.river[i] > r.flash[i] ? " · fala na rzece" : ` · opad 3 doby ${Math.round(r.p3[i])} mm`;
@@ -228,7 +242,7 @@
     $("#lineStatus").innerHTML = `<b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>
       <span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span><br>
       ${lvl === "ok" ? "W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi." :
-        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, ${kmTxt(SEG[worst.i]) ? kmTxt(SEG[worst.i]) + " (" + odDo(SEG[worst.i]) + ")" : "rejon " + (SEG[worst.i].place || "?")}.<br><i>Prędkość maks.:</i> ${speedTxt(worst.h, worst.x, SEG[worst.i])}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
+        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, ${kmTxt(SEG[worst.i]) ? kmTxt(SEG[worst.i]) + " (" + odDo(SEG[worst.i]) + ")" : "rejon " + (SEG[worst.i].place || "?")}.<br><i>Do rozważenia (decyzja: uprawniony pracownik):</i> ${ACTION[worst.h]}.`}`;
     $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d, k) => `<th class="c">${dayLbl(d, k)}</th>`).join("")}</tr>` +
       ord.map((i) => `<tr data-i="${i}"><td>${odDo(SEG[i]) || "–"}${SEG[i].km ? ` <span class="muted small">· ${kmTxt(SEG[i])}</span>` : ""}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
         v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
@@ -337,11 +351,17 @@
     }
     const byHz = {};
     alarm.forEach((i) => { const h = st.hz === "total" ? domHz(r, i) : st.hz; (byHz[h] = byHz[h] || []).push(i); });
-    let html = `<p><b>${fmtDay(day)}</b> – <span class="tag r">ALARM</span> ${alarm.length} odc. · <span class="tag o">UWAGA</span> ${warn.length} odc.</p>`;
+    const stt = v.meta && v.meta.status;
+    let html = `<div class="proc"><b>Stan danych:</b> ${v.meta && v.meta.issued ? "prognoza wydana " + fmtDay(v.meta.issued) + (v.meta.generated ? ", " + v.meta.generated.slice(11) : "") : (v.meta && v.meta.title) || ""}` +
+      `${stt ? `; IMGW: ${stt.gauges ? stt.gauges + " wodowskazów" : "brak danych – moduł fali nieaktywny"}; prognoza pogody: ${stt.cells_ok}/${stt.cells} punktów` : ""}.` +
+      `${stale(v) ? `<br><b class="warnTxt">⚠ ${STALE_TXT}</b>` : ""}` +
+      `<br><b>Jak czytać:</b> pozycje uszeregowane według priorytetu weryfikacji (1 = najpierw). Pewność oceny maleje z wyprzedzeniem prognozy.` +
+      `<br><b>Kto decyduje:</b> ${DECIDE}</div>`;
+    html += `<p><b>${fmtDay(day)}</b> – <span class="tag r">ALARM</span> ${alarm.length} odc. · <span class="tag o">UWAGA</span> ${warn.length} odc. · pewność oceny: ${confidence(r, alarm[0] ?? warn[0]).lvl}</p>`;
     for (const [h, list] of Object.entries(byHz)) {
       const lines = {};
       list.forEach((i) => { (lines[SEG[i].line] = lines[SEG[i].line] || []).push(i); });
-      const items = Object.entries(lines).sort((a, b) => b[1].length - a[1].length).slice(0, 8).map(([ln, ii]) => {
+      const items = Object.entries(lines).sort((a, b) => Math.min(...a[1].map((i) => RANK[i] || 1e9)) - Math.min(...b[1].map((i) => RANK[i] || 1e9))).slice(0, 8).map(([ln, ii]) => {
         const rivers = [...new Set(ii.map((i) => SEG[i].river).filter(Boolean))].slice(0, 2).join(", ");
         const places = [...new Set(ii.map((i) => SEG[i].place).filter(Boolean))].slice(0, 3).join(", ");
         const mx = Math.max(...ii.map((i) => r[h][i]));
@@ -357,12 +377,12 @@
         if (h === "ice") det = `marznący opad do ${Math.max(...ii.map((i) => r.p1[i])).toFixed(1)} mm`;
         const kms = ii.filter((i) => SEG[i].km).sort((a, b) => SEG[a].km[0] - SEG[b].km[0]).slice(0, 4)
           .map((i) => `${kmTxt(SEG[i])} (${odDo(SEG[i])})`).join("; ");
-        const vm = speedOf(h, mx, { v: Math.min(...ii.map((i) => SEG[i].v || 999)) });
-        return `<li><b>Linia ${ln}</b> (${ii.length} odc.${places ? ", " + places : ""}${rivers ? ", dolina " + rivers : ""}) – ${det}, ryzyko ${pct(mx)}` +
+        const pr = Math.min(...ii.map((i) => RANK[i] || 1e9));
+        return `<li><b>Priorytet ${pr}</b> · <b>Linia ${ln}</b> (${ii.length} odc.${places ? ", " + places : ""}${rivers ? ", dolina " + rivers : ""}) – ${det}, ryzyko ${pct(mx)}` +
           `${kms ? `<br><span class="km">${kms}${ii.length > 4 ? " i inne" : ""}</span>` : ""}` +
-          `${vm ? `<br><span class="vm">V maks.: pas. ${vm[0]} / tow. ${vm[1]} km/h</span>` : ""}</li>`;
+          `</li>`;
       }).join("");
-      html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Proponowana prędkość maks. na odcinkach w alarmie:</i> ${speedTxt(h, 1)}.<br><i>Zalecane działania:</i> ${ACTION[h]}.</p>`;
+      html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Działania do rozważenia przez uprawnionego pracownika:</i> ${ACTION[h]}.</p>`;
     }
     $("#brief").innerHTML = html;
   }
@@ -377,10 +397,13 @@
     const dmg = st.mode === "replay2024" && D.replay2024.damaged.includes(s.id);
     const lead = st.mode === "replay2024" && D.replay2024.lead_hours_by_segment[s.id];
     const lvl = x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie ryzyko";
+    const cf = confidence(r, i);
     L.popup({ autoPanPadding: [30, 30], maxWidth: 340, autoPanPaddingTopLeft: mobile() ? [20, 140] : [400, 90] }).setLatLng(latlng).setContent(`<div class="pp">
       <h4>${segTitle(s)}</h4>
       <div class="sub">${s.km ? odDo(s) + " · " : ""}${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km · ${fmtDay(v.days[st.day])}</div>
-      <div class="score"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span><span><b>${lvl}</b><br>główne zagrożenie: ${HZS[h]}</span></div>
+      ${qOf(r, i) === 2 ? `<div class="act warnbox"><b>Ocena niedostępna</b> – brak danych pogodowych dla tego odcinka. To NIE oznacza niskiego ryzyka.</div>` : `
+      <div class="score"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span><span><b>${lvl}</b>${RANK[i] ? ` · priorytet ${RANK[i]} z ${NWARN}` : ""}<br>główne zagrożenie: ${HZS[h]}</span></div>`}
+      <div class="conf">Pewność oceny: <b>${cf.lvl}</b> – ${cf.txt}${v.meta && v.meta.generated ? ` · dane z ${v.meta.generated}` : ""}</div>
       <div class="grid">
         <div><small>Woda${r.flash ? " (ulewa / rzeka)" : ""}</small><b>${pct(r.flood[i])}</b>${r.flash ? ` <span class="muted small">${pct(r.flash[i])} / ${pct(r.river[i])}</span>` : ""}</div>
         <div><small>Opad 1 / 3 doby</small><b>${r.p1[i]} / ${r.p3[i]} mm</b></div>
@@ -388,8 +411,8 @@
         <div><small>Wiatr · porywy</small><b>${pct(r.wind[i])}</b> <span class="muted small">${r.gust[i]} km/h</span></div>
       </div>
       ${why ? `<div class="why"><b>Dlaczego? Wkład czynników do ryzyka</b>${why}</div>` : ""}
-      ${speedBox(h, x, s)}
-      ${x >= WARN ? `<div class="act"><b>Zalecane:</b> ${ACTION[h]}.</div>` : ""}
+      ${x >= WARN ? `<div class="act"><b>Do rozważenia:</b> ${ACTION[h]}.<div class="dec">${DECIDE}</div></div>` : ""}
+      ${stale(v) ? `<div class="act warnbox">⚠ ${STALE_TXT}</div>` : ""}
       ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed zniszczeniem` : ""}</div>` : ""}
     </div>`).openOn(map);
   }
@@ -463,7 +486,7 @@
       <p class="meta">Prognoza wydana: <b>${fmtDay(v.meta.issued || v.days[0])}</b> · wydruk: ${now} · widok: ${st.hz === "total" ? "wszystkie zagrożenia" : HZS[st.hz]}</p>
       <div class="body">${$("#brief").innerHTML}</div>
       <table class="sign"><tr><td>Przyjął (dyżurny / toromistrz)</td><td>Data i godzina</td><td>Podjęte działania</td></tr><tr><td></td><td></td><td></td></tr></table>
-      <footer>Proponowane prędkości i działania są wsparciem decyzji – ostateczną decyzję podejmuje zarządca infrastruktury zgodnie z obowiązującymi przepisami. ` +
+      <footer>RailSentinel wspiera ocenę zagrożenia i nie zastępuje obowiązujących procedur ani ostrzeżeń IMGW – decyzję podejmuje uprawniony pracownik. ` +
       `Kilometraż orientacyjny (OpenStreetMap). Prototyp studencki, nie jest systemem PKP PLK. railsentinel.pl</footer>`;
     window.print();
   });
