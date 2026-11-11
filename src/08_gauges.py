@@ -1,12 +1,3 @@
-"""Krok 8: gęsta sieć posterunków opadowych IMGW -> opad dobowy dla każdego odcinka.
-
-Wykaz stacji IMGW nie zawiera współrzędnych, ale 9-cyfrowy kod stacji koduje stopień
-szerokości i długości (np. 250180460 -> 50°N, 18°E). Stację lokalizujemy dopasowując jej nazwę
-do miejscowości z OpenStreetMap wewnątrz tego kwadratu 1°x1° (jednoznaczne dopasowania).
-
-Opad dla odcinka = IDW (waga 1/d²) z posterunków w promieniu 20 km (min. 2), inaczej brak (-> ERA5).
-Wynik: data/processed/gauge_daily.pkl  (DataFrame: id, date, p1g)
-"""
 import io
 import json
 import pickle
@@ -47,7 +38,7 @@ def locate_stations():
     for _, r in st.iterrows():
         n = norm(r["name"])
         cands = places.get((n, r.latd, r.lond), [])
-        if not cands:  # np. "KLODZKO 2" / "BARDO SLASKIE" -> spróbuj pierwszego członu
+        if not cands:
             first = n.split(" ")[0]
             cands = places.get((first, r.latd, r.lond), []) if len(first) > 3 else []
         if len(cands) == 1 or (len(cands) > 1 and np.ptp([c[0] for c in cands]) < 0.03
@@ -75,9 +66,9 @@ def main():
             df = df[df.code.isin(loc)]
             df["date"] = pd.to_datetime(df.y + "-" + df.m + "-" + df.d, errors="coerce")
             p = pd.to_numeric(df.p, errors="coerce")
-            p[df.status == "9"] = 0.0          # brak zjawiska = 0 mm
-            p[df.status == "8"] = -1.0         # brak pomiaru (znacznik, później NaN)
-            p[df.status == "Z"] = -1.0         # opad zbiorczy - nie wiadomo kiedy
+            p[df.status == "9"] = 0.0
+            p[df.status == "8"] = -1.0
+            p[df.status == "Z"] = -1.0
             df["p"] = p.fillna(0.0)
             frames.append(df[["code", "date", "p"]])
     obs = pd.concat(frames).dropna(subset=["date"])
@@ -95,13 +86,11 @@ def main():
     full = pd.date_range(wide.index.min(), wide.index.max())
     full = full[full.month.isin(range(3, 11)) & full.year.isin(obs.date.dt.year.unique())]
     wide = wide.reindex(full)
-    # "brak zjawiska to również brak dnia w istniejącym miesiącu": jeśli stacja raportowała
-    # w danym miesiącu, brakujące dni = 0 mm
     month = wide.index.to_period("M")
     reported = wide.notna().groupby(month).transform("any")
     wide = wide.where(~(wide.isna() & reported), 0.0)
-    wide = wide.where(wide >= 0)  # znaczniki -1 -> NaN
-    A = wide.values  # dni x stacje
+    wide = wide.where(wide >= 0)
+    A = wide.values
     rows = []
     for si, s in enumerate(segs):
         if len(ind[si]) < 2:

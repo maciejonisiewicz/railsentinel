@@ -1,4 +1,3 @@
-"""Krok 6: wykresy do pracy konkursowej (docs/fig/*.png)."""
 import json
 import pickle
 import re
@@ -35,7 +34,6 @@ def fig_backtest():
     other = [i for i in range(len(ids)) if ids[i] not in dmg]
     issues, frac_d, frac_o, maxp = [], [], [], []
     for it in rp["issues"]:
-        # maks. ryzyko podmycia w horyzoncie D..D+2
         fl = np.max([it["risk"][d]["flood"] for d in it["days"]], axis=0)
         p3 = np.max([it["risk"][d]["p3"] for d in it["days"]], axis=0)
         issues.append(pd.Timestamp(it["issued"]) - pd.Timedelta(days=1))
@@ -96,7 +94,7 @@ def fig_importance():
 def fig_rain():
     w = json.load(open(ROOT / "data" / "raw" / "weather" / "prev_runs_2024_09.json"))
     obs = json.load(open(ROOT / "data" / "raw" / "weather" / "2024.json"))
-    cell = "50.25,16.75"  # Kotlina Kłodzka
+    cell = "50.25,16.75"
     h = pd.DataFrame(w[cell]["hourly"])
     h["date"] = pd.to_datetime(h["time"]).dt.normalize()
     d = h.groupby("date").sum(numeric_only=True).loc["2024-09-10":"2024-09-17"]

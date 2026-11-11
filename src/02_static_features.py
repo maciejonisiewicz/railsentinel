@@ -1,11 +1,3 @@
-"""Krok 2: cechy statyczne odcinków - teren i hydrografia.
-
-- wysokość n.p.m. (Copernicus DEM 90 m przez Open-Meteo Elevation API)
-- TPI (topographic position index): wysokość odcinka minus średnia otoczenia 2-3 km.
-  Ujemny = dno doliny (strefa zalewowa), dodatni = grzbiet/nasyp na stoku.
-- deniwelacja otoczenia (relief) - proxy stromości zboczy i spływu powierzchniowego
-- odległość do najbliższej rzeki (OSM) i "wielkość" tej rzeki (łączna długość w regionie)
-"""
 import json
 import math
 import time
@@ -27,13 +19,12 @@ RING = [(0, 0)] + [(r * math.cos(a), r * math.sin(a))
                    for r in (1.5, 3.0) for a in np.linspace(0, 2 * math.pi, 8, endpoint=False)]
 
 
-ZOOM = 11  # ~50 m/piksel na szerokości 51°N
+ZOOM = 11
 TILE_CACHE = ROOT / "data" / "raw" / "dem_tiles"
 _tiles = {}
 
 
 def _tile(x, y):
-    """Kafel DEM (AWS Terrain Tiles, kodowanie terrarium; źródła: SRTM/Copernicus/EU-DEM)."""
     if (x, y) not in _tiles:
         TILE_CACHE.mkdir(parents=True, exist_ok=True)
         f = TILE_CACHE / f"{ZOOM}_{x}_{y}.png"
@@ -58,8 +49,6 @@ def elevations(points):
 
 
 class LocalRiverLength:
-    """Długość [km] rzeki o danej nazwie w promieniu R km od punktu (suma długości odcinków geometrii OSM).
-    Długość w km, nie liczba punktów - gęstość punktów zależy od sposobu mapowania rzeki."""
     def __init__(self, rpts, rnames, radius_km=60.0):
         self.r = radius_km / 6371.0
         idx = defaultdict(list)
@@ -68,13 +57,12 @@ class LocalRiverLength:
         self.pts, self.w = {}, {}
         for n, ii in idx.items():
             a = np.radians(np.array([rpts[i] for i in ii]))
-            # długość do następnego punktu (kolejne punkty tej samej rzeki leżą obok siebie w liście)
             d = np.zeros(len(ii))
             if len(ii) > 1:
                 dl = a[1:] - a[:-1]
                 h = np.sin(dl[:, 0] / 2) ** 2 + np.cos(a[:-1, 0]) * np.cos(a[1:, 0]) * np.sin(dl[:, 1] / 2) ** 2
                 seg = 2 * 6371 * np.arcsin(np.sqrt(np.clip(h, 0, 1)))
-                d[:-1] = np.where(seg < 2.0, seg, 0.0)   # skoki między różnymi drogami OSM pomijamy
+                d[:-1] = np.where(seg < 2.0, seg, 0.0)
             self.pts[n], self.w[n] = a, d
         self.trees = {}
 
@@ -90,7 +78,6 @@ class LocalRiverLength:
 def main():
     segs = json.load(open(SEG))
 
-    # --- teren ---
     pts = []
     for s in segs:
         k_lat = 1 / 111.0
@@ -103,7 +90,6 @@ def main():
         s["tpi"] = float(e[0] - e[1:].mean())
         s["relief"] = float(e.max() - e.min())
 
-    # --- rzeki ---
     rivers, seen = [], set()
     for f in (sorted((ROOT / "data" / "raw" / "pl").glob("rivers_*.json")) or [RIV]):
         for w in json.load(open(f))["elements"]:
@@ -130,10 +116,7 @@ def main():
         s["river_dist_km"] = float(d[j, 0] * 6371.0)
         nm = rnames[idx[j, 0]]
         s["river_name"] = nm if not nm.startswith("bn_") else ""
-        # "wielkość" rzeki = długość [km] rzeki o tej nazwie w promieniu 60 km (lokalnie, bo w Polsce
-        # jest wiele różnych rzek o tej samej nazwie - Biała, Czarna...; globalna suma zawyżałaby małe rzeki)
         s["river_size"] = float(math.log1p(loclen(nm, s["lat"], s["lon"])))
-    # --- najbliższa miejscowość (miasto) - do czytelnych komunikatów ---
     pf = ROOT / "data" / "raw" / "pl" / "places_pl.json"
     if not pf.exists():
         pf = ROOT / "data" / "raw" / "osm_places.json"

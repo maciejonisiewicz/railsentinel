@@ -1,13 +1,3 @@
-"""Krok 9: moduł hydrologiczny - stany wód z wodowskazów IMGW.
-
-Powódź to dwa mechanizmy: (1) lokalna ulewa (spływ, podmycie) i (2) fala wezbraniowa,
-która przychodzi z górnego biegu rzeki, często bez lokalnego deszczu (1997: mosty na Odrze).
-Model oparty tylko na lokalnym opadzie nie widzi (2). Dodajemy indeks stanu wody:
-    h_idx = (H - mediana_H) / (Q99_H - mediana_H)    [0 = typowo, 1 = poziom 1% najwyższych dni]
-dla odcinków leżących < 2 km od rzeki, z wodowskazu NA TEJ SAMEJ RZECE (najbliższy, < 60 km).
-Lokalizacja wodowskazów: kod IMGW koduje stopnie szer./dł., nazwa -> miejscowość w OSM.
-Wynik: data/processed/hydro_daily.pkl (id, date, h_idx, h3 = maks. z 3 dni)
-"""
 import io
 import json
 import pickle
@@ -47,7 +37,6 @@ def load():
                     txt = b.decode("utf-8-sig")
                 except UnicodeDecodeError:
                     txt = b.decode("cp1250")
-                # formaty IMGW różnią się między latami (';' / ',' / całe wiersze w cudzysłowie)
                 rows = []
                 for line in txt.splitlines():
                     line = line.replace('"', "").strip()
@@ -76,7 +65,6 @@ def locate(df):
             places[(norm(nm), int(e["lat"]), int(e["lon"]))].append((e["lat"], e["lon"]))
     st = df.groupby("code").agg(name=("name", "first"), river=("river", "first")).reset_index()
     out = {}
-    # cała Polska: współrzędne wodowskazów z API IMGW; dla stacji spoza API - geokodowanie po nazwie
     api_f = RAW / "pl" / "imgw_hydro_api.json"
     api = {x["id_stacji"]: x for x in json.load(open(api_f))} if api_f.exists() else {}
     for _, r in st.iterrows():
@@ -103,14 +91,12 @@ def main():
     train = df[df.date.dt.year.between(2021, 2024)]
     q50 = train.groupby("code").h.median()
     q99 = train.groupby("code").h.quantile(0.99)
-    ok = (q99 - q50) > 20  # wodowskazy z sensowną amplitudą (cm)
+    ok = (q99 - q50) > 20
     df = df[df.code.map(ok).fillna(False)]
     df["h_idx"] = ((df.h - df.code.map(q50)) / (df.code.map(q99) - df.code.map(q50))).clip(-1, 4)
     print(f"wodowskazy zlokalizowane: {len(loc)}, z danymi 2021-24: {int(ok.sum())}")
 
     segs = json.load(open(P / "segments_static.json"))
-    # wszystkie rzeki w promieniu 1.5 km od toru (nie tylko najbliższa) - tor przecinający Odrę
-    # mostem może mieć bliżej mały dopływ; liczy się NAJWIĘKSZA rzeka z wodowskazem
     from sklearn.neighbors import BallTree
     rpts, rnames = [], []
     size = defaultdict(int)
@@ -150,7 +136,6 @@ def main():
                 break
         if best:
             mapping[s["id"]] = best[0]
-            # ekspozycja: tor przecina rzekę (most) lub biegnie < 300 m od niej -> 1.0, dalej -> 0.6
             rk = loc[best[0]]["river"]
             dmin = min((float(hav(np.degrees(pts[i][0]), np.degrees(pts[i][1]),
                                   rpts[j][0], rpts[j][1]))

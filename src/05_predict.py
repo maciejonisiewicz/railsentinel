@@ -1,13 +1,3 @@
-"""Krok 5: predykcje dla dashboardu.
-
-  live    - prognoza na dziś + 2 dni (Open-Meteo Forecast API, ostatnie 30 dni dla uwilgotnienia)
-  replay  - backtest powodzi 09.2024 z PRAWDZIWYMI archiwalnymi prognozami (Previous Runs API, ECMWF IFS):
-            prognoza "wydana wieczorem D-1" widzi tylko obserwacje do D-1 i prognozę na D..D+2
-  y1997   - kontrola jakościowa: powódź tysiąclecia, lipiec 1997 (reanaliza)
-  heat    - najgorętszy dzień w danych (demo modułu wyboczeń)
-
-Wynik: web/data/*.js (window.RS_DATA[...] = {...}) - dashboard działa bez serwera, z pliku.
-"""
 import json
 import pickle
 import sys
@@ -36,7 +26,6 @@ _HYD = None
 
 
 def hyd_hist():
-    """Historyczne stany wód (duży plik, potrzebny tylko w trybach archiwalnych – nie w codziennej prognozie)."""
     global _HYD
     if _HYD is None:
         _HYD = pickle.load(open(P / "hydro_daily.pkl", "rb"))[["id", "date", "h3"]]
@@ -44,8 +33,6 @@ def hyd_hist():
 HM = json.load(open(P / "hydro_mapping.json"))
 ST["exposure"] = ST["id"].map(HM["exposure"]).astype(float)
 
-# Klimatologia opadu (q99 sumy 3-dniowej) dla komórek spoza regionu treningowego:
-# regresja liniowa q99 ~ wysokość komórki, dopasowana na komórkach Dolnego Śląska i Opolszczyzny
 _cell_elev = ST.groupby("cell")["elev"].mean()
 _known = {c: v for c, v in M["clim_q99"].items() if c in _cell_elev}
 _a, _b = np.polyfit([_cell_elev[c] for c in _known], list(_known.values()), 1)
@@ -65,7 +52,7 @@ def get(url, params):
         if r.status_code == 200:
             try:
                 return r.json()
-            except ValueError:            # przeciążony serwer potrafi zwrócić stronę HTML z kodem 200
+            except ValueError:
                 print("  odpowiedź nie jest JSON-em, ponawiam")
                 time.sleep(wait); wait = min(wait * 2, 600); continue
         print("  czekam", wait, r.text[:100])
@@ -90,10 +77,7 @@ def fetch_cells(url, params, chunk=25, pause=10):
     return out
 
 
-# ---------------------------------------------------------------- scoring
-
 def explain(model, X, feats, n=3):
-    """Lokalne wyjaśnienie: wpływ cechy = zmiana P po podstawieniu wartości 'typowej' (mediana tła)."""
     base = model.predict_proba(X)[:, 1]
     contrib = {}
     for f in feats:
@@ -112,9 +96,6 @@ REF = None
 
 
 def score(df, out_of_fold=False):
-    """df: segment x dzień z cechami => kolumny ryzyka.
-    out_of_fold=True: każdy odcinek oceniany modelem, który NIE widział jego linii w treningu
-    (uczciwy backtest na zdarzeniu, z którego pochodzą etykiety)."""
     global REF
     X = df[M["features"]].astype(float)
     if REF is None:
@@ -134,7 +115,6 @@ def score(df, out_of_fold=False):
         df["r_flood"] = r
     else:
         df["r_flood"] = M["model"].predict_proba(X)[:, 1]
-    # kalibracja do skali "alarmu": próg modelu => 0.5
     thr = M["threshold"]
     df["s_flood"] = 1 / (1 + np.exp(-(np.log(df["r_flood"] + 1e-9) - np.log(thr)) * 1.6))
     df["s_heat"] = heat_risk(df["tmax"].values, df["sw"].values)
@@ -144,7 +124,7 @@ def score(df, out_of_fold=False):
     if "h3" not in df:
         df["h3"] = np.nan
     df["s_river"] = river_risk(df["h3"].values, df["exposure"].values)
-    df["s_water"] = combine(df["s_flood"].values, df["s_river"].values)  # podmycie (A) lub fala (B)
+    df["s_water"] = combine(df["s_flood"].values, df["s_river"].values)
     df["s_total"] = combine(df["s_water"].values, df["s_heat"].values, df["s_wind"].values, df["s_ice"].values)
     df["t_rail"] = rail_temp(df["tmax"].values, df["sw"].values)
     hot = df["s_flood"] > 0.3
@@ -167,7 +147,6 @@ def quality(sub):
 
 
 def pack(df, days, meta):
-    """Kompaktowy JSON: dla każdego dnia lista wartości per odcinek (kolejność = segments)."""
     out = {"meta": meta, "days": [], "risk": {}}
     ids = ST["id"].tolist()
     for d in days:
@@ -187,14 +166,12 @@ def pack(df, days, meta):
             "gust": sub["gust"].round(0).fillna(0).tolist(),
             "trail": sub["t_rail"].round(1).fillna(0).tolist(),
             "why": [w if isinstance(w, list) else [] for w in sub["why"].tolist()],
-            # jakość danych: 0 = komplet, 1 = brak aktualnego stanu wody (odcinek ma wodowskaz), 2 = brak danych pogodowych
             "q": quality(sub).tolist(),
         }
     return out
 
 
 def frame_from_daily(daily_by_cell, hydro=None):
-    """hydro: DataFrame (id, date, h3); domyślnie obserwacje IMGW z tego samego dnia (tryb archiwalny)."""
     w = cell_daily(daily_by_cell)
     w = add_extreme(w, CLIM)
     df = ST.merge(w, on="cell")
@@ -202,7 +179,6 @@ def frame_from_daily(daily_by_cell, hydro=None):
 
 
 def simplify(pts, tol=0.0006):
-    """Douglas-Peucker (~60 m) - lżejsza mapa dla telefonów."""
     if len(pts) < 3:
         return pts
     a, b = np.array(pts[0]), np.array(pts[-1])
@@ -223,8 +199,6 @@ def write_js(name, obj):
     print("zapisano", name)
 
 
-# ---------------------------------------------------------------- tryby
-
 DAILY = "precipitation_sum,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,shortwave_radiation_sum,weather_code"
 
 
@@ -237,7 +211,6 @@ def live():
                           {"daily": DAILY, "past_days": 31, "forecast_days": 3, "timezone": "Europe/Warsaw"})
         json.dump(raw, open(cache, "w"))
     today = date.today()
-    # bieżące stany wód z API IMGW (wodowskazy przypisane do odcinków), utrwalone na 3 dni
     hyd = pd.DataFrame(columns=["id", "date", "h3"])
     n_gauges = 0
     try:
@@ -251,11 +224,9 @@ def live():
             if not (x and x.get("stan_wody")):
                 continue
             if x.get("stan_wody_data_pomiaru") and pd.Timestamp(x["stan_wody_data_pomiaru"]) < pd.Timestamp(today) - pd.Timedelta(days=2):
-                continue  # pomiar nieaktualny
+                continue
             h = (float(x["stan_wody"]) - m["q50"]) / (m["q99"] - m["q50"])
             ostrz = float(x["stan_ostrzegawczy"]) if x.get("stan_ostrzegawczy") else None
-            # kontrola jakości: poniżej oficjalnego stanu ostrzegawczego IMGW - bez alarmu o fali;
-            # bez stanów ostrzegawczych i skrajnie poza historią (np. nowe zero wodowskazu po odbudowie) - niepewne
             if (ostrz is not None and float(x["stan_wody"]) < ostrz) or (ostrz is None and h > 2.5):
                 if h > 1.5:
                     suspect.append(x["stacja"])
@@ -263,7 +234,6 @@ def live():
             cur[code] = h
         if suspect:
             print("kontrola jakości – odczyty ograniczone:", ", ".join(sorted(set(suspect))[:12]))
-        # brak historii z ostatnich dni w API -> stan bieżący jako h(t), h(t-1), h(t-2) (trend = 0)
         W = pd.DataFrame([cur] * 3, index=pd.date_range(t - pd.Timedelta(days=2), t))
         cellp = {c: pd.DataFrame(x["daily"]).set_index("time")["precipitation_sum"] for c, x in raw.items()}
         rh, rf = {}, {1: {}, 2: {}, 3: {}}
@@ -281,7 +251,7 @@ def live():
         hyd = river_fc.segments_h3(fcst, HM["segment_station"], t, cur_seg)
         n_gauges = len(cur)
         print(f"rzeki: {len(cur)} wodowskazów z API, {hyd.id.nunique()} odcinków z prognozą fali")
-    except Exception as e:  # brak API nie blokuje prognozy opadowej
+    except Exception as e:
         print("IMGW hydro / prognoza rzek niedostępne:", e)
     df = score(frame_from_daily({c: x["daily"] for c, x in raw.items()}, hydro=hyd))
     days = [today + timedelta(days=k) for k in range(3)]
@@ -294,7 +264,6 @@ def live():
 
 
 def replay():
-    """Backtest z archiwalnymi prognozami. Opad z Previous Runs API (ECMWF IFS 0.25°)."""
     cache = RAW / "weather" / "prev_runs_2024_09.json"
     if not cache.exists():
         raw = fetch_cells("https://previous-runs-api.open-meteo.com/v1/forecast",
@@ -305,7 +274,6 @@ def replay():
         json.dump(raw, open(cache, "w"))
     raw = json.load(open(cache))
     obs = json.load(open(RAW / "weather" / "2024.json"))
-    # prognozy dobowe sum opadu dla wyprzedzenia k dni
     fc = {}
     for c, x in raw.items():
         h = pd.DataFrame(x["hourly"])
@@ -315,13 +283,11 @@ def replay():
     issues = pd.date_range("2024-09-09", "2024-09-15")
     frames, timeline = [], []
     cells_r = [c for c in CELLS if c in obs and c in fc]
-    # prognoza rzek (ML): historia stanów IMGW + opad z posterunków; opad przyszły z prognozy ECMWF
     import river_fc
     hist = pickle.load(open(P / "station_hidx.pkl", "rb"))
     srain = pickle.load(open(P / "station_rain.pkl", "rb"))
     st_cell = {c: f"{round(m['lat'] * 4) / 4},{round(m['lon'] * 4) / 4}" for c, m in STM.items()}
     for D in issues:
-        # obserwacje do D-1, prognoza wydana wieczorem D-1 na D, D+1, D+2 (wyprzedzenie 1..3 dni)
         daily = {}
         for c in cells_r:
             o = pd.DataFrame(obs[c])
@@ -335,12 +301,11 @@ def replay():
                 base = pd.DataFrame(obs[c])
                 base["time"] = pd.to_datetime(base["time"])
                 rowT = base[base["time"] == T].iloc[0].to_dict()
-                rowT["precipitation_sum"] = p  # opad WYŁĄCZNIE z prognozy (temperatury nieistotne dla modelu)
+                rowT["precipitation_sum"] = p
                 fut.append(rowT)
             o = pd.concat([o, pd.DataFrame(fut)], ignore_index=True)
             o["time"] = o["time"].dt.strftime("%Y-%m-%d")
             daily[c] = o.to_dict(orient="list")
-        # hydrologia: obserwacje IMGW do D-1, dalej utrwalenie stanu z D-1 (bez prognozy hydrologicznej)
         HYD = hyd_hist()
         past = HYD[HYD["date"] < D]
         t = D - pd.Timedelta(days=1)
@@ -361,8 +326,6 @@ def replay():
         frames.append(df)
     allf = pd.concat(frames)
     pos = json.load(open(P / "positive_segments.json"))
-    # które odcinki faktycznie zniszczone przekraczają alarm i z jakim wyprzedzeniem
-    # wyprzedzenie = od wydania prognozy (wieczór D-1, ~20:00) do początku pierwszego dnia zniszczeń (14.09 00:00)
     first_damage = pd.Timestamp("2024-09-14 00:00")
     lead = {}
     for sid in pos:
@@ -370,7 +333,7 @@ def replay():
         hit = s[s["s_water"] >= 0.5]
         if len(hit):
             first = hit.sort_values("issued").iloc[0]
-            released = first["issued"] - pd.Timedelta(hours=4)  # D 00:00 - 4 h = D-1 20:00
+            released = first["issued"] - pd.Timedelta(hours=4)
             lead[sid] = round((first_damage - released).total_seconds() / 3600)
     out = {"meta": {"title": "Powódź 09.2024 - backtest na archiwalnych prognozach ECMWF",
                     "note": "Prognoza wydana wieczorem dnia poprzedniego; opad wyłącznie z prognozy na D..D+2. "
@@ -380,7 +343,6 @@ def replay():
         sub = allf[allf["issued"] == D]
         days = [D + pd.Timedelta(days=k) for k in range(3)]
         out["issues"].append({"issued": str(D)[:10], **pack(sub, days, {})})
-    # odsetek pozostałych (nieoznaczonych) odcinków w alarmie w dniach 14-15.09 wg prognozy z wieczora 13.09
     peak = allf[(allf["issued"] == pd.Timestamp("2024-09-14")) & (allf["date"].isin(pd.to_datetime(["2024-09-14", "2024-09-15"])))]
     mx = peak.groupby("id")["s_water"].max()
     mx_ml = peak.groupby("id")["s_flood"].max()
@@ -408,7 +370,6 @@ def from_archive(name, start, end, show_days, title):
 
 
 def heat_demo():
-    """Fala upałów lata 2025 dla CAŁEJ Polski (562 komórki, ERA5): najgorętszy dzień sieci +/- 1 dzień."""
     f = RAW / "weather" / "heat_pl_2025.json"
     if f.exists():
         raw = json.load(open(f))
@@ -441,7 +402,6 @@ if __name__ == "__main__":
         heat_demo()
     if "live" in modes:
         live()
-    # geometria odcinków dla mapy
     kmf = P / "kilometraz.json"
     KM = json.load(open(kmf)) if kmf.exists() else {}
     geo = []

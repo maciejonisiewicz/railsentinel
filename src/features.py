@@ -1,27 +1,13 @@
-"""Wspólna inżynieria cech + moduły fizyczne (upał, wiatr, oblodzenie).
-
-Używane zarówno przy treningu (dane historyczne), jak i w trybie prognozy/backtestu.
-"""
 import math
 
 import numpy as np
 import pandas as pd
 
-# Tylko cechy o fizycznym związku z podmyciem. Cechy "eksploatacyjne" (prędkość, elektryfikacja,
-# kategoria linii) usunięte - w eksperymencie (GroupKFold) uczyły się "regionu Kłodzka", nie fizyki:
-#   wszystkie cechy:  PR-AUC 0.291, AUC w strefie ulewy 0.893, alarmy poza zniszczeniami 20.8%
-#   cechy fizyczne:   PR-AUC 0.385, AUC w strefie ulewy 0.916, alarmy poza zniszczeniami 13.2%
-#   reguła opadowa:   PR-AUC 0.327, AUC w strefie ulewy 0.848, alarmy poza zniszczeniami 26.8%
 STATIC = ["tpi", "relief", "river_dist_km", "river_size", "bridge_share", "embankment_share", "elev"]
 DYNAMIC = ["p1", "p3", "p7", "p_ante30", "p3_extreme"]
-# moduł hydrologiczny: indeks stanu wody z wodowskazu IMGW na tej samej rzece (NaN = brak rzeki/wodowskazu)
 HYDRO = ["h_idx", "h3"]
-# Model ML (moduł A: ulewa/podmycie) używa opadu i terenu. Stan wód jako cecha ML nie pomagał
-# (z jednego zdarzenia nie da się nauczyć drugiego mechanizmu) - obsługuje go moduł B (river_risk).
 FLOOD_FEATURES = DYNAMIC + STATIC
 
-# monotoniczność (1 = rosnąca, -1 = malejąca, 0 = dowolna) - wiedza fizyczna wbudowana w model:
-# więcej opadu => nigdy mniejsze ryzyko; bliżej rzeki / niżej w dolinie => nigdy mniejsze ryzyko
 MONOTONIC = {"p1": 1, "p3": 1, "p7": 1, "p_ante30": 1, "p3_extreme": 1,
              "river_dist_km": -1, "tpi": -1, "river_size": 1, "h_idx": 1, "h3": 1}
 
@@ -48,7 +34,6 @@ def static_frame(segs):
 
 
 def cell_daily(weather_by_cell):
-    """dict cell -> daily dict  =>  long DataFrame (cell, date, zmienne) + cechy kroczące."""
     rows = []
     for cell, d in weather_by_cell.items():
         t = pd.DataFrame(d)
@@ -69,40 +54,27 @@ def cell_daily(weather_by_cell):
 
 
 def add_extreme(w, clim_q99):
-    """p3 względem 99. percentyla klimatologicznego danej komórki (z lat treningowych)."""
     w["p3_extreme"] = w["p3"] / w["cell"].map(clim_q99).fillna(w["p3"].quantile(0.99))
     return w
 
 
-# ---------------- moduły fizyczne ----------------
-
 def rail_temp(tmax, sw_mj):
-    """Szacowana maks. temperatura szyny [°C]. Model empiryczny: T_szyny ≈ T_pow + k·nasłonecznienie.
-    Przy pełnym słońcu latem (≈25-30 MJ/m²/d) szyna jest o ~18-22°C cieplejsza od powietrza."""
     return tmax + 0.75 * np.nan_to_num(sw_mj)
 
 
 def heat_risk(tmax, sw_mj):
-    """Ryzyko wyboczenia toru bezstykowego. Temp. neutralna toru w PL ~ 25-30°C;
-    ryzyko rośnie istotnie, gdy T_szyny przekracza ~50°C (różnica > 20-25 K)."""
     tr = rail_temp(tmax, sw_mj)
     return 1 / (1 + np.exp(-(tr - 54) / 2.5))
 
 
 def wind_risk(gust_kmh):
-    """Ryzyko powalonych drzew / uszkodzeń sieci trakcyjnej. Progi IMGW: 70 km/h (st.1), 90 (st.2), 110 (st.3)."""
     return 1 / (1 + np.exp(-(np.nan_to_num(gust_kmh) - 85) / 7))
 
 
-FREEZING_CODES = (56, 57, 66, 67)   # WMO: marznąca mżawka / marznący deszcz
+FREEZING_CODES = (56, 57, 66, 67)
 
 
 def ice_risk(p1, tmax, tmin, electrified, wcode=None):
-    """Ryzyko oblodzenia sieci trakcyjnej.
-    Marznący deszcz wymaga ciepłej warstwy powietrza NAD zimną przy gruncie - z danych przy gruncie
-    nie da się tego rozstrzygnąć. Dlatego:
-      * reguła przybliżona (opad przy temperaturze ok. 0 °C) daje tylko tło poniżej progu UWAGA (<= 0.15),
-      * ALARM tylko, gdy model numeryczny prognozuje marznący opad (kod WMO 56/57/66/67)."""
     tmax, tmin = np.asarray(tmax, dtype=float), np.asarray(tmin, dtype=float)
     near_zero = np.exp(-((tmax + tmin) / 2) ** 2 / 3) * (tmin < 0.0) * (tmax > -2.0)
     wet = 1 - np.exp(-np.nan_to_num(p1) / 4)
@@ -116,9 +88,6 @@ def ice_risk(p1, tmax, tmin, electrified, wcode=None):
 
 
 def river_risk(h3, exposure):
-    """Moduł B: fala wezbraniowa. Próg ustalony A PRIORI (nie dostrajany na teście 1997):
-    stan wody 2x wyżej ponad medianę niż poziom 1% najwyższych dni 2021-24 (h3 = 2.0) => alarm (0.5)
-    dla toru przecinającego rzekę / przy brzegu; dalej od rzeki ekspozycja 0.6."""
     h = np.nan_to_num(np.asarray(h3, dtype=float), nan=-9)
     e = np.nan_to_num(np.asarray(exposure, dtype=float), nan=0)
     return e / (1 + np.exp(-(h - 2.0) / 0.25))
@@ -138,7 +107,6 @@ def hav_km(lat1, lon1, lat2, lon2):
 
 
 def dist_to_polyline_km(lat, lon, pts):
-    """Przybliżona odległość punktu od łamanej (próbkowanie co ~200 m)."""
     if len(pts) == 1:
         return hav_km(lat, lon, *pts[0])
     best = 1e9

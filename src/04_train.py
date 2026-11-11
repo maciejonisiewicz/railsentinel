@@ -1,14 +1,3 @@
-"""Krok 4: zbiór uczący + model ML ryzyka podmycia/zalania odcinka + walidacja.
-
-Model: HistGradientBoostingClassifier z ograniczeniami monotoniczności (physics-informed ML).
-Walidacja:
-  (a) GroupKFold po numerze linii na latach 2021-2024 (etykiety: powódź 09.2024),
-  (b) NIEZALEŻNY test czasowy: powódź 07.1997 (inne zdarzenie, inne etykiety, model jej nie widział),
-  (c) porównanie zestawów cech na teście 1997 (wybór cech nie był na nim dostrajany).
-Źródła opadu: "era5" (reanaliza 0.25°; zgodna z prognozami - model operacyjny)
-              "gauge" (posterunki IMGW, IDW ~ kilka km, braki uzupełnione ERA5 - model obserwacyjny)
-Baseline: reguła progowa "opad 3-dniowy > X mm".
-"""
 import json
 import pickle
 from pathlib import Path
@@ -53,7 +42,6 @@ def rolling(df, key):
 
 
 def frame(years, source, st, clim=None):
-    """Odcinko-dni z cechami. source='era5' lub 'gauge'."""
     w = pd.concat([cell_daily(json.load(open(W / f"{y}.json"))) for y in years], ignore_index=True)
     df = st.merge(w.drop(columns=["p3", "p7", "p_ante30"]), on="cell")
     if source == "gauge":
@@ -78,7 +66,6 @@ def make_model(feats):
 
 
 def evaluate(df, feats, pos):
-    """GroupKFold po liniach + metryki vs reguła opadowa."""
     X, y, groups = df[feats], df["y"].values, df["line"].values
     oof = np.zeros(len(df))
     fold_models, line_fold = [], {}
@@ -115,7 +102,6 @@ def evaluate(df, feats, pos):
 
 
 def test_1997(model, feats, thr, thr_b, source, st, clim):
-    """Niezależny test: maks. ryzyko odcinka w oknie powodzi 1997 vs etykiety 1997."""
     df, _ = frame([1997], source, st, clim)
     df = df[df["date"].dt.month == 7]
     pos, days = label_segments(st, "labels_flood_1997.json")
@@ -140,7 +126,6 @@ def flood_scale(r, thr):
 
 
 def system_eval(df, oof, thr, pos, final, feats, source, st, clim):
-    """Cały system: moduł A (ML, ulewa) + moduł B (fala wezbraniowa). Alarm gdy P >= 0.5."""
     hm = json.load(open(P / "hydro_mapping.json"))
     exp = df["id"].map(hm["exposure"]).astype(float)
     sA = flood_scale(oof, thr)
@@ -156,7 +141,6 @@ def system_eval(df, oof, thr, pos, final, feats, source, st, clim):
         out[f"sys2024_detected_{name}"] = int(len(set(det) & set(pos)))
         out[f"sys2024_other_alarm_pct_{name}"] = float((mx[~mx.index.isin(list(pos))] >= 0.5).mean() * 100)
         out[f"sys_normal_alarms_per_1000_{name}"] = float(a[normal].mean() * 1000)
-    # test 1997
     t, _ = frame([1997], source, st, clim)
     t = t[t["date"].dt.month == 7]
     pos97, days97 = label_segments(st, "labels_flood_1997.json")
@@ -178,9 +162,6 @@ def system_eval(df, oof, thr, pos, final, feats, source, st, clim):
     return out
 
 
-# Obszar etykiet: komunikaty o zniszczeniach (2024, 1997) zebrano dla Dolnego Śląska i Opolszczyzny.
-# Odcinki spoza tego obszaru nie mają zweryfikowanych etykiet, więc nie biorą udziału w treningu/walidacji
-# (inaczej trafiłyby do zbioru jako "niezniszczone" bez sprawdzenia). Prognoza działa dla całej Polski.
 LABEL_BBOX = (50.0, 51.9, 14.8, 18.7)
 
 
@@ -216,7 +197,6 @@ def main():
                   flush=True)
             keep[(source, fs_name)] = (final, feats, thr, clim, folds, line_fold, df)
 
-    # model operacyjny (prognozy): ERA5 + cechy fizyczne; obserwacyjny: posterunki IMGW
     for source, fname in (("era5", "flood_model.pkl"), ("gauge", "flood_model_gauge.pkl")):
         final, feats, thr, clim, folds, line_fold, df = keep[(source, "fizyczne")]
         pickle.dump({"model": final, "features": feats, "threshold": thr, "clim_q99": clim,

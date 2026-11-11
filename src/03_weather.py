@@ -1,9 +1,3 @@
-"""Krok 3: historia pogody (reanaliza ERA5 przez Open-Meteo Archive API) dla siatki 0.25°.
-
-Każdy odcinek przypisany do komórki siatki. Pobieramy dane dzienne marzec-październik
-(sezon burz, ulew i upałów) dla wybranych lat. Cache: data/raw/weather/<rok>.json
-Użycie: python src/03_weather.py 2024 2023 2022 ...
-"""
 import json
 import sys
 import time

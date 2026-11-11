@@ -1,4 +1,4 @@
-/* RailSentinel – aplikacja. Dane z window.RS_DATA (generowane przez src/05_predict.py). */
+
 (() => {
   const D = window.RS_DATA || {};
   const SEG = D.segments || [];
@@ -11,7 +11,7 @@
     ice: "kursy pociągów odladzających sieć trakcyjną; rozważenie trakcji spalinowej na odcinkach krytycznych",
   };
   const ALARM = 0.5, WARN = 0.3;
-  // kilometraż i miejscowości
+
   const kmf = (k) => k.toFixed(1).replace(".", ",");
   const kmTxt = (sg) => (sg.km ? `km ${kmf(sg.km[0])}–${kmf(sg.km[1])}` : "");
   const odDo = (sg) => (sg.od && sg.do && sg.od !== sg.do ? `${sg.od} – ${sg.do}` : sg.od || sg.place || "");
@@ -27,10 +27,9 @@
   const isDark = () => document.documentElement.dataset.theme === "dark";
   const mobile = () => matchMedia("(max-width: 860px)").matches;
 
-  // ---------- mapa ----------
   const map = L.map("map", { zoomControl: false, zoomSnap: 0.25, preferCanvas: true, attributionControl: true }).setView([52.0, 19.3], 6);
   map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
-  window.RS_MAP = map; // dostęp do mapy dla automatycznych testów i nagrań
+  window.RS_MAP = map;
   let tiles;
   function setTiles() {
     if (tiles) map.removeLayer(tiles);
@@ -40,7 +39,7 @@
     }).addTo(map);
   }
   setTiles();
-  // lewy margines mapy pod panelem bocznym (żeby dopasowania widoku nie chowały się pod panelem)
+
   const pad = () => (mobile() ? { paddingTopLeft: [10, 130], paddingBottomRight: [10, innerHeight * 0.48 + 10] }
     : { paddingTopLeft: [400, 90], paddingBottomRight: [30, 30] });
   const PL = [[49.0, 14.1], [54.85, 24.15]];
@@ -77,7 +76,6 @@
   const lineLayer = L.layerGroup().addTo(map);
   const centers = SEG.map((s) => { const b = L.polyline(s.g).getBounds().getCenter(); return [b.lat, b.lng]; });
 
-  // ---------- dane bieżącego widoku ----------
   function view() {
     if (st.mode === "sim") return simRisk ? { days: ["sim"], risk: { sim: simRisk }, meta: { title: "Symulator" } } : null;
     const m = st.mode === "line" ? D.live : D[st.mode];
@@ -92,8 +90,8 @@
     if (st.mode === "sim") return simRisk;
     const v = view(); return v && v.risk[v.days[Math.min(st.day, v.days.length - 1)]];
   };
-  // ---------- jakość danych i pewność oceny ----------
-  const today = () => new Date().toLocaleDateString("sv-SE");   // RRRR-MM-DD w czasie lokalnym
+
+  const today = () => new Date().toLocaleDateString("sv-SE");
   const isLive = () => st.mode === "live" || st.mode === "line";
   const stale = (v) => isLive() && v && v.meta && v.meta.issued && v.meta.issued < today();
   const qOf = (r, i) => (r && r.q ? r.q[i] : 0);
@@ -114,7 +112,6 @@
 
   const domHz = (r, i) => ["flood", "heat", "wind", "ice"].reduce((a, h) => (r[h][i] > r[a][i] ? h : a), "flood");
 
-  // ---------- render ----------
   function render() {
     $("#simCtrl").hidden = st.mode !== "sim";
     $("#lineCtrl").hidden = st.mode !== "line";
@@ -190,18 +187,16 @@
     return "";
   }
 
-  // ---------- oś czasu backtestu ----------
   function renderTimeline(v, r) {
     $("#issueLbl").textContent = fmtDay(v.issued, -1, true) + " wieczorem";
     const dmg = D.replay2024.damaged.map((id) => SEG.findIndex((s) => s.id === id)).filter((i) => i >= 0);
-    // ile zniszczonych odcinków jest w alarmie w którymkolwiek z 3 dni tej prognozy
+
     const n = dmg.filter((i) => v.days.some((d) => v.risk[d].total[i] >= ALARM)).length;
     $("#tlStat").innerHTML = `zniszczone odcinki z alarmem: <b>${n}/${dmg.length}</b>`;
   }
 
-  // ---------- Moja linia ----------
   const LS = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
-               set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* tryb prywatny */ } } };
+               set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {  } } };
   const byLine = {};
   SEG.forEach((s, i) => { (byLine[s.line] = byLine[s.line] || []).push(i); });
   const lineNames = Object.keys(byLine).filter((l) => l !== "bn").sort((a, b) => (+a || 9999) - (+b || 9999));
@@ -212,7 +207,7 @@
   st.line = LS.get("rs_line") || "";
   $("#lineInput").value = st.line;
   function lineOrder(ii) {
-    if (ii.filter((i) => SEG[i].km).length >= ii.length * 0.8)   // kolejność wg kilometrażu linii
+    if (ii.filter((i) => SEG[i].km).length >= ii.length * 0.8)
       return [...ii].sort((a, b) => (SEG[a].km ? SEG[a].km[0] : 1e9) - (SEG[b].km ? SEG[b].km[0] : 1e9));
     const c = ii.map((i) => centers[i]);
     const mx = c.reduce((a, p) => a + p[1], 0) / c.length, my = c.reduce((a, p) => a + p[0], 0) / c.length;
@@ -268,13 +263,12 @@
   });
   $("#shareBtn").addEventListener("click", async () => {
     const txt = `RailSentinel – ${st.lineText || ""}\n${location.origin + location.pathname}#mode=line&line=${st.line}`;
-    try { if (navigator.share) await navigator.share({ title: "RailSentinel", text: txt }); else { await navigator.clipboard.writeText(txt); $("#shareBtn").textContent = "✓ Skopiowano"; } } catch (e) { /* anulowano */ }
+    try { if (navigator.share) await navigator.share({ title: "RailSentinel", text: txt }); else { await navigator.clipboard.writeText(txt); $("#shareBtn").textContent = "✓ Skopiowano"; } } catch (e) {  }
   });
   let deferred = null;
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; $("#installBtn").hidden = false; });
   $("#installBtn").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $("#installBtn").hidden = true; });
 
-  // ---------- warstwa opadu ----------
   function renderRain(r) {
     rainLayer.clearLayers();
     if (!st.rain || !r || !r.p1) return;
@@ -291,7 +285,6 @@
     }
   }
 
-  // ---------- symulator (model ML w przeglądarce) ----------
   function runSim() {
     if (!window.RS_SIM) return;
     const p = st.sim;
@@ -329,7 +322,6 @@
     map.setView(map.unproject(map.project(L.latLng(vw[0], vw[1]), vw[2]).add(L.point(off)), vw[2]), vw[2]);
   }
 
-  // ---------- nagłówek widoku ----------
   function renderStory(v) {
     const T = {
       live: ["Prognoza na żywo", v ? `Cała Polska, najbliższe 72 h · pogoda ECMWF/ICON i bieżące stany rzek IMGW` : ""],
@@ -342,7 +334,6 @@
     $("#story").innerHTML = `<h2>${T[0]}</h2><p>${T[1]}</p>`;
   }
 
-  // ---------- raport dla dyżurnego ----------
   function renderBrief(v, r, alarm, warn) {
     const day = v.days[st.day];
     if (!alarm.length && !warn.length) {
@@ -387,7 +378,6 @@
     $("#brief").innerHTML = html;
   }
 
-  // ---------- szczegóły odcinka ----------
   function openPopup(i, latlng) {
     const v = view(), r = cur();
     if (!r) return;
@@ -433,7 +423,6 @@
       : { weekday: "short", day: "numeric", month: "short", year: "numeric" });
   }
 
-  // ---------- zdarzenia ----------
   function setMode(m, fly = true) {
     st.mode = m;
     document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
@@ -478,7 +467,7 @@
   $("#briefBtn").addEventListener("click", () => (dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "")));
   $("#closeDlg").addEventListener("click", () => dlg.close());
   dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
-  // wydruk A4: jednostronicowy komunikat do wywieszenia / przekazania na zmianie
+
   $("#print").addEventListener("click", () => {
     const v = view();
     const now = new Date().toLocaleString("pl-PL", { dateStyle: "long", timeStyle: "short" });
@@ -497,7 +486,6 @@
   });
   $("#grab").addEventListener("click", () => $("#side").classList.toggle("full"));
 
-  // ---------- start ----------
   const savedTheme = LS.get("rs_theme");
   if (savedTheme) { document.documentElement.dataset.theme = savedTheme; setTiles(); }
   if (D.replay2024) {
@@ -505,7 +493,7 @@
     $("#issue").max = n - 1; st.issue = Math.min(4, n - 1); $("#issue").value = st.issue;
     $("#tlTicks").innerHTML = D.replay2024.issues.map((x) => `<span>${new Date(x.issued + "T12:00:00").getDate() - 1}.09</span>`).join("");
   }
-  // parametry w adresie, np. index.html#mode=heat&day=1&issue=3&hz=flood&lat=50.4&lon=16.8&z=10
+
   const hp = new URLSearchParams(location.hash.slice(1));
   if (hp.get("theme")) { document.documentElement.dataset.theme = hp.get("theme"); setTiles(); }
   if (hp.get("line")) { st.line = hp.get("line"); $("#lineInput").value = st.line; }
@@ -523,7 +511,7 @@
   else { const v = VIEWS[startMode]; presetView([v[0][0], v[0][1], v[1]]); }
   window.addEventListener("load", () => map.invalidateSize());
   if (hp.get("popup")) setTimeout(() => {
-    // otwórz szczegóły najbardziej zagrożonego odcinka (do zrzutów ekranu)
+
     map.invalidateSize();
     const r = cur();
     if (r) {

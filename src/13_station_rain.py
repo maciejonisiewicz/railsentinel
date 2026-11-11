@@ -1,9 +1,3 @@
-"""Krok 13: opad przy wodowskazach IMGW w całej Polsce (cecha modelu prognozy rzek).
-
-Posterunki opadowe IMGW lokalizujemy jak w kroku 8 (kod stacji -> kwadrat 1°, nazwa -> miejscowość OSM),
-tym razem w całym kraju. Opad przy wodowskazie = średnia z posterunków w promieniu 25 km.
-Wynik: data/processed/station_rain.pkl  (DataFrame: data x kod wodowskazu)
-"""
 import json
 import pickle
 from collections import defaultdict

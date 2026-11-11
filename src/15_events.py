@@ -1,10 +1,3 @@
-"""Krok 15: testy na kolejnych PRAWDZIWYCH zdarzeniach (niezależnych od treningu).
-
-Woda (2010, poziom odcinka): miejsca z udokumentowanym zamknięciem / zniszczeniem linii.
-Wiatr (orkany 2007–2022, poziom sieci): czy dzień orkanu wyróżnia się na tle sąsiednich dni.
-Pogoda: reanaliza ERA5 (Open-Meteo Archive) – to test „idealnej prognozy”, jak w teście 1997.
-Wynik: data/processed/events_validation.json
-"""
 import json
 import sys
 from pathlib import Path
@@ -13,10 +6,10 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import importlib  # noqa: E402
+import importlib
 
 pr = importlib.import_module("05_predict")
-from features import wind_risk  # noqa: E402
+from features import wind_risk
 
 RAW, P = pr.RAW, pr.P
 ARCH = "https://archive-api.open-meteo.com/v1/archive"
@@ -57,9 +50,8 @@ def archive(tag, start, end, daily):
 
 
 def hydro_2010():
-    """Stany wód IMGW 2010 (dobowe, archiwum) -> h3 dla odcinków, tą samą metodą co w treningu (q50/q99 2021-24)."""
     m09 = importlib.import_module("09_hydro")
-    m09.RAW = RAW / "ev2010"                      # tylko pliki z 2010
+    m09.RAW = RAW / "ev2010"
     df = m09.load()
     HM = pr.HM
     q50, q99 = pd.Series(HM["q50"]), pd.Series(HM["q99"])
@@ -89,8 +81,8 @@ def flood_tests():
         mx = t.groupby("id")["s_water"].max()
         seg = [s for s in ev["seg"] if s in mx.index]
         best = float(mx[seg].max())
-        rank = float((mx >= best).mean())          # jaki odsetek całej sieci miał ryzyko co najmniej takie
-        alarm_share = float((mx >= ALARM).mean())  # ile sieci było w alarmie choć raz w oknie
+        rank = float((mx >= best).mean())
+        alarm_share = float((mx >= ALARM).mean())
         day = t[t["id"].isin(seg)].sort_values("s_water").iloc[-1]["date"]
         r = {"name": ev["name"], "src": ev["src"], "risk": round(best, 3), "alarm": best >= ALARM, "warn": best >= WARN,
              "top_pct": round(rank * 100, 1), "net_alarm_pct": round(alarm_share * 100, 1), "day": str(day.date())}
@@ -101,8 +93,6 @@ def flood_tests():
 
 
 def wind_archive(d, s, e):
-    """Porywy dla orkanu. Orkany to zjawiska synoptyczne (setki km), więc wystarcza siatka 0,5°:
-    każdy odcinek dostaje porywy z najbliższego węzła rzadszej siatki (4x mniej zapytań do API)."""
     f = RAW / "weather" / f"ev_wind_{d}.json"
     if f.exists():
         return json.load(open(f))

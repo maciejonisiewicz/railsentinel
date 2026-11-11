@@ -1,16 +1,3 @@
-"""Krok 12: ML - prognoza stanów rzek na 1-3 dni dla wodowskazów IMGW w całej Polsce.
-
-Dotąd moduł B (fala wezbraniowa) zakładał, że stan rzeki się utrzyma (persystencja).
-Fala jednak WĘDRUJE: to, co dziś widać w górnym biegu, jutro dochodzi do mostu niżej.
-Model:
-  * dla każdego wodowskazu automatycznie wybiera do 3 wodowskazów "zwiastunów" na tej samej rzece
-    (największa korelacja przyrostów stanu z opóźnieniem 1-2 dni, dane 2021-2023),
-  * gradient boosting (osobno dla wyprzedzenia 1, 2, 3 dni) przewiduje ZMIANĘ indeksu stanu wody
-    z: bieżącego stanu i trendu, stanów zwiastunów, opadu z posterunków IMGW (przeszłego i prognozowanego).
-Walidacja: trening 2021-2023, test 2024 (powódź wrzesień) i 1997 (powódź tysiąclecia) - względem persystencji.
-W treningu opad "przyszły" = opad zmierzony (idealna prognoza); w backteście i na żywo - prognoza ECMWF/Open-Meteo.
-Wynik: data/processed/river_model.pkl, river_metrics.json, station_meta.json
-"""
 import json
 import pickle
 from importlib import import_module
@@ -34,7 +21,6 @@ def hav(a, b, c, d):
 
 
 def station_table():
-    """Dzienny indeks stanu wody h_idx dla wszystkich wodowskazów (kody zgodne z API IMGW)."""
     df = hydro.load()
     api = {x["id_stacji"]: x for x in json.load(open(RAW / "pl" / "imgw_hydro_api.json"))}
     meta = {}
@@ -60,7 +46,6 @@ def station_table():
 
 
 def pick_upstream(wide, meta):
-    """Zwiastuny: stacje na tej samej rzece (< 200 km), których przyrost z opóźnieniem L poprzedza przyrost tu."""
     tr = wide[(wide.index.year >= 2021) & (wide.index.year <= 2023)]
     d = tr.diff()
     ups = {}
@@ -84,13 +69,11 @@ def pick_upstream(wide, meta):
 
 
 def station_rain():
-    """Opad przy wodowskazie: średnia z posterunków IMGW w promieniu 25 km (gauges_pl.json z kroku 8)."""
     f = P / "station_rain.pkl"
     return pickle.load(open(f, "rb")) if f.exists() else None
 
 
 def features(wide, ups, rain, t_idx=None, rain_future=None):
-    """Cechy dla każdej (data t, stacja). rain_future: dict k -> DataFrame (data x stacja) prognozy opadu."""
     rows = []
     W = wide
     for s, up in ups.items():
@@ -136,8 +119,6 @@ def feat_cols(k):
 
 
 def system_scores(h0, true, pred, thr_m, thr=2.0):
-    """System: alarm gdy rzeka JUŻ jest wysoko (persystencja) LUB model przewiduje przekroczenie.
-    Onset = nowe przekroczenia (h0 < 2, za k dni >= 2) - persystencja ich z definicji nie wykrywa."""
     m = np.isfinite(true) & np.isfinite(pred) & np.isfinite(h0)
     h0, t, p = h0[m], true[m], pred[m]
     ev = t >= thr
@@ -191,7 +172,6 @@ def main():
                                           l2_regularization=1.0, random_state=0)
         m.fit(tr[cols], tr[f"y{k}"])
         models[k] = m
-        # próg modelu dobierany WYŁĄCZNIE na danych treningowych (maks. CSI systemu)
         ptr = tr.h0.values + m.predict(tr[cols])
         ttr = tr.h0.values + tr[f"y{k}"].values
         best = max(((system_scores(tr.h0.values, ttr, ptr, th)["csi_system"], th)

@@ -1,5 +1,4 @@
-/* RailSentinel – model ML w przeglądarce + symulator ulewy / fali / klimatu.
-   Te same drzewa co w Pythonie (HistGradientBoosting, 289 drzew) – wynik identyczny co do bitu. */
+
 (() => {
   const M = (window.RS_DATA || {}).model;
   if (!M) return;
@@ -30,7 +29,6 @@
     return 2 * 6371 * Math.asin(Math.sqrt(x));
   }
 
-  /* p: {lat, lon, rain (mm/3 doby w centrum), radius (km), soil (mm z 30 dni), river (indeks stanu wody), climate (%)} */
   function compute(p, centers) {
     const t0 = performance.now();
     const out = { total: [], flood: [], flash: [], river: [], heat: [], wind: [], ice: [], p1: [], p3: [], gust: [], trail: [], why: [], h3: [] };
@@ -42,7 +40,7 @@
       const v = { p1: r3 * 0.45, p3: r3, p7: r3 + 6, p_ante30: p.soil, p3_extreme: r3 / base.q99[i] };
       for (const f of F) x[fi[f]] = f in v ? v[f] : base.static[f][i];
       const sA = toAlarm(predictRow(x));
-      // stan rzek: w scenariuszu "Odra" tylko odcinki przy Odrze; przy ulewie - rzeki w jej zasięgu (2x promień)
+
       const hLoc = p.scope === "odra" ? (base.hriver[i] === "ODRA" ? p.river : 0)
         : (p.lat == null ? 0 : p.river * Math.exp(-((d / (2 * p.radius)) ** 2)));
       const sB = riverRisk(hLoc, base.exposure[i]);

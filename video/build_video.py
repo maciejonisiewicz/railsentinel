@@ -1,11 +1,3 @@
-"""Montaż filmu prezentacyjnego RailSentinel (MP4 1920x1080, ok. 3,5 min).
-
-1. Lektor: neuronowy polski głos (Microsoft Edge TTS, pl-PL-MarekNeural) + lekka obróbka (EQ, kompresja).
-2. Sceny: animowane plansze (video/scenes.html) i nagrania PRAWDZIWEJ aplikacji (Playwright + Chrome).
-3. Montaż: płynne przejścia (xfade), muzyka skomponowana algorytmicznie (bez praw autorskich osób trzecich),
-   automatyczne ściszanie muzyki pod lektorem (ducking), normalizacja głośności (EBU R128).
-Uruchomienie: .venv/bin/python video/build_video.py   (wymaga serwera: python -m http.server 8765 w katalogu projektu)
-"""
 import json
 import re
 import shutil
@@ -23,13 +15,12 @@ TMP = V / "build"
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 BASE = "http://127.0.0.1:8765"
 SR = 48000
-XF = 0.7          # długość przejścia [s]
+XF = 0.7
 LEAD, TAIL = 0.6, 0.9
-VOICE = "pl-PL-MarekNeural"   # zapasowy głos, gdy nie ma klucza ElevenLabs
+VOICE = "pl-PL-MarekNeural"
 
 
 def env():
-    """Ustawienia z pliku .env w katalogu projektu (nie trafia do repozytorium)."""
     out = {}
     f = ROOT / ".env"
     if f.exists():
@@ -48,12 +39,11 @@ EL_SET = {"stability": float(ENV.get("ELEVENLABS_STABILITY", 0.45)), "similarity
 
 
 def el_tts(text, out, voice=None, prev="", nxt="", model=None):
-    """ElevenLabs text-to-speech -> mp3. prev/nxt: sąsiednie zdania, żeby intonacja płynnie łączyła sceny."""
     import requests
     model = model or EL_MODEL
     sets = dict(EL_SET)
     if model.startswith(("eleven_v3", "eleven_v4")):
-        sets = {"stability": 0.5, "similarity_boost": 0.8}   # nowsze modele: stabilność 0 / 0,5 / 1, bez kontekstu
+        sets = {"stability": 0.5, "similarity_boost": 0.8}
         prev = nxt = ""
     body = {"text": text, "model_id": model, "voice_settings": sets}
     if prev:
@@ -86,7 +76,6 @@ def metrics():
 
 
 def script(v):
-    """(id, typ, tekst lektora, podpis). Liczby z aktualnych wyników."""
     return [
         ("intro", "html", "Każdego dnia po polskich torach jeżdżą tysiące pociągów. Ale tor nie jest odporny na pogodę. "
                           "Oto RailSentinel: system, który pomaga zdecydować, który odcinek toru sprawdzić najpierw, zanim pogoda go uszkodzi.", None),
@@ -125,9 +114,7 @@ def script(v):
     ]
 
 
-# ---------------------------------------------------------------- lektor
 def tts(i, text, prev="", nxt=""):
-    """Lektor: ElevenLabs (gdy jest klucz w .env), w przeciwnym razie Edge TTS. Wynik w cache wg tekstu i głosu."""
     mp3, wav = TMP / f"v{i:02d}.mp3", TMP / f"v{i:02d}.wav"
     tag = mp3.with_suffix(".txt")
     el = bool(EL_KEY and EL_VOICE)
@@ -153,18 +140,15 @@ def read_wav(p):
     return x
 
 
-# ---------------------------------------------------------------- muzyka (synteza)
 def music(dur):
-    """Ambient/elektronika ~92 BPM: pad (detuned saw + filtr), arpeggio, miękki kick, hi-hat. Am-F-C-G."""
     n = int(dur * SR)
     t = np.arange(n) / SR
     out = np.zeros(n, np.float32)
     bpm, beat = 92, 60 / 92
     bar = 4 * beat
-    chords = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]]   # Am F C G (MIDI)
+    chords = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]]
     f = lambda m: 440 * 2 ** ((m - 69) / 12)
     rng = np.random.default_rng(3)
-    # pad
     for ci in range(int(dur / bar) + 2):
         s, e = int(ci * bar * SR), min(n, int((ci + 1) * bar * SR + 0.4 * SR))
         if s >= n:
@@ -177,7 +161,6 @@ def music(dur):
                 ph = 2 * np.pi * f(m - 12) * (1 + det / 100) * tt
                 sig += 0.5 * np.sin(ph) + 0.18 * np.sin(2 * ph) + 0.06 * np.sin(3 * ph)
         out[s:e] += 0.035 * sig * env
-    # arpeggio (od 8. s), ósemki
     step = beat / 2
     for k in range(int(dur / step)):
         st0 = k * step
@@ -190,7 +173,6 @@ def music(dur):
             break
         tt = np.arange(L) / SR
         out[s:s + L] += 0.03 * np.sin(2 * np.pi * f(m) * tt) * np.exp(-tt * 7)
-    # kick + hat (od 16. s do końca - 8 s)
     for k in range(int(dur / beat)):
         st0 = k * beat
         if st0 < 16 or st0 > dur - 8:
@@ -201,7 +183,6 @@ def music(dur):
         h = int((st0 + beat / 2) * SR); HL = int(0.06 * SR)
         if h + HL < n:
             out[h:h + HL] += 0.012 * rng.standard_normal(HL) * np.exp(-np.arange(HL) / SR * 60)
-    # wygładzenie i fade in/out
     out = np.convolve(out, np.ones(3) / 3, mode="same").astype(np.float32)
     fade = np.ones(n, np.float32)
     fi, fo = int(2.5 * SR), int(4 * SR)
@@ -210,12 +191,10 @@ def music(dur):
     return out * fade
 
 
-# ---------------------------------------------------------------- wywiady (prawdziwe nagrania)
 WYW = V / "wywiady"
 
 
 def tsec(x):
-    """'1:23.5' / '83.5' / 83.5 -> sekundy."""
     if isinstance(x, (int, float)):
         return float(x)
     p = [float(a) for a in str(x).replace(",", ".").split(":")]
@@ -238,7 +217,6 @@ def interview_scenes():
 
 
 def render_overlays(items):
-    """items: [(plik_png, query)] -> przezroczyste PNG 1920x1080 z video/overlay.html."""
     from urllib.parse import urlencode
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
@@ -252,7 +230,6 @@ def render_overlays(items):
 
 
 def prep_interview(sid, e):
-    """Fragment prawdziwego nagrania: kadr 16:9 (pion -> rozmyte tło), belka z podpisem, napisy, czysty dźwięk."""
     t0, t1 = tsec(e["od"]), tsec(e["do"])
     dur = t1 - t0
     src = WYW / e["plik"]
@@ -294,7 +271,6 @@ def prep_interview(sid, e):
     return mp4, wav, dur
 
 
-# ---------------------------------------------------------------- nagrania scen
 CAPTION_JS = """(txt) => { const d = document.createElement('div'); d.id='rsCap'; d.textContent = txt;
   Object.assign(d.style, {position:'fixed', left:'420px', top:'110px', zIndex: 99999, background:'rgba(7,10,15,.82)',
   color:'#fff', font:'700 30px Inter, sans-serif', padding:'16px 26px', borderRadius:'16px', borderLeft:'8px solid #ffb020',
@@ -302,37 +278,66 @@ CAPTION_JS = """(txt) => { const d = document.createElement('div'); d.id='rsCap'
   document.body.appendChild(d); setTimeout(() => { d.style.opacity = 1; d.style.transform = 'none'; }, 300); }"""
 
 
+FPS = 30
+TICK_JS = """(t) => {
+  const docs = [document];
+  document.querySelectorAll('iframe').forEach((f) => { try { if (f.contentDocument) docs.push(f.contentDocument); } catch (e) {} });
+  window.__seen = window.__seen || new Map();
+  const reset = window.__reset; window.__reset = false;
+  for (const d of docs) for (const a of d.getAnimations()) {
+    if (!window.__seen.has(a) || reset) window.__seen.set(a, reset ? 0 : t);
+    a.pause(); a.currentTime = Math.max(0, t - window.__seen.get(a));
+  }
+}"""
+
+
+class FrameRecorder:
+
+    def __init__(self, pg, mp4, total_frames):
+        self.pg, self.n, self.k = pg, total_frames, 0
+        self.proc = subprocess.Popen([FF, "-y", "-hide_banner", "-loglevel", "error", "-f", "image2pipe",
+                                      "-framerate", str(FPS), "-c:v", "mjpeg", "-i", "-", "-vf", "scale=1920:1080,setsar=1",
+                                      "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", str(mp4)],
+                                     stdin=subprocess.PIPE)
+        pg.evaluate("window.__reset = true")
+
+    def cap(self, ms, each=None):
+        frames = max(0, min(self.n - self.k, round(ms / 1000 * FPS)))
+        for j in range(frames):
+            t_prev = self.k * 1000 / FPS
+            t_now = (self.k + 1) * 1000 / FPS
+            self.pg.clock.run_for(int(round(t_now)) - int(round(t_prev)))
+            if each:
+                each(j)
+            self.pg.evaluate(TICK_JS, t_now)
+            self.proc.stdin.write(self.pg.screenshot(type="jpeg", quality=92))
+            self.k += 1
+
+    def close(self):
+        self.cap((self.n - self.k) * 1000 / FPS)
+        self.proc.stdin.close()
+        self.proc.wait()
+
+
 def record(sid, kind, dur, caption, v):
+    import datetime
     from playwright.sync_api import sync_playwright
     done = TMP / f"s_{sid}.mp4"
     if done.exists() and abs(float(subprocess.run([FF, "-i", str(done)], capture_output=True, text=True).stderr
                                      .split("Duration: ")[1].split(",")[0].split(":")[2]) - dur) < 0.15:
-        return done   # scena już nagrana (ten sam czas trwania)
-    out = TMP / f"rec_{sid}"
-    shutil.rmtree(out, ignore_errors=True)
+        return done
     with sync_playwright() as p:
         b = p.chromium.launch(channel="chrome", headless=True, args=["--force-color-profile=srgb"])
-        ctx = b.new_context(viewport={"width": 1920, "height": 1080}, device_scale_factor=1,
-                            record_video_dir=str(out), record_video_size={"width": 1920, "height": 1080},
-                            color_scheme="dark")
-        t0 = time.time()
+        ctx = b.new_context(viewport={"width": 1920, "height": 1080}, device_scale_factor=1, color_scheme="dark")
         pg = ctx.new_page()
+        pg.clock.install(time=datetime.datetime.now())
         q = "&v=" + json.dumps(v).replace(" ", "")
         if kind == "html":
             pg.goto(f"{BASE}/video/scenes.html?scene={sid}{q}")
-            pg.wait_for_timeout(900)
-            start = time.time() - t0
-            pg.reload()   # restart animacji od zera w nagraniu
-            start = time.time() - t0
-            pg.wait_for_timeout(int(dur * 1000) + 200)
+            pg.wait_for_timeout(1500)
         elif kind == "phone":
             pg.goto(f"{BASE}/video/phone.html")
-            pg.wait_for_timeout(2500)
-            start = time.time() - t0 - 1.6
-            fr = pg.frame_locator("#f")
-            pg.wait_for_timeout(int(dur * 400))
-            pg.evaluate("(()=>{const d=document.getElementById('f').contentDocument; const s=d.getElementById('side'); s.classList.add('full'); setTimeout(()=>s.scrollTo({top: 260, behavior: 'smooth'}), 400);})()")
-            pg.wait_for_timeout(int(dur * 600) + 300)
+            pg.wait_for_timeout(3500)
         else:
             urls = {"live": "#mode=live&theme=dark&hz=total",
                     "replay": "#mode=replay2024&theme=dark&issue=0&day=1",
@@ -340,47 +345,52 @@ def record(sid, kind, dur, caption, v):
                     "t1997": "#mode=y1997&theme=dark&day=0",
                     "sim": "#mode=sim&theme=dark&preset=clear&lat=50.95&lon=15.9&z=8"}
             pg.goto(f"{BASE}/web/index.html{urls[sid]}")
-            pg.wait_for_timeout(2600)
-            if caption:
-                pg.evaluate(CAPTION_JS, caption)
-            start = time.time() - t0
-            ms = int(dur * 1000)
-            if sid == "live":
-                pg.wait_for_timeout(int(ms * 0.35))
-                pg.evaluate("void RS_MAP.flyTo([50.45, 16.3], 9, {duration: 5})")
-                pg.wait_for_timeout(int(ms * 0.65))
-            elif sid == "replay":
-                pg.click("#play")
-                pg.wait_for_timeout(ms)
-            elif sid == "popup":
-                pg.wait_for_timeout(ms)
-            elif sid == "t1997":
-                for d in (0, 1, 2):
-                    pg.click(f"#days button[data-d='{d}']")
-                    pg.wait_for_timeout(int(ms / 3))
-            elif sid == "sim":
-                third = ms / 3
-                pg.click("#presets button[data-p='storm']")
-                pg.wait_for_timeout(int(third * 0.5))
-                for val in (120, 150, 180):
-                    pg.evaluate(f"(()=>{{const e=document.querySelector('#sRain'); e.value={val}; e.dispatchEvent(new Event('input'));}})()")
-                    pg.wait_for_timeout(int(third * 0.17))
-                pg.click("#presets button[data-p='odra']")
-                pg.wait_for_timeout(int(third))
-                pg.click("#presets button[data-p='storm']")
-                pg.wait_for_timeout(300)
-                for val in (5, 10, 15, 20):
-                    pg.evaluate(f"(()=>{{const e=document.querySelector('#sClim'); e.value={val}; e.dispatchEvent(new Event('input'));}})()")
-                    pg.wait_for_timeout(int(third * 0.22))
-                pg.wait_for_timeout(400)
-        pg.wait_for_timeout(400)
+            pg.wait_for_timeout(3500)
+        now = pg.evaluate("Date.now()")
+        pg.clock.pause_at(datetime.datetime.fromtimestamp(now / 1000 + 0.05))
+        if caption:
+            pg.evaluate(CAPTION_JS, caption)
+        R = FrameRecorder(pg, done, round(dur * FPS))
+        ms = dur * 1000
+        if kind == "html":
+            R.cap(ms)
+        elif kind == "phone":
+            R.cap(ms * 0.4)
+            pg.evaluate("document.getElementById('f').contentDocument.getElementById('side').classList.add('full')")
+            scroll = "(y) => { document.getElementById('f').contentDocument.getElementById('side').scrollTop = y; }"
+            R.cap(ms * 0.6, each=lambda j: pg.evaluate(scroll, 260 * min(1, max(0, j - 12) / 36) ** 0.8))
+        elif sid == "live":
+            R.cap(ms * 0.35)
+            pg.evaluate("void RS_MAP.flyTo([50.45, 16.3], 9, {duration: 5})")
+            R.cap(ms * 0.65)
+        elif sid == "replay":
+            pg.click("#play")
+            R.cap(ms)
+        elif sid == "popup":
+            R.cap(ms)
+        elif sid == "t1997":
+            for d in (0, 1, 2):
+                pg.click(f"#days button[data-d='{d}']")
+                R.cap(ms / 3)
+        elif sid == "sim":
+            third = ms / 3
+            setv = "([id, val]) => { const e = document.querySelector(id); e.value = val; e.dispatchEvent(new Event('input')); }"
+            pg.click("#presets button[data-p='storm']")
+            R.cap(third * 0.5)
+            for val in (120, 150, 180):
+                pg.evaluate(setv, ["#sRain", val])
+                R.cap(third * 0.17)
+            pg.click("#presets button[data-p='odra']")
+            R.cap(third)
+            pg.click("#presets button[data-p='storm']")
+            R.cap(300)
+            for val in (5, 10, 15, 20):
+                pg.evaluate(setv, ["#sClim", val])
+                R.cap(third * 0.22)
+        R.close()
         ctx.close()
         b.close()
-    webm = next(out.glob("*.webm"))
-    mp4 = TMP / f"s_{sid}.mp4"
-    ff("-ss", f"{max(0, start):.2f}", "-i", str(webm), "-t", f"{dur:.2f}", "-vf", "fps=30,scale=1920:1080,setsar=1",
-       "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-an", str(mp4))
-    return mp4
+    return done
 
 
 def main():
@@ -392,7 +402,7 @@ def main():
     v = metrics()
     print("liczby:", v)
     sc = script(v)
-    durs, clips, auds = [], [], []   # auds: (plik wav, przesunięcie w scenie, czy wywiad)
+    durs, clips, auds = [], [], []
     for i, (sid, kind, text, cap) in enumerate(sc):
         if kind == "interview":
             mp4, wav, dur = prep_interview(sid, text)
@@ -408,7 +418,6 @@ def main():
         auds.append((TMP / f"v{i:02d}.wav", LEAD, False))
         print(f"scena {sid}: lektor {d:.1f} s -> {dur:.1f} s", flush=True)
         clips.append(record(sid, kind, dur, cap, v))
-    # --- wideo z przejściami
     trans = ["fade", "smoothleft", "fadeblack", "circleopen", "slideleft", "fade", "smoothup", "fade",
              "wipeleft", "fade", "smoothleft", "circleopen", "fadeblack"]
     inputs = sum([["-i", str(c)] for c in clips], [])
@@ -421,10 +430,9 @@ def main():
     total = acc
     ff(*inputs, "-filter_complex", ";".join(fc), "-map", last, "-c:v", "libx264", "-preset", "medium", "-crf", "21",
        "-pix_fmt", "yuv420p", str(TMP / "video_noaudio.mp4"))
-    # --- audio: lektor w miejscach scen + muzyka z duckingiem
     n = int(total * SR) + SR
     voice = np.zeros(n, np.float32)
-    quiet = np.ones(n, np.float32)       # pod prawdziwymi wypowiedziami muzyka prawie znika
+    quiet = np.ones(n, np.float32)
     start = 0.0
     for (wav, off, is_int), d in zip(auds, durs):
         x = read_wav(wav)

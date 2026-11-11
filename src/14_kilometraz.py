@@ -1,11 +1,3 @@
-"""Krok 14: kilometraż linii (km od–do) dla każdego odcinka.
-
-Źródło: słupki kilometrowe/hektometrowe w OpenStreetMap (railway=milestone, tag railway:position),
-przypisane do numerów linii przez relacje route=railway. Dla każdego wierzchołka odcinka kilometraż
-interpolowany jest między dwoma najbliższymi słupkami tej samej linii; zakres = min–max.
-Dodatkowo: miejscowości na obu końcach odcinka (najbliższe miasto/wieś z OSM).
-Wynik: data/processed/kilometraz.json  {id_odcinka: {"km": [od, do] | null, "od": nazwa, "do": nazwa}}
-"""
 import json
 import math
 import re
@@ -68,7 +60,7 @@ def places():
 def nearest_place(A, names, types, la, lo):
     k = math.cos(math.radians(la))
     d = np.hypot((A[:, 0] - la) * 110.57, (A[:, 1] - lo) * 111.32 * k)
-    d = d - np.where(np.array(types) == "village", 0.0, 1.5)   # miasto wygrywa z wsią w podobnej odległości
+    d = d - np.where(np.array(types) == "village", 0.0, 1.5)
     i = int(np.argmin(d))
     return names[i] if d[i] < 6 else None
 
@@ -93,7 +85,7 @@ def main():
         kk = math.cos(math.radians(s["lat"]))
         GX = np.c_[G[:, 1] * kk * 111.32, G[:, 0] * 110.57]
         D2 = ((GX[:, None, :] - GX[None, :, :]) ** 2).sum(-1)
-        ia, ib = np.unravel_index(np.argmax(D2), D2.shape)      # skrajne punkty odcinka
+        ia, ib = np.unravel_index(np.argmax(D2), D2.shape)
         rec = {"km": None, "od": nearest_place(PA, PN, PT, *pts[ia]), "do": nearest_place(PA, PN, PT, *pts[ib])}
         out[s["id"]] = rec
         km = kilometraz(s, lines.get(str(s["line"])), pts, (ia, ib))
@@ -108,7 +100,6 @@ def main():
 
 
 def kilometraz(s, ms, pts, ends):
-    """[km_od, km_do] oraz czy skrajne punkty trzeba zamienić (żeby 'od' był przy mniejszym km)."""
     if not ms or len(ms) < 2:
         return None
     if True:
@@ -133,13 +124,13 @@ def kilometraz(s, ms, pts, ends):
         if len(kms) < max(2, len(pts) // 3):
             return None
         med = float(np.median(kms))
-        good = {vi: v for vi, v in at.items() if abs(v - med) <= s["length_km"] + 1.0}   # słupki sąsiednich linii na węzłach – odrzucenie
+        good = {vi: v for vi, v in at.items() if abs(v - med) <= s["length_km"] + 1.0}
         kms = np.array(list(good.values()))
         if len(kms) < 2:
             return None
         lo_, hi_ = float(np.percentile(kms, 2)), float(np.percentile(kms, 98))
         span = hi_ - lo_
-        if span > 3 * s["length_km"] + 1.0 or span < 0.25 * s["length_km"] - 0.5:   # kontrola spójności
+        if span > 3 * s["length_km"] + 1.0 or span < 0.25 * s["length_km"] - 0.5:
             return None
         va, vb = min(good, key=good.get), max(good, key=good.get)
         return [round(max(0.0, lo_), 1), round(hi_, 1)], (va, vb)

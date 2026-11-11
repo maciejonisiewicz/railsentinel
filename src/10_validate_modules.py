@@ -1,12 +1,3 @@
-"""Krok 10: walidacja modułów fizycznych na udokumentowanych zdarzeniach (dane spoza treningu ML).
-
-  Upał:  3.07.2025 - PKP PLK: 133 pociągi opóźnione przez ograniczenia prędkości z powodu upału
-         (odpowiedź na interpelację poselską, sejm.gov.pl z02575)
-  Wiatr: 18-19.02.2022 - orkan Eunice: PKP PLK - 400 zdarzeń na sieci związanych z pogodą do godz. 18
-         (Polsat News, 19.02.2022)
-Pytanie: czy moduł wskazuje te dni jako wyjątkowe na tle wszystkich innych dni w danych?
-Miara: % sieci w alarmie (P >= 0.5) danego dnia i ranking dnia wśród wszystkich dni.
-"""
 import json
 from pathlib import Path
 

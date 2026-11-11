@@ -63,7 +63,6 @@
   <h3>Odtworzenie wyników</h3>
   <p class="small">Kod i dane pośrednie są w repozytorium projektu: <code>src/04_train.py</code> (model ulewy), <code>src/12_river_forecast.py</code> (prognoza rzek), <code>src/05_predict.py replay y1997 heat live</code> (backtest i prognozy), <code>src/15_events.py</code> (powodzie 2010, orkany), <code>src/14_kilometraz.py</code> (kilometraż), <code>src/07_build_doc.py</code> (tabele w pracy).</p>
 </section>
-<!-- 07 SYMULATOR -->
 <section class="page">
   <h2><span class="n">A1</span>Symulator „co jeśli?” i test klimatyczny</h2>
   <p>Cały model ML, czyli {{n_trees}} drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko {{n_segments}} odcinków w całej Polsce przelicza się w ułamku sekundy. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 190 mm?”</i>.</p>
@@ -74,7 +73,6 @@
   <p>W trybie backtestu przycisk „▶ Odtwórz” odtwarza kolejne prognozy z 9–15.09.2024 razem z warstwą opadu. Widać, jak ulewa nasuwa się na Sudety, a alarmy zapalają się na odcinkach, które dwa dni później zostały zniszczone.</p>
 </section>
 
-<!-- 08 PROGNOZA RZEK -->
 <section class="page">
   <h2><span class="n">A2</span>Nowy model ML: prognoza stanów rzek na 3 dni</h2>
   <p>Moduł B zakładał wcześniej, że stan rzeki się utrzyma. Fala jednak <b>wędruje</b>: to, co dziś widać w górnym biegu, jutro dochodzi do mostu niżej. Drugi model ML prognozuje indeks stanu wody dla <b>{{n_gauges_rf}} wodowskazów IMGW w całej Polsce</b> z wyprzedzeniem 1, 2 i 3 dni.</p>

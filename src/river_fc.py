@@ -1,10 +1,3 @@
-"""Użycie modelu prognozy stanów rzek (krok 12) w backteście i w trybie na żywo.
-
-System hydrologiczny = persystencja LUB prognoza ML (tak był walidowany w kroku 12):
-  h_eff(t+k) = max( h(t),  h_pred(t+k) * 2.0 / próg_modelu_k )
-Przeskalowanie sprawia, że przekroczenie progu modelu (dobranego na danych treningowych)
-odpowiada progowi alarmu modułu B (indeks 2.0).
-"""
 import pickle
 from importlib import import_module
 from pathlib import Path
@@ -19,8 +12,6 @@ _m12 = import_module("12_river_forecast")
 
 
 def forecast(wide_hist, rain_hist, rain_fut, t):
-    """wide_hist: DataFrame data x kod (h_idx) do dnia t włącznie; rain_hist: data x kod (mm) lub None;
-    rain_fut: {k: Series kod -> suma opadu z prognozy na t+1..t+k}. Zwraca DataFrame (code, k, h_eff)."""
     t = pd.Timestamp(t)
     W = wide_hist.loc[:t].iloc[-10:].reindex(columns=sorted(set(wide_hist.columns) | set(RF["meta"])))
     R = rain_hist.reindex(W.index) if rain_hist is not None else None
@@ -42,7 +33,6 @@ def forecast(wide_hist, rain_hist, rain_fut, t):
 
 
 def segments_h3(fc, seg_station, t, h_past_seg=None):
-    """Prognoza stacji -> h3 (maks. z 3 dni) dla odcinków na dniach t+1..t+3."""
     rows = []
     piv = fc.pivot_table(index="code", columns="k", values="h_eff")
     for sid, code in seg_station.items():

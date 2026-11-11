@@ -1,15 +1,12 @@
-# środowisko
 .venv/
 __pycache__/
 .DS_Store
-# surowe dane (odtwarzalne skryptami 01-03, 08, 09, 13) i duże pliki pośrednie
 data/raw/
 data/processed/hydro_daily.pkl
 data/processed/station_hidx.pkl
 data/processed/gauge_daily.pkl
 data/processed/station_rain.pkl
 data/processed/segments.json
-# robocze pliki montażu filmu
 video/build/
 *.webm
 video/*.mp4

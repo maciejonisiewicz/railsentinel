@@ -1,8 +1,3 @@
-"""Krok 1: budowa odcinków sieci kolejowej z danych OpenStreetMap (cała Polska).
-
-Każdy odcinek = fragment linii (wg numeru linii PLK) w kafelku ~4x5 km.
-Wynik: data/processed/segments.json (geometria + cechy statyczne infrastruktury).
-"""
 import json
 import math
 from collections import defaultdict
@@ -14,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW_FILES = sorted((ROOT / "data" / "raw" / "pl").glob("rail_*.json")) or [ROOT / "data" / "raw" / "osm_rail.json"]
 OUT = ROOT / "data" / "processed" / "segments.json"
 
-TILE = 0.05  # stopnie (~5.5 km N-S, ~3.5 km W-E)
+TILE = 0.05
 POLISH_OPERATORS = {"PKP Polskie Linie Kolejowe", "Dolnośląska Służba Dróg i Kolei we Wrocławiu",
                     "PMT Linie Kolejowe", "SKPL Infrastruktura i Linie Kolejowe"}
 
@@ -48,7 +43,7 @@ def main():
     border = json.load(open(ROOT / "data" / "raw" / "poland_border.geojson"))["coordinates"][0]
     poland = MplPath([(lat, lon) for lon, lat in border])
     seen, els = set(), []
-    for f in RAW_FILES:  # cała Polska w 6 kafelkach (drogi na granicach kafelków - deduplikacja po id)
+    for f in RAW_FILES:
         for w in json.load(open(f))["elements"]:
             if w["id"] not in seen:
                 seen.add(w["id"])

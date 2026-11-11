@@ -2,8 +2,8 @@ name: Codzienna prognoza
 
 on:
   schedule:
-    - cron: "15 3 * * *"     # codziennie ok. 4:15 (zima) / 5:15 (lato) czasu polskiego
-  workflow_dispatch:          # ręczne uruchomienie z zakładki Actions
+    - cron: "15 3 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write

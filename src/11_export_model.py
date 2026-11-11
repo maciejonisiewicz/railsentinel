@@ -1,9 +1,3 @@
-"""Krok 11: eksport modelu ML do przeglądarki (symulator ulewy w dashboardzie).
-
-HistGradientBoosting = suma drzew; eksportujemy węzły (cecha, próg, lewy, prawy, wartość liścia)
-i stan bazowy każdego odcinka (cechy statyczne, uwilgotnienie gruntu, klimatologia opadu).
-Weryfikacja: własna implementacja przejścia drzew w Pythonie (identyczna z JS) == predict_proba.
-"""
 import json
 import pickle
 import re
@@ -52,7 +46,6 @@ def main():
     M = pickle.load(open(P / "flood_model.pkl", "rb"))
     model, feats = M["model"], M["features"]
     exp = export_trees(model)
-    # weryfikacja na losowej próbie z prawdziwych danych (backtest 2024 + losowe)
     rng = np.random.default_rng(1)
     X = rng.uniform(0, 1, (300, len(feats)))
     st = static_frame(json.load(open(P / "segments_static.json")))
@@ -71,7 +64,6 @@ def main():
     print(f"drzew: {len(exp['trees'])}, maks. różnica vs sklearn: {err:.2e}")
     assert err < 1e-4
 
-    # stan bazowy odcinków: cechy statyczne + klimatologia opadu (q99 p3 komórki)
     st["q99"] = st["cell"].map(M["clim_q99"]).astype(float)
     hm = json.load(open(P / "hydro_mapping.json"))
     base = {

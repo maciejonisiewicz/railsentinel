@@ -1,9 +1,6 @@
 #!/bin/bash
-# Publikacja strony i aplikacji RailSentinel na GitHub Pages (gałąź gh-pages) pod domeną railsentinel.pl.
-# Użycie: ./deploy_site.sh     (wymaga zalogowanego GitHub CLI: gh auth status)
 set -euo pipefail
 cd "$(dirname "$0")"
-# najświeższa prognoza z automatu (gałąź gh-pages), żeby publikacja nie cofnęła jej do starszej wersji lokalnej
 curl -sf "https://raw.githubusercontent.com/maciejonisiewicz/railsentinel/gh-pages/data/live.js" -o /tmp/rs_live.js \
   && grep -q '"issued"' /tmp/rs_live.js && cp /tmp/rs_live.js web/data/live.js || true
 SITE=$(mktemp -d)
@@ -22,5 +19,4 @@ git push -q -f "https://github.com/maciejonisiewicz/railsentinel.git" gh-pages
 echo "Wysłano do gh-pages: $(du -sh "$SITE" | cut -f1)"
 rm -rf "$SITE"
 
-# po publikacji od razu świeża prognoza z automatu (GitHub Actions)
 gh workflow run prognoza.yml -R maciejonisiewicz/railsentinel >/dev/null 2>&1 && echo "Uruchomiono codzienną prognozę" || true

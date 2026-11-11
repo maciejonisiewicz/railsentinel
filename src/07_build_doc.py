@@ -1,7 +1,3 @@
-"""Krok 7: zrzuty ekranu dashboardu (Chrome headless) + praca konkursowa PDF z szablonu HTML.
-
-Użycie: python src/07_build_doc.py "Imię Nazwisko"
-"""
 import json
 import pickle
 import re
@@ -44,7 +40,6 @@ def main():
     shot("screen_1997", "mode=y1997&day=2", 1500, 900)
     shot("screen_sim", "mode=sim&preset=storm&clim=20", 1500, 900)
     shot("screen_live_pl", "mode=live", 1500, 950)
-    # telefon: Playwright (Chrome headless nie zwęża okna poniżej ~500 px)
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch(channel="chrome")
@@ -53,7 +48,6 @@ def main():
         pg.screenshot(path=str(FIG / "screen_phone.png")); b.close()
     print("zrzut screen_phone.png")
     shot("screen_heat", "mode=heat&day=1&hz=heat", 1500, 950)
-    # wycinek mapy z dymkiem szczegółów (czytelny w druku)
     from PIL import Image
     im = Image.open(FIG / "screen_popup.png")
     W, H = im.size
@@ -64,7 +58,6 @@ def main():
     segs = json.load(open(ROOT / "data" / "processed" / "segments_static.json"))
     heat = load_js("heat")
     s = rp["summary"]
-    # udział sieci w alarmie w dniu szczytu (15.09) wg prognozy z wieczora 14.09
     share = None
     for it in rp["issues"]:
         if it["issued"] == "2024-09-15":
@@ -146,17 +139,16 @@ def main():
 
 
 def new_tests(rp, segs):
-    """Ranking odcinków (2024), testy powodzi 2010 i orkanów 2007-2022, kilometraż."""
     out = {}
     ids = [x["id"] for x in load_js("segments")]
     dam = np.array([i in set(rp["damaged"]) for i in ids])
     nd = int(dam.sum())
     rng = np.random.default_rng(0)
-    def top(v, k, n=300):   # remisy rozstrzygane losowo, średnia z wielu losowań (uczciwe porównanie)
+    def top(v, k, n=300):
         return float(np.mean([dam[np.lexsort((rng.random(len(v)), -v))[:k]].sum() for _ in range(n)]))
     ISS = {it["issued"]: it for it in rp["issues"]}
     mx = lambda it, key: np.max([it["risk"][d][key] for d in it["days"]], axis=0)
-    it = ISS["2024-09-12"]                      # prognoza wydana 11.09 ok. 20:00 (na 12–14.09)
+    it = ISS["2024-09-12"]
     W, FL, P3 = mx(it, "flood"), mx(it, "flash"), mx(it, "p3")
     al = W >= 0.5
     out.update({"rk_alarm": int(al.sum()), "rk_alarm_pct": f"{al.mean() * 100:.1f}".replace(".", ","),
@@ -165,7 +157,6 @@ def new_tests(rp, segs):
         out[f"rk_m{k}"] = f"{top(FL, k):.0f}"
         out[f"rk_b{k}"] = f"{top(P3, k):.0f}"
         out[f"rk_r{k}"] = f"{k * nd / len(ids):.1f}".replace(".", ",")
-    # tabela błędów: pełny system (ulewa + fala), dwie prognozy, trzy progi
     rows = []
     for key, lbl in (("2024-09-12", "11.09, 20:00 (52 h)"), ("2024-09-14", "13.09, 20:00 (4 h)")):
         Wk = mx(ISS[key], "flood")
@@ -178,7 +169,6 @@ def new_tests(rp, segs):
                         f"</td><td>{b}{tp}{e}</td><td>{fn}</td><td>{fp}</td><td>{b}{(tp + fp) / max(tp, 1):.1f}{e}</td>".replace(".", ",") +
                         f"<td>{a.mean() * 100:.1f}%</td></tr>".replace(".", ","))
     out["err_rows"] = "".join(rows)
-    # przypadek: linia 309, km 0,2–3,2
     ci = ids.index("L309_1008_332")
     rank = lambda it: int((mx(it, "flood") > mx(it, "flood")[ci]).sum()) + 1
     out["cs_p3_10"] = f"{mx(ISS['2024-09-10'], 'p3')[ci]:.0f}"
@@ -212,7 +202,6 @@ def new_tests(rp, segs):
 
 
 def set_pdf_author(path, author):
-    """Metadane PDF: tytuł i autor."""
     import pypdf
     r = pypdf.PdfReader(str(path)); w = pypdf.PdfWriter()
     for pg in r.pages:

@@ -1,16 +1,10 @@
-"""Próbki głosów ElevenLabs na fragmencie prawdziwego tekstu filmu.
-
-Uruchomienie: .venv/bin/python video/el_probki.py            -> próbki głosów dodanych w „My Voices”
-              .venv/bin/python video/el_probki.py ID1 ID2    -> próbki wskazanych głosów
-Wynik: video/probki/el_<nazwa>.mp3
-"""
 import re
 import sys
 
 import requests
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
-import build_video as bv  # noqa: E402
+import build_video as bv
 
 TEXT = ("Wrzesień, rok dwa tysiące dwudziesty czwarty. Ulewa w Sudetach. Woda zabiera trzysta metrów nasypu pod Kłodzkiem. "
         "RailSentinel ostrzegł przed tym odcinkiem pięćdziesiąt dwie godziny wcześniej.")
