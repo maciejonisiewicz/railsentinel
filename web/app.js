@@ -96,7 +96,11 @@
 
   const today = () => new Date().toLocaleDateString("sv-SE");
   const isLive = () => st.mode === "live" || st.mode === "line";
-  const stale = (v) => isLive() && v && v.meta && v.meta.issued && v.meta.issued < today();
+  const ageH = (v) => {
+    const g = v && v.meta && (v.meta.generated || (v.meta.issued && v.meta.issued + " 12:00"));
+    return g ? (Date.now() - new Date(g.replace(" ", "T")).getTime()) / 36e5 : 0;
+  };
+  const stale = (v) => isLive() && v && v.meta && ageH(v) > 30;
   const qOf = (r, i) => (r && r.q ? r.q[i] : 0);
   function confidence(r, i) {
     if (qOf(r, i) === 2) return { lvl: "brak", txt: "ocena niedostępna – brak danych pogodowych" };
@@ -417,7 +421,10 @@
   }
 
   function dayLbl(d, k) {
-    if (st.mode === "live" || st.mode === "line") return ["Dziś", "Jutro", "Pojutrze"][k] || fmtDay(d);
+    if (st.mode === "live" || st.mode === "line") {
+      const diff = Math.round((new Date(d + "T12:00:00") - new Date(today() + "T12:00:00")) / 864e5);
+      return ({ "-1": "Wczoraj", 0: "Dziś", 1: "Jutro", 2: "Pojutrze" })[diff] || fmtDay(d, 0, true);
+    }
     return fmtDay(d, 0, true);
   }
   function fmtDay(d, shift = 0, short = false) {
@@ -431,6 +438,7 @@
     st.mode = m;
     document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
     st.day = m === "replay2024" || m === "heat" || m === "y1997" ? 1 : 0;
+    if ((m === "live" || m === "line") && D.live) st.day = Math.max(0, D.live.days.indexOf(today()));
     lineLayer.clearLayers(); simLayer.clearLayers();
     if (m === "sim" && st.sim.lat == null && st.sim.scope !== "odra") { Object.assign(st.sim, (({ view, ...x }) => x)(PRESETS["2024"])); syncSliders(); }
     if (fly && !(m === "line" && byLine[st.line])) goView(m);
