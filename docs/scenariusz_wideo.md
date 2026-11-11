@@ -1,4 +1,4 @@
-# Scenariusz wideo (ok. 4 min, nagranie ekranu + głos)
+# Scenariusz wideo (ok. 3,5 min, nagranie ekranu + głos)
 
 **0:00–0:20 – Hak.** Karta „Powódź 2024 · backtest”.
 „Wrzesień 2024: 880 mln zł strat w infrastrukturze PLK. Czy dało się wiedzieć wcześniej, *który konkretnie tor* zostanie zniszczony? Tak – ponad dwie doby wcześniej.”

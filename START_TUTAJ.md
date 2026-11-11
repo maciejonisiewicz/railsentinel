@@ -9,7 +9,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 | **Strona i aplikacja** | https://railsentinel.pl (zapasowo: https://maciejonisiewicz.github.io/railsentinel/) | Zakładki: Moja linia, Powódź 2024 (przycisk ▶ Odtwórz), Symulator ⚡, Na żywo, 1997, Model |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
 | **Strona projektu z filmem** | https://railsentinel.pl/about.html | Odtwarza się film, linki do PDF i kodu |
-| **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, ok. 4 min |
+| **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, ok. 3,5 min |
 | **Praca konkursowa** | `docs/RailSentinel_praca_konkursowa.pdf` | 14 stron (limit 15); przeczytaj całość – Komisja może zaprosić na prezentację |
 | **Kod** | https://github.com/maciejonisiewicz/railsentinel | Publiczne repozytorium |
 

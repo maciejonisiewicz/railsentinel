@@ -27,7 +27,7 @@ z 1997 r. wykrył wszystkie trzy udokumentowane miejsca zniszczeń.
 **Materiały uzupełniające (§5 ust. 4 Regulaminu):**
 - Działający prototyp – aplikacja i strona: https://railsentinel.pl
   (adres zapasowy: https://maciejonisiewicz.github.io/railsentinel/)
-- Film prezentacyjny (MP4, ok. 4 min): https://railsentinel.pl/about.html
+- Film prezentacyjny (MP4, ok. 3,5 min): https://railsentinel.pl/about.html
   (bezpośredni plik: https://railsentinel.pl/video/railsentinel.mp4)
 - Kod źródłowy: https://github.com/maciejonisiewicz/railsentinel
 
