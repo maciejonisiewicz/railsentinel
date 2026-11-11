@@ -47,15 +47,20 @@ EL_SET = {"stability": float(ENV.get("ELEVENLABS_STABILITY", 0.45)), "similarity
           "style": float(ENV.get("ELEVENLABS_STYLE", 0.15)), "use_speaker_boost": True}
 
 
-def el_tts(text, out, voice=None, prev="", nxt=""):
+def el_tts(text, out, voice=None, prev="", nxt="", model=None):
     """ElevenLabs text-to-speech -> mp3. prev/nxt: sąsiednie zdania, żeby intonacja płynnie łączyła sceny."""
     import requests
-    body = {"text": text, "model_id": EL_MODEL, "voice_settings": EL_SET}
+    model = model or EL_MODEL
+    sets = dict(EL_SET)
+    if model.startswith(("eleven_v3", "eleven_v4")):
+        sets = {"stability": 0.5, "similarity_boost": 0.8}   # nowsze modele: stabilność 0 / 0,5 / 1, bez kontekstu
+        prev = nxt = ""
+    body = {"text": text, "model_id": model, "voice_settings": sets}
     if prev:
         body["previous_text"] = prev
     if nxt:
         body["next_text"] = nxt
-    r = requests.post(f"https://api.elevenlabs.io/v1/text-to-speech/{voice or EL_VOICE}?output_format=mp3_44100_192",
+    r = requests.post(f"https://api.elevenlabs.io/v1/text-to-speech/{voice or EL_VOICE}?output_format=mp3_44100_128",
                       headers={"xi-api-key": EL_KEY}, json=body, timeout=120)
     if r.status_code != 200:
         raise RuntimeError(f"ElevenLabs {r.status_code}: {r.text[:300]}")
