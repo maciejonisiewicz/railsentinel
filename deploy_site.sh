@@ -18,3 +18,6 @@ git -c user.name="Maciej Onisiewicz" -c user.email="$(git -C "$OLDPWD" config us
 git push -q -f "https://github.com/maciejonisiewicz/railsentinel.git" gh-pages
 echo "Wysłano do gh-pages: $(du -sh "$SITE" | cut -f1)"
 rm -rf "$SITE"
+
+# po publikacji od razu świeża prognoza z automatu (GitHub Actions)
+gh workflow run prognoza.yml -R maciejonisiewicz/railsentinel >/dev/null 2>&1 && echo "Uruchomiono codzienną prognozę" || true

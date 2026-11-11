@@ -32,7 +32,15 @@ segs = json.load(open(P / "segments_static.json"))
 ST = static_frame(segs)
 M = pickle.load(open(P / "flood_model.pkl", "rb"))
 CELLS = sorted(ST["cell"].unique())
-HYD = pickle.load(open(P / "hydro_daily.pkl", "rb"))[["id", "date", "h3"]]
+_HYD = None
+
+
+def hyd_hist():
+    """Historyczne stany wód (duży plik, potrzebny tylko w trybach archiwalnych – nie w codziennej prognozie)."""
+    global _HYD
+    if _HYD is None:
+        _HYD = pickle.load(open(P / "hydro_daily.pkl", "rb"))[["id", "date", "h3"]]
+    return _HYD
 HM = json.load(open(P / "hydro_mapping.json"))
 ST["exposure"] = ST["id"].map(HM["exposure"]).astype(float)
 
@@ -176,7 +184,7 @@ def frame_from_daily(daily_by_cell, hydro=None):
     w = cell_daily(daily_by_cell)
     w = add_extreme(w, CLIM)
     df = ST.merge(w, on="cell")
-    return df.merge(HYD if hydro is None else hydro, on=["id", "date"], how="left")
+    return df.merge(hyd_hist() if hydro is None else hydro, on=["id", "date"], how="left")
 
 
 def simplify(pts, tol=0.0006):
@@ -313,6 +321,7 @@ def replay():
             o["time"] = o["time"].dt.strftime("%Y-%m-%d")
             daily[c] = o.to_dict(orient="list")
         # hydrologia: obserwacje IMGW do D-1, dalej utrwalenie stanu z D-1 (bez prognozy hydrologicznej)
+        HYD = hyd_hist()
         past = HYD[HYD["date"] < D]
         t = D - pd.Timedelta(days=1)
         rf = {}
