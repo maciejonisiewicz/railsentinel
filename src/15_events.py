@@ -100,13 +100,41 @@ def flood_tests():
     return out
 
 
+def wind_archive(d, s, e):
+    """Porywy dla orkanu. Orkany to zjawiska synoptyczne (setki km), więc wystarcza siatka 0,5°:
+    każdy odcinek dostaje porywy z najbliższego węzła rzadszej siatki (4x mniej zapytań do API)."""
+    f = RAW / "weather" / f"ev_wind_{d}.json"
+    if f.exists():
+        return json.load(open(f))
+    sub = [c for c in pr.CELLS if all(abs(float(v) * 2 - round(float(v) * 2)) < 1e-6 for v in c.split(","))]
+    raw = {}
+    for i in range(0, len(sub), 20):
+        ch = sub[i:i + 20]
+        q = {"start_date": s, "end_date": e, "timezone": "Europe/Warsaw", "daily": "wind_gusts_10m_max",
+             "latitude": ",".join(c.split(",")[0] for c in ch), "longitude": ",".join(c.split(",")[1] for c in ch)}
+        dd = pr.get(ARCH, q)
+        dd = dd if isinstance(dd, list) else [dd]
+        for c, x in zip(ch, dd):
+            raw[c] = x["daily"]
+        pr.time.sleep(4)
+    S = np.array([[float(v) for v in c.split(",")] for c in sub])
+    full = {}
+    for c in pr.CELLS:
+        la, lo = (float(v) for v in c.split(","))
+        j = int(np.argmin((S[:, 0] - la) ** 2 + ((S[:, 1] - lo) * 0.63) ** 2))
+        full[c] = raw[sub[j]]
+    json.dump(full, open(f, "w"))
+    print(f"  {d}: {len(sub)} węzłów siatki 0,5°")
+    return full
+
+
 def wind_tests():
     out = []
     seg_cells = pr.ST[["id", "cell"]]
     for name, d in WIND:
         d0 = pd.Timestamp(d)
         s, e = (d0 - pd.Timedelta(days=10)).strftime("%Y-%m-%d"), (d0 + pd.Timedelta(days=10)).strftime("%Y-%m-%d")
-        raw = archive(f"wind_{d}", s, e, "wind_gusts_10m_max")
+        raw = wind_archive(d, s, e)
         w = pd.concat([pd.DataFrame({"date": pd.to_datetime(x["time"]), "gust": x["wind_gusts_10m_max"], "cell": c})
                        for c, x in raw.items()])
         df = seg_cells.merge(w, on="cell")

@@ -3,6 +3,9 @@
 # Użycie: ./deploy_site.sh     (wymaga zalogowanego GitHub CLI: gh auth status)
 set -euo pipefail
 cd "$(dirname "$0")"
+# najświeższa prognoza z automatu (gałąź gh-pages), żeby publikacja nie cofnęła jej do starszej wersji lokalnej
+curl -sf "https://raw.githubusercontent.com/maciejonisiewicz/railsentinel/gh-pages/data/live.js" -o /tmp/rs_live.js \
+  && grep -q '"issued"' /tmp/rs_live.js && cp /tmp/rs_live.js web/data/live.js || true
 SITE=$(mktemp -d)
 cp -R web/. "$SITE/"
 cp docs/RailSentinel_praca_konkursowa.pdf "$SITE/" 2>/dev/null || true

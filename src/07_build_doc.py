@@ -139,16 +139,21 @@ def new_tests(rp, segs):
     ids = [x["id"] for x in load_js("segments")]
     dam = np.array([i in set(rp["damaged"]) for i in ids])
     nd = int(dam.sum())
+    rng = np.random.default_rng(0)
+    def top(v, k, n=300):   # remisy rozstrzygane losowo, średnia z wielu losowań (uczciwe porównanie)
+        return float(np.mean([dam[np.lexsort((rng.random(len(v)), -v))[:k]].sum() for _ in range(n)]))
     for it in rp["issues"]:
-        R = np.max([it["risk"][d]["total"] for d in it["days"]], axis=0)
-        o = np.argsort(-R)
-        if it["issued"] == "2024-09-12":
-            al = R >= 0.5
-            out.update({"rk100": int(dam[o[:100]].sum()), "rk_alarm": int(al.sum()),
-                        "rk_alarm_pct": f"{al.mean() * 100:.1f}".replace(".", ","), "rk_dmg": int(dam[al].sum()),
-                        "rk_lift": f"{(dam[al].mean()) / (nd / len(ids)):.0f}", "rk_pct100": f"{100 / len(ids) * 100:.0f}"})
-        if it["issued"] == "2024-09-09":
-            out["rk09_25"] = int(dam[o[:25]].sum())
+        if it["issued"] != "2024-09-12":
+            continue
+        mx = lambda key: np.max([it["risk"][d][key] for d in it["days"]], axis=0)
+        R, FL, P3 = mx("total"), mx("flash"), mx("p3")
+        al = R >= 0.5
+        out.update({"rk_alarm": int(al.sum()), "rk_alarm_pct": f"{al.mean() * 100:.1f}".replace(".", ","),
+                    "rk_dmg": int(dam[al].sum()), "rk_lift": f"{(dam[al].mean()) / (nd / len(ids)):.0f}"})
+        for k in (10, 50, 100):
+            out[f"rk_m{k}"] = f"{top(FL, k):.0f}"
+            out[f"rk_b{k}"] = f"{top(P3, k):.0f}"
+            out[f"rk_r{k}"] = f"{k * nd / len(ids):.1f}".replace(".", ",")
     out["rk_nd"] = nd
     ev = json.load(open(ROOT / "data" / "processed" / "events_validation.json"))
     pl = lambda x: f"{x:.1f}".replace(".", ",")
@@ -158,13 +163,13 @@ def new_tests(rp, segs):
         rows.append(f"<tr><td>{r['name']}</td><td>{verdict} ({r['risk'] * 100:.0f}%)</td><td>{pl(r['top_pct'])}%</td></tr>")
     out["ev_flood_rows"] = "".join(rows)
     rows, hit = [], 0
-    for r in ev["wind_storms"]:
-        hit += r["rank"] <= 2
+    for r in ev.get("wind_storms", []):
+        hit += r["rank"] == 1
         rows.append(f"<tr><td>{r['name']}</td><td>{r['storm_day'][8:10]}.{r['storm_day'][5:7]}.{r['storm_day'][:4]}</td>"
-                    f"<td><b>{pl(r['share_warn'])}%</b></td><td>{pl(r['rest_median'])}% (maks. {pl(r['rest_max'])}%)</td>"
+                    f"<td><b>{pl(r['share_warn'])}%</b></td><td>{pl(r['rest_median'])}% / {pl(r['rest_max'])}%</td>"
                     f"<td>{r['rank']}/{r['days']}</td><td>{r['max_gust']} km/h</td></tr>")
     out["ev_wind_rows"] = "".join(rows)
-    out["ev_wind_hit"], out["ev_wind_n"] = hit, len(ev["wind_storms"])
+    out["ev_wind_hit"], out["ev_wind_n"] = hit, len(ev.get("wind_storms", []))
     km = json.load(open(ROOT / "data" / "processed" / "kilometraz.json"))
     out["km_pct"] = f"{sum(1 for v in km.values() if v['km']) / len(segs) * 100:.0f}"
     return out
