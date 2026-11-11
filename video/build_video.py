@@ -347,7 +347,7 @@ def record(sid, kind, dur, caption, v):
             pg.goto(f"{BASE}/web/index.html{urls[sid]}")
             pg.wait_for_timeout(3500)
         now = pg.evaluate("Date.now()")
-        pg.clock.pause_at(datetime.datetime.fromtimestamp(now / 1000 + 0.05))
+        pg.clock.pause_at(datetime.datetime.fromtimestamp(now / 1000 + 2.0))
         if caption:
             pg.evaluate(CAPTION_JS, caption)
         R = FrameRecorder(pg, done, round(dur * FPS))
