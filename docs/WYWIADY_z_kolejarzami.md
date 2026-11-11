@@ -19,7 +19,7 @@ przyczynę zagrożenia i kolejność, w jakiej warto sprawdzać odcinki. Działa
 Czy mógłbyś spotkać się z toromistrzem i z dyżurnym ruchu, których znasz? Każdy najpierw wykonuje 3 krótkie zadania
 w aplikacji (mierzysz czas stoperem w telefonie), a potem odpowiada na 3 pytania do kamery. Razem 10–15 minut,
 do filmu wezmę pół minuty. Instrukcja, pytania i zgoda do podpisania są niżej. Najważniejsze:
-- nagrywamy **telefonem w poziomie**, w cichym miejscu, **poza terenem kolejowym** i bez mundurów ani logo firmy;
+- nagrywamy **telefonem w poziomie**, najlepiej **z torami w tle, ale z miejsca publicznego** (ulica, parking, kładka, ścieżka), nie na terenie kolejowym, i bez mundurów ani logo firmy;
 - przed nagraniem każdy **podpisuje zgodę** (wzór niżej), może też wybrać wersję anonimową: bez twarzy, tylko głos
   i podpis „dyżurny ruchu, 20 lat stażu”;
 - nie pytamy o żadne wewnętrzne dokumenty ani dane firmy, liczą się tylko ich własne doświadczenie i opinia;
@@ -61,7 +61,9 @@ Zapisz też: **co sprawiło trudność** albo było niezrozumiałe (np. słowa, 
 
 - Telefon **poziomo**, oparty o coś stabilnego albo na statywie, na wysokości oczu rozmówcy, z odległości 1–1,5 m.
 - **Światło z przodu** (twarzą do okna), nie za plecami.
-- **Cisza**: bez telewizora, wiatru i ruchliwej ulicy. Na zewnątrz telefon trzyma się bliżej, mniej więcej 50 cm.
+- **Tory w tle**: stańcie w miejscu publicznym, z którego widać tory, co najmniej 20 m od nich. Nigdy na peronie, przejeździe ani terenie zamkniętym.
+- **Pociąg nie może zagłuszać odpowiedzi**: gdy jedzie pociąg, przerwijcie i powtórzcie zdanie. Osobno nagraj 10–20 s przejeżdżającego pociągu (sam pociąg, bez rozmowy). Wstawię to jako przerywnik.
+- **Cisza poza tym**: bez wiatru i ruchliwej ulicy. Na zewnątrz telefon trzyma się bliżej, mniej więcej 50 cm od rozmówcy.
 - Ty stoisz obok kamery, rozmówca **patrzy na Ciebie, nie w obiektyw**.
 - **Odpowiedź pełnym zdaniem**, które powtarza pytanie, np. „Dziś o zagrożeniu dowiaduję się…”. Wtedy fragment da się
   użyć bez Twojego pytania.
@@ -78,8 +80,8 @@ Zapisz też: **co sprawiło trudność** albo było niezrozumiałe (np. słowa, 
 > wichura? Ile czasu wcześniej trzeba wiedzieć, żeby zdążyć zareagować?
 
 **Pytanie 2 – o aplikacji** (po obejrzeniu okienka odcinka)
-> Aplikacja wskazuje 1–3 dni wcześniej konkretną linię i kilometr oraz kolejność sprawdzania odcinków.
-> Czy to ma sens w praktyce? Co by Pan zmienił?
+> Aplikacja wskazuje 1–3 dni wcześniej konkretną linię i kilometr oraz kolejność, w jakiej warto sprawdzać odcinki.
+> Czy to ma sens w praktyce? Czego brakuje albo co by Pan zmienił?
 
 **Pytanie 3 – zaufanie**
 > Czy korzystałby Pan z takiego narzędzia w pracy? Co musiałoby się zmienić, żeby mu Pan zaufał?
