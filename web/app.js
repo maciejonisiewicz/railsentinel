@@ -40,14 +40,17 @@
   }
   setTiles();
 
-  const pad = () => (mobile() ? { paddingTopLeft: [10, 130], paddingBottomRight: [10, innerHeight * 0.48 + 10] }
+  const side = $("#side"), app = $("#app");
+  let sheet = "half";
+  const sheetPx = () => (mobile() ? sheetHeights()[sheet] : 0);
+  const pad = () => (mobile() ? { paddingTopLeft: [10, 110], paddingBottomRight: [10, sheetPx() + 10] }
     : { paddingTopLeft: [400, 90], paddingBottomRight: [30, 30] });
   const PL = [[49.0, 14.1], [54.85, 24.15]];
   const NATIONAL = ["live", "line", "heat"];
   function goView(mode) {
     if (NATIONAL.includes(mode)) { map.flyToBounds(PL, { ...pad(), duration: 0.9 }); return; }
     const v = VIEWS[mode]; if (!v) return;
-    const off = mobile() ? [0, innerHeight * 0.2] : [-190, -20];
+    const off = mobile() ? [0, (sheetPx() - 70) / 2] : [-190, -20];
     const c = map.project(L.latLng(v[0]), v[1]).add(L.point(off));
     map.flyTo(map.unproject(c, v[1]), v[1], { duration: 0.9 });
   }
@@ -318,7 +321,7 @@
   }
   function presetView(vw) {
     if (!vw) return;
-    const off = mobile() ? [0, innerHeight * 0.2] : [-190, -20];
+    const off = mobile() ? [0, (sheetPx() - 70) / 2] : [-190, -20];
     map.setView(map.unproject(map.project(L.latLng(vw[0], vw[1]), vw[2]).add(L.point(off)), vw[2]), vw[2]);
   }
 
@@ -388,7 +391,7 @@
     const lead = st.mode === "replay2024" && D.replay2024.lead_hours_by_segment[s.id];
     const lvl = x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie ryzyko";
     const cf = confidence(r, i);
-    L.popup({ autoPanPadding: [30, 30], maxWidth: 340, autoPanPaddingTopLeft: mobile() ? [20, 140] : [400, 90] }).setLatLng(latlng).setContent(`<div class="pp">
+    L.popup({ autoPanPadding: [30, 30], maxWidth: 340, maxHeight: mobile() ? Math.max(220, innerHeight - sheetPx() - 150) : undefined, autoPanPaddingTopLeft: mobile() ? [16, 112] : [400, 90], autoPanPaddingBottomRight: mobile() ? [16, sheetPx() + 16] : [30, 30] }).setLatLng(latlng).setContent(`<div class="pp">
       <h4>${segTitle(s)}</h4>
       <div class="sub">${s.km ? odDo(s) + " · " : ""}${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km · ${fmtDay(v.days[st.day])}</div>
       ${qOf(r, i) === 2 ? `<div class="act warnbox"><b>Ocena niedostępna</b> – brak danych pogodowych dla tego odcinka. To NIE oznacza niskiego ryzyka.</div>` : `
@@ -407,6 +410,7 @@
     </div>`).openOn(map);
   }
   function focusSeg(i) {
+    if (mobile()) setSheet("peek");
     const b = layers[i].getBounds();
     map.fitBounds(b, { ...pad(), maxZoom: 11 });
     setTimeout(() => openPopup(i, b.getCenter()), 350);
@@ -432,6 +436,7 @@
     if (fly && !(m === "line" && byLine[st.line])) goView(m);
     render();
     if (m === "line") setTimeout(() => renderLine(fly), 0);
+    setSheet();
   }
   $("#modes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setMode(b.dataset.mode); });
   $("#hazards").addEventListener("click", (e) => {
@@ -484,7 +489,47 @@
     const r = document.documentElement;
     r.dataset.theme = isDark() ? "light" : "dark"; LS.set("rs_theme", r.dataset.theme); setTiles(); render();
   });
-  $("#grab").addEventListener("click", () => $("#side").classList.toggle("full"));
+  function sheetHeights() {
+    const H = innerHeight, sa = parseFloat(getComputedStyle(side).paddingBottom) || 14;
+    const anchor = !$("#statusCard").hidden && $("#statusCard").offsetHeight ? $("#statusCard") : $("#story");
+    const peek = Math.max(110, Math.min(H * 0.4, anchor.offsetTop + anchor.offsetHeight + sa));
+    return { peek, half: Math.max(peek, H * 0.52), full: H - 66 };
+  }
+  function setSheet(s = sheet) {
+    sheet = s;
+    if (!mobile()) { app.style.removeProperty("--sh"); delete app.dataset.sheet; return; }
+    app.style.setProperty("--sh", sheetHeights()[s] + "px");
+    app.dataset.sheet = s;
+    if (s === "peek") side.scrollTop = 0;
+  }
+  let drag = null;
+  const hdr = (t) => t.closest("#grab, #story, #statusCard");
+  side.addEventListener("touchstart", (e) => {
+    if (!mobile() || !hdr(e.target)) return;
+    drag = { y: e.touches[0].clientY, h: side.getBoundingClientRect().height, t: Date.now(), moved: false };
+  }, { passive: true });
+  side.addEventListener("touchmove", (e) => {
+    if (!drag) return;
+    const dy = drag.y - e.touches[0].clientY;
+    if (!drag.moved && Math.abs(dy) < 6) return;
+    drag.moved = true; e.preventDefault();
+    side.classList.add("drag"); app.classList.add("drag-on");
+    const S = sheetHeights();
+    app.style.setProperty("--sh", Math.max(S.peek * 0.8, Math.min(S.full, drag.h + dy)) + "px");
+  }, { passive: false });
+  side.addEventListener("touchend", (e) => {
+    if (!drag) return;
+    side.classList.remove("drag"); app.classList.remove("drag-on");
+    if (drag.moved) {
+      const h = side.getBoundingClientRect().height, v = (h - drag.h) / Math.max(1, Date.now() - drag.t), S = sheetHeights();
+      const target = h + v * 220;
+      setSheet(Object.keys(S).reduce((a, k) => (Math.abs(S[k] - target) < Math.abs(S[a] - target) ? k : a), "half"));
+    }
+    drag = null;
+  });
+  $("#grab").addEventListener("click", () => setSheet({ peek: "half", half: "full", full: "peek" }[sheet]));
+  map.on("dragstart", () => { if (mobile() && sheet !== "peek") setSheet("peek"); });
+  addEventListener("resize", () => setSheet());
 
   const savedTheme = LS.get("rs_theme");
   if (savedTheme) { document.documentElement.dataset.theme = savedTheme; setTiles(); }
@@ -510,8 +555,8 @@
   else if (NATIONAL.includes(startMode)) map.fitBounds(PL, pad());
   else { const v = VIEWS[startMode]; presetView([v[0][0], v[0][1], v[1]]); }
   window.addEventListener("load", () => map.invalidateSize());
+  if (hp.get("popup")) setSheet("peek");
   if (hp.get("popup")) setTimeout(() => {
-
     map.invalidateSize();
     const r = cur();
     if (r) {
