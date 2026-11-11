@@ -1,37 +1,51 @@
-/* RailSentinel – dashboard. Dane z window.RS_DATA (generowane przez src/05_predict.py). */
+/* RailSentinel – aplikacja. Dane z window.RS_DATA (generowane przez src/05_predict.py). */
 (() => {
   const D = window.RS_DATA || {};
   const SEG = D.segments || [];
-  const HZ = { total: "Łącznie", flood: "Woda: ulewa (ML) lub fala wezbraniowa", heat: "Wyboczenie toru (upał)", wind: "Wiatr / powalone drzewa", ice: "Oblodzenie sieci" };
+  const HZ = { flood: "Woda: podmycie lub fala", heat: "Wyboczenie toru (upał)", wind: "Wiatr: drzewa na torze", ice: "Oblodzenie sieci" };
+  const HZS = { flood: "woda", heat: "upał", wind: "wiatr", ice: "oblodzenie" };
   const ACTION = {
-    flood: "obchód toru i kontrola przepustów, mostów i nasypów przed pierwszym pociągiem; ograniczenie prędkości do 40 km/h; gotowość pociągu sieciowego i sprzętu do zabezpieczenia skarp; przy fali wezbraniowej – obserwacja filarów mostów i usuwanie spływającego drewna (zatory)",
+    flood: "obchód toru i kontrola przepustów, mostów i nasypów przed pierwszym pociągiem; ograniczenie prędkości do 40 km/h; gotowość pociągu sieciowego i sprzętu do zabezpieczenia skarp; przy fali wezbraniowej – obserwacja filarów mostów i usuwanie spływającego drewna",
     heat: "kontrola geometrii toru w godz. 13–19, szczególnie na odcinkach po robotach torowych; doraźne ograniczenie prędkości do 60–80 km/h",
     wind: "gotowość brygad do usuwania powalonych drzew; objazd linii po przejściu frontu przed wznowieniem ruchu",
     ice: "kursy pociągów odladzających sieć trakcyjną; rozważenie trakcji spalinowej na odcinkach krytycznych",
   };
   const ALARM = 0.5, WARN = 0.3;
+  const VIEWS = { live: [[52.0, 19.3], 6], line: [[52.0, 19.3], 6], heat: [[52.0, 19.3], 6],
+    replay2024: [[50.55, 16.95], 8], y1997: [[50.85, 17.45], 8], sim: [[50.45, 16.9], 9] };
 
-  const st = { mode: "replay2024", hz: "total", day: 0, issue: 3, rain: false,
+  const st = { mode: "live", hz: "total", day: 0, issue: 3, rain: false,
     sim: { lat: null, lon: null, rain: 180, radius: 35, soil: 80, river: 0.5, climate: 0 } };
   let simRisk = null, simBase = null;
   const $ = (s) => document.querySelector(s);
   const pct = (v) => Math.round(v * 100) + "%";
+  const isDark = () => document.documentElement.dataset.theme === "dark";
+  const mobile = () => matchMedia("(max-width: 860px)").matches;
 
   // ---------- mapa ----------
-  const map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([52.0, 19.2], 6);
+  const map = L.map("map", { zoomControl: false, zoomSnap: 0.25, preferCanvas: true, attributionControl: true }).setView([52.0, 19.3], 6);
   window.RS_MAP = map; // dostęp do mapy dla automatycznych testów i nagrań
   let tiles;
   function setTiles() {
-    const dark = document.documentElement.dataset.theme === "dark" ||
-      (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
     if (tiles) map.removeLayer(tiles);
-    const base = dark ? "World_Dark_Gray_Base" : "World_Light_Gray_Base";
+    const base = isDark() ? "World_Dark_Gray_Base" : "World_Light_Gray_Base";
     tiles = L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${base}/MapServer/tile/{z}/{y}/{x}`, {
-      attribution: 'Podkład: Esri, HERE, Garmin, © OpenStreetMap contributors · Linie: © OpenStreetMap (ODbL)',
-      maxZoom: 16,
+      attribution: "Podkład: Esri, HERE, Garmin, © OpenStreetMap · Linie: © OpenStreetMap (ODbL)", maxZoom: 16,
     }).addTo(map);
   }
   setTiles();
+  // lewy margines mapy pod panelem bocznym (żeby dopasowania widoku nie chowały się pod panelem)
+  const pad = () => (mobile() ? { paddingTopLeft: [10, 130], paddingBottomRight: [10, innerHeight * 0.48 + 10] }
+    : { paddingTopLeft: [400, 90], paddingBottomRight: [30, 30] });
+  const PL = [[49.0, 14.1], [54.85, 24.15]];
+  const NATIONAL = ["live", "line", "heat"];
+  function goView(mode) {
+    if (NATIONAL.includes(mode)) { map.flyToBounds(PL, { ...pad(), duration: 0.9 }); return; }
+    const v = VIEWS[mode]; if (!v) return;
+    const off = mobile() ? [0, innerHeight * 0.2] : [-190, -20];
+    const c = map.project(L.latLng(v[0]), v[1]).add(L.point(off));
+    map.flyTo(map.unproject(c, v[1]), v[1], { duration: 0.9 });
+  }
 
   const color = (v) => {
     const stops = [[0, [43, 182, 115]], [0.3, [255, 210, 63]], [0.5, [255, 138, 0]], [0.75, [229, 72, 77]], [1, [163, 19, 58]]];
@@ -43,9 +57,10 @@
     }
     return "rgb(163,19,58)";
   };
+  const lowCol = () => (isDark() ? "#4f6680" : "#8d9bb0");
 
   const layers = SEG.map((s, i) => {
-    const pl = L.polyline(s.g, { weight: 3, opacity: 0.95, color: "#888" }).addTo(map);
+    const pl = L.polyline(s.g, { weight: 2, opacity: 0.9, color: "#888" }).addTo(map);
     pl.on("click", (e) => openPopup(i, e.latlng));
     return pl;
   });
@@ -53,14 +68,13 @@
   map.createPane("rainPane"); map.getPane("rainPane").style.zIndex = 350;
   const rainLayer = L.layerGroup().addTo(map);
   const simLayer = L.layerGroup().addTo(map);
+  const lineLayer = L.layerGroup().addTo(map);
   const centers = SEG.map((s) => { const b = L.polyline(s.g).getBounds().getCenter(); return [b.lat, b.lng]; });
 
   // ---------- dane bieżącego widoku ----------
   function view() {
     if (st.mode === "sim") return simRisk ? { days: ["sim"], risk: { sim: simRisk }, meta: { title: "Symulator" } } : null;
-    if (st.mode === "model") return null;
-    if (st.mode === "line") { const m = D.live; return m ? { days: m.days, risk: m.risk, meta: m.meta } : null; }
-    const m = D[st.mode];
+    const m = st.mode === "line" ? D.live : D[st.mode];
     if (!m) return null;
     if (st.mode === "replay2024") {
       const iss = m.issues[Math.min(st.issue, m.issues.length - 1)];
@@ -72,74 +86,84 @@
     if (st.mode === "sim") return simRisk;
     const v = view(); return v && v.risk[v.days[Math.min(st.day, v.days.length - 1)]];
   };
-
-  function where(i) {
-    const s = SEG[i];
-    const parts = [`linia ${s.line}`];
-    if (s.place) parts.push(`rejon ${s.place}`);
-    if (s.river) parts.push(`dolina: ${s.river}`);
-    return parts.join(" · ");
-  }
   const domHz = (r, i) => ["flood", "heat", "wind", "ice"].reduce((a, h) => (r[h][i] > r[a][i] ? h : a), "flood");
 
   // ---------- render ----------
   function render() {
-    const v = view();
-    const r = cur();
-    $("#panel-map").hidden = st.mode === "model";
-    $("#panel-model").hidden = st.mode !== "model";
-    if (st.mode === "model") { renderModel(); return; }
     $("#simCtrl").hidden = st.mode !== "sim";
     $("#lineCtrl").hidden = st.mode !== "line";
     $("#daysCtrl").hidden = st.mode === "sim";
+    $("#statusCard").hidden = st.mode === "line";
+    $("#hzCtrl").hidden = st.mode === "sim" || st.mode === "line";
+    $("#topBox").hidden = st.mode === "line";
+    $("#issueCtrl").hidden = st.mode !== "replay2024";
     if (st.mode === "sim") runSim();
-    const r2 = cur();
-    if (!r2) { $("#brief").innerHTML = "<p>Brak danych dla tego trybu – uruchom <code>src/05_predict.py</code>.</p>"; return; }
-    return renderView(view(), r2);
+    const v = view(), r = cur();
+    renderStory(v);
+    if (!r) { $("#top").innerHTML = "<li class='empty'>Brak danych dla tego widoku.</li>"; return; }
+    renderView(v, r);
   }
 
   function renderView(v, r) {
-
-    // przyciski dni
-    $("#days").innerHTML = v.days.map((d, k) =>
-      `<button data-d="${k}" class="${k === st.day ? "on" : ""}">${fmtDay(d)}</button>`).join("");
-    $("#issueCtrl").hidden = st.mode !== "replay2024";
-    if (st.mode === "replay2024") $("#issueLbl").textContent = fmtDay(v.issued, -1) + " wieczorem";
+    $("#days").innerHTML = v.days.length > 1 ? v.days.map((d, k) =>
+      `<button data-d="${k}" class="${k === st.day ? "on" : ""}">${dayLbl(d, k)}</button>`).join("") : "";
+    if (st.mode === "replay2024") renderTimeline(v, r);
 
     const vals = r[st.hz];
+    const low = lowCol();
     layers.forEach((pl, i) => {
       const x = vals[i] || 0;
-      pl.setStyle({ color: color(x), weight: x >= ALARM ? 5 : x >= WARN ? 4 : 2.5, opacity: x >= WARN ? 1 : 0.75 });
+      pl.setStyle(x >= WARN ? { color: color(x), weight: x >= ALARM ? 5 : 3.5, opacity: 1 }
+        : x >= 0.12 ? { color: color(x), weight: 2.2, opacity: 0.8 } : { color: low, weight: 1.6, opacity: 0.7 });
     });
     layers.forEach((pl, i) => { if ((vals[i] || 0) >= WARN) pl.bringToFront(); });
 
-    // odcinki faktycznie zniszczone (backtest)
     dmgLayer.clearLayers();
     const dmg = st.mode === "replay2024" ? new Set(D.replay2024.damaged) : new Set();
     $("#lgDmg").style.display = dmg.size ? "flex" : "none";
-    SEG.forEach((s, i) => {
-      if (dmg.has(s.id)) L.polyline(s.g, { color: getComputedStyle(document.documentElement).getPropertyValue("--ink"),
-        weight: 9, opacity: 0.55, dashArray: "4 7", interactive: false }).addTo(dmgLayer);
-    });
+    const ink = getComputedStyle(document.documentElement).getPropertyValue("--ink");
+    SEG.forEach((s) => { if (dmg.has(s.id)) L.polyline(s.g, { color: ink, weight: 9, opacity: 0.5, dashArray: "4 7", interactive: false }).addTo(dmgLayer); });
 
-    // KPI
     const idx = vals.map((x, i) => [x, i]).sort((a, b) => b[0] - a[0]);
-    const alarm = idx.filter(([x]) => x >= ALARM);
-    $("#kAlarm").textContent = alarm.length;
-    $("#kKm").textContent = Math.round(alarm.reduce((a, [, i]) => a + SEG[i].len, 0));
-    $("#kMax").textContent = pct(idx[0][0]);
+    const alarm = idx.filter(([x]) => x >= ALARM), warn = idx.filter(([x]) => x >= WARN && x < ALARM);
+    $("#kAlarm").textContent = alarm.length.toLocaleString("pl-PL");
+    $("#kAlarmLbl").textContent = alarm.length === 1 ? "odcinek w alarmie" : "odcinków w alarmie";
+    $("#kWarn").textContent = warn.length.toLocaleString("pl-PL");
+    $("#kKm").textContent = Math.round(alarm.reduce((a, [, i]) => a + SEG[i].len, 0)).toLocaleString("pl-PL");
+    $("#statusCard").className = "status " + (alarm.length ? "" : warn.length ? "warn" : "ok");
 
-    // top 10
-    $("#top").innerHTML = idx.slice(0, 10).map(([x, i]) =>
-      `<li data-i="${i}">${where(i)}${dmg.has(SEG[i].id) ? " <span class='tag r'>zniszczony</span>" : ""}<span class="v">${pct(x)}</span></li>`).join("");
+    const list = idx.filter(([x]) => x >= 0.15).slice(0, 8);
+    $("#top").innerHTML = list.length ? list.map(([x, i]) => {
+      const s = SEG[i], h = st.hz === "total" ? domHz(r, i) : st.hz;
+      return `<li data-i="${i}"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span>
+        <span class="t"><b>Linia ${s.line}${s.place ? " · " + s.place : ""}${dmg.has(s.id) ? " <span class='tag r'>zniszczony</span>" : ""}</b>
+        <small>${HZS[h]}${detail(h, r, i)}${s.river ? " · dolina " + s.river : ""}</small></span></li>`;
+    }).join("") : `<li class="empty">Brak odcinków z podwyższonym ryzykiem w tym dniu. ✓</li>`;
 
-    renderStory(v);
-    renderBrief(v, r, alarm.map(([, i]) => i), idx.filter(([x]) => x >= WARN && x < ALARM).map(([, i]) => i));
+    renderBrief(v, r, alarm.map(([, i]) => i), warn.map(([, i]) => i));
     renderRain(r);
     if (st.mode === "line") renderLine();
+    $("#updChip").innerHTML = st.mode === "live" || st.mode === "line"
+      ? `Prognoza wydana <b>${fmtDay(v.meta.issued || v.days[0], 0, true)}</b> <span class="hm"> · ${SEG.length.toLocaleString("pl-PL")} odcinków · 27 tys. km toru</span>` : "";
+  }
+  function detail(h, r, i) {
+    if (h === "flood") return r.river && r.flash && r.river[i] > r.flash[i] ? " · fala na rzece" : ` · opad 3 doby ${Math.round(r.p3[i])} mm`;
+    if (h === "heat") return ` · szyna ${Math.round(r.trail[i])} °C`;
+    if (h === "wind") return ` · porywy ${Math.round(r.gust[i])} km/h`;
+    if (h === "ice") return " · marznący opad";
+    return "";
   }
 
-  // ---------- Moja linia (tryb dla kolejarzy) ----------
+  // ---------- oś czasu backtestu ----------
+  function renderTimeline(v, r) {
+    $("#issueLbl").textContent = fmtDay(v.issued, -1, true) + " wieczorem";
+    const dmg = D.replay2024.damaged.map((id) => SEG.findIndex((s) => s.id === id)).filter((i) => i >= 0);
+    // ile zniszczonych odcinków jest w alarmie w którymkolwiek z 3 dni tej prognozy
+    const n = dmg.filter((i) => v.days.some((d) => v.risk[d].total[i] >= ALARM)).length;
+    $("#tlStat").innerHTML = `zniszczone odcinki z alarmem: <b>${n}/${dmg.length}</b>`;
+  }
+
+  // ---------- Moja linia ----------
   const LS = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
                set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* tryb prywatny */ } } };
   const byLine = {};
@@ -151,9 +175,7 @@
   }).join("");
   st.line = LS.get("rs_line") || "";
   $("#lineInput").value = st.line;
-  const chipCol = (x) => color(x);
   function lineOrder(ii) {
-    // porządek wzdłuż linii: rzut na główną oś rozrzutu punktów
     const c = ii.map((i) => centers[i]);
     const mx = c.reduce((a, p) => a + p[1], 0) / c.length, my = c.reduce((a, p) => a + p[0], 0) / c.length;
     let sxx = 0, syy = 0, sxy = 0;
@@ -161,44 +183,39 @@
     const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy);
     return ii.map((i, k) => [i, (c[k][1] - mx) * Math.cos(ang) + (c[k][0] - my) * Math.sin(ang)]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
   }
-  let lineLayer = L.layerGroup().addTo(map);
   function renderLine(fit) {
     const v = view();
     lineLayer.clearLayers();
-    if (!v) { $("#lineStatus").innerHTML = "Brak prognozy – uruchom src/05_predict.py live"; return; }
+    if (!v) { $("#lineStatus").innerHTML = "Brak prognozy."; return; }
     const ii = byLine[st.line];
     if (!ii) {
       $("#lineStatus").className = "linestatus";
       $("#lineStatus").innerHTML = st.line ? `Nie znam linii „${st.line}”. Wybierz numer z listy albo użyj 📍.` :
-        "Wpisz numer swojej linii albo kliknij <b>📍 Gdzie jestem</b> – pokażę prognozę zagrożeń dla każdego jej odcinka na 3 dni.";
+        "Wpisz numer swojej linii albo kliknij <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego jej odcinka na 3 dni.";
       $("#lineTable").innerHTML = ""; return;
     }
     const ord = lineOrder(ii);
     let worst = { x: -1 };
-    v.days.forEach((d, k) => ord.forEach((i) => {
-      const r = v.risk[d];
-      if (r.total[i] > worst.x) worst = { x: r.total[i], d, k, i, h: domHz(r, i) };
-    }));
+    v.days.forEach((d) => ord.forEach((i) => { const r = v.risk[d]; if (r.total[i] > worst.x) worst = { x: r.total[i], d, i, h: domHz(r, i) }; }));
     const lvl = worst.x >= ALARM ? "alarm" : worst.x >= WARN ? "warn" : "ok";
     const km = Math.round(ord.reduce((a, i) => a + SEG[i].len, 0));
     const places = [...new Set(ord.map((i) => SEG[i].place).filter(Boolean))];
-    const hzTxt = { flood: "woda (podmycie / fala)", heat: "wyboczenie toru (upał)", wind: "wiatr – drzewa na torze", ice: "oblodzenie sieci" };
     $("#lineStatus").className = "linestatus " + lvl;
     $("#lineStatus").innerHTML = `<b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>
-      ${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${ord.length} odc. · ${km} km toru<br>
-      ${lvl === "ok" ? "W ciągu 72 h nie przewiduję zagrożeń pogodowych powyżej progu uwagi." :
-        `Najwyższe ryzyko: <b>${pct(worst.x)}</b> – ${hzTxt[worst.h]}, ${fmtDay(worst.d)}, rejon ${SEG[worst.i].place || "?"}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
-    $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d) => `<th class="c">${fmtDay(d).split(",")[0]}</th>`).join("")}</tr>` +
+      <span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span><br>
+      ${lvl === "ok" ? "W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi." :
+        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, rejon ${SEG[worst.i].place || "?"}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
+    $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d, k) => `<th class="c">${dayLbl(d, k)}</th>`).join("")}</tr>` +
       ord.map((i) => `<tr data-i="${i}"><td>${SEG[i].place || "–"}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
-        v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${chipCol(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
+        v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
     $("#lineUpd").textContent = `prognoza z ${fmtDay(v.meta.issued || v.days[0])}`;
-    ord.forEach((i) => L.polyline(SEG[i].g, { color: "#2563eb", weight: 10, opacity: 0.25, interactive: false }).addTo(lineLayer));
-    if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { padding: [30, 30], maxZoom: 11 });
+    ord.forEach((i) => L.polyline(SEG[i].g, { color: "#3b82f6", weight: 12, opacity: 0.3, interactive: false }).addTo(lineLayer));
+    if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { ...pad(), maxZoom: 11 });
     st.lineText = $("#lineStatus").innerText;
   }
   function setLine(l, fit = true) { st.line = String(l).trim(); LS.set("rs_line", st.line); $("#lineInput").value = st.line; render(); renderLine(fit); }
   $("#lineInput").addEventListener("change", (e) => setLine(e.target.value));
-  $("#lineTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-i]"); if (!tr) return; const i = +tr.dataset.i; const b = layers[i].getBounds(); map.fitBounds(b, { maxZoom: 12 }); openPopup(i, b.getCenter()); });
+  $("#lineTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-i]"); if (tr) focusSeg(+tr.dataset.i); });
   $("#geoBtn").addEventListener("click", () => {
     if (!navigator.geolocation) { alert("Ta przeglądarka nie udostępnia lokalizacji."); return; }
     $("#geoBtn").textContent = "⏳ Szukam…";
@@ -208,22 +225,21 @@
       let best = [1e9, 0];
       centers.forEach((c, i) => { const d = (c[0] - la) ** 2 + ((c[1] - lo) * Math.cos(la * Math.PI / 180)) ** 2; if (d < best[0]) best = [d, i]; });
       setLine(SEG[best[1]].line);
-      L.circleMarker([la, lo], { radius: 7, color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }).addTo(lineLayer);
+      L.circleMarker([la, lo], { radius: 7, color: "#fff", weight: 2, fillColor: "#3b82f6", fillOpacity: 1 }).addTo(lineLayer);
     }, () => { $("#geoBtn").textContent = "📍 Gdzie jestem"; alert("Brak dostępu do lokalizacji – wpisz numer linii."); }, { enableHighAccuracy: true, timeout: 10000 });
   });
   $("#shareBtn").addEventListener("click", async () => {
     const txt = `RailSentinel – ${st.lineText || ""}\n${location.origin + location.pathname}#mode=line&line=${st.line}`;
     try { if (navigator.share) await navigator.share({ title: "RailSentinel", text: txt }); else { await navigator.clipboard.writeText(txt); $("#shareBtn").textContent = "✓ Skopiowano"; } } catch (e) { /* anulowano */ }
   });
-  // instalacja aplikacji (PWA)
   let deferred = null;
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; $("#installBtn").hidden = false; });
   $("#installBtn").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $("#installBtn").hidden = true; });
 
-  // ---------- warstwa opadu (średnia z odcinków w komórce siatki) ----------
+  // ---------- warstwa opadu ----------
   function renderRain(r) {
     rainLayer.clearLayers();
-    if (!st.rain || !r) return;
+    if (!st.rain || !r || !r.p1) return;
     const cells = {};
     SEG.forEach((s, i) => { const c = s.cell || ""; (cells[c] = cells[c] || []).push(r.p1[i]); });
     for (const [c, arr] of Object.entries(cells)) {
@@ -232,7 +248,7 @@
       const p = arr.reduce((a, b) => a + b, 0) / arr.length;
       if (p < 2) continue;
       L.rectangle([[la - 0.125, lo - 0.125], [la + 0.125, lo + 0.125]], {
-        stroke: false, fillColor: "#2563eb", fillOpacity: Math.min(0.45, p / 130), interactive: false, pane: "rainPane",
+        stroke: false, fillColor: "#3b82f6", fillOpacity: Math.min(0.5, p / 120), interactive: false, pane: "rainPane",
       }).addTo(rainLayer);
     }
   }
@@ -244,24 +260,23 @@
     simRisk = window.RS_SIM.compute(p, centers);
     simBase = p.climate > 0 ? window.RS_SIM.compute({ ...p, climate: 0 }, centers) : null;
     $("#vRain").textContent = p.rain + " mm"; $("#vRad").textContent = p.radius + " km";
-    $("#vSoil").textContent = p.soil + " mm"; $("#vRiver").textContent = p.river.toFixed(1);
-    $("#vClim").textContent = "+" + p.climate + "%";
+    $("#vSoil").textContent = p.soil + " mm"; $("#vRiver").textContent = p.river.toFixed(1) + " × próg";
+    $("#vClim").textContent = p.climate + "%";
     const cnt = (rr) => rr.total.filter((x) => x >= ALARM).length;
     const km = (rr) => Math.round(rr.total.reduce((a, x, i) => a + (x >= ALARM ? SEG[i].len : 0), 0));
     $("#climDelta").innerHTML = simBase
-      ? `<b>Test klimatyczny:</b> przy opadach intensywniejszych o ${p.climate}% w alarmie jest <b>${cnt(simRisk)}</b> odcinków zamiast ${cnt(simBase)} (<b>+${km(simRisk) - km(simBase)} km</b> toru do sprawdzenia).`
-      : "";
-    $("#simHint").innerHTML = (p.lat == null ? "Kliknij na mapie, aby postawić ulewę – albo wybierz scenariusz. " : "") +
-      `<span class="mlbadge">model ML w przeglądarce · ${window.RS_SIM.trees} drzew · ${window.RS_SIM.n} odcinków · ${simRisk.ms.toFixed(0)} ms</span>`;
+      ? `Przy opadach mocniejszych o ${p.climate}%: <b>${cnt(simRisk)}</b> odcinków w alarmie zamiast ${cnt(simBase)} – <b>+${km(simRisk) - km(simBase)} km</b> toru do sprawdzenia.` : "";
+    $("#simHint").innerHTML = (p.lat == null ? "Kliknij na mapie, aby postawić ulewę. " : "") +
+      `<span class="mlbadge">model ML liczy w przeglądarce · ${simRisk.ms.toFixed(0)} ms</span>`;
     simLayer.clearLayers();
     if (p.lat != null) {
-      L.circle([p.lat, p.lon], { radius: p.radius * 1000, color: "#2563eb", weight: 1, fillOpacity: 0.08, interactive: false }).addTo(simLayer);
-      L.circle([p.lat, p.lon], { radius: p.radius * 450, color: "#2563eb", weight: 1, dashArray: "3 4", fillOpacity: 0.12, interactive: false }).addTo(simLayer);
+      L.circle([p.lat, p.lon], { radius: p.radius * 1000, color: "#3b82f6", weight: 1, fillOpacity: 0.08, interactive: false }).addTo(simLayer);
+      L.circle([p.lat, p.lon], { radius: p.radius * 450, color: "#3b82f6", weight: 1, dashArray: "3 4", fillOpacity: 0.12, interactive: false }).addTo(simLayer);
     }
   }
   const PRESETS = {
     "2024": { lat: 50.33, lon: 16.85, rain: 260, radius: 45, soil: 120, river: 3.0, climate: 0, scope: "storm", view: [50.45, 16.9, 9] },
-    storm: { lat: 50.86, lon: 15.62, rain: 160, radius: 22, soil: 90, river: 0.8, climate: 0, scope: "storm", view: [50.88, 15.7, 10] },
+    storm: { lat: 50.86, lon: 15.62, rain: 190, radius: 22, soil: 90, river: 0.8, climate: 0, scope: "storm", view: [50.88, 15.7, 10] },
     odra: { lat: null, lon: null, rain: 20, radius: 30, soil: 60, river: 3.2, climate: 0, scope: "odra", view: [51.0, 17.2, 8] },
     clear: { lat: null, lon: null, rain: 180, radius: 35, soil: 80, river: 0.5, climate: 0, scope: "storm" },
   };
@@ -270,37 +285,30 @@
     $("#sRain").value = p.rain; $("#sRad").value = p.radius; $("#sSoil").value = p.soil;
     $("#sRiver").value = Math.round(p.river * 10); $("#sClim").value = p.climate;
   }
-
-  function renderStory(v) {
-    let h = "";
-    if (st.mode === "replay2024") {
-      const s = D.replay2024.summary;
-      h = `<h3>Czy system ostrzegłby przed powodzią 2024?</h3>
-        <p>Model widzi tylko obserwacje do wieczora dnia poprzedniego i <b>archiwalną prognozę ECMWF</b> wydaną w tamtym momencie. Przesuń suwak „Prognoza wydana”.</p>
-        <div class="big"><div><b>${s.detected}/${s.damaged_segments}</b><small>zniszczonych odcinków z alarmem</small></div>
-        <div><b>${s.median_lead_hours ?? "–"} h</b><small>mediana wyprzedzenia przed pierwszymi zniszczeniami</small></div>
-        <div><b>${s.other_in_alarm_pct.toFixed(0)}%</b><small>pozostałej sieci w alarmie w szczycie</small></div></div>`;
-    } else if (st.mode === "live") {
-      h = `<h3>Prognoza bieżąca</h3><p>Wydana ${fmtDay(v.meta.issued)}. Łączy prognozę numeryczną (Open-Meteo) z modelem ML i modułami fizycznymi.</p>`;
-    } else if (st.mode === "heat") {
-      h = `<h3>${v.meta.title}</h3><p>Moduł fizyczny szacuje temperaturę szyny (powietrze + nasłonecznienie). Powyżej ~50 °C rośnie ryzyko wyboczenia toru bezstykowego.</p>`;
-    } else if (st.mode === "y1997") {
-      const m = D.metrics || {};
-      h = `<h3>${v.meta.title}</h3><p>Niezależny test – model nigdy nie widział 1997 r. Dwa mechanizmy powodzi: ulewa w górach (moduł ML) i fala wezbraniowa na Odrze (moduł hydrologiczny z wodowskazów IMGW).</p>
-        <div class="big"><div><b>${m.test1997_sites_detected_system ?? "–"}/${m.test1997_sites ?? "–"}</b><small>udokumentowanych miejsc zniszczeń wykrytych</small></div>
-        <div><b>${m.test1997_sites_detected_ml ?? "–"}/${m.test1997_sites ?? "–"}</b><small>bez modułu hydrologicznego</small></div></div>`;
-    } else if (st.mode === "line") {
-      h = `<h3>Moja linia – dla kolejarzy</h3><p>Status Twojej linii na 3 dni: każdy odcinek, kolor = ryzyko. Działa na telefonie i bez zasięgu (ostatnia pobrana prognoza). Zainstaluj jako aplikację: menu przeglądarki → „Dodaj do ekranu głównego”.</p>`;
-    } else if (st.mode === "sim") {
-      h = `<h3>Symulator: co jeśli?</h3><p>Postaw ulewę w dowolnym miejscu, podnieś stan rzek albo wzmocnij opady scenariuszem klimatycznym – ten sam model ML co w backteście przelicza ryzyko na żywo.</p>`;
-    }
-    $("#story").innerHTML = h;
+  function presetView(vw) {
+    if (!vw) return;
+    const off = mobile() ? [0, innerHeight * 0.2] : [-190, -20];
+    map.setView(map.unproject(map.project(L.latLng(vw[0], vw[1]), vw[2]).add(L.point(off)), vw[2]), vw[2]);
   }
 
+  // ---------- nagłówek widoku ----------
+  function renderStory(v) {
+    const T = {
+      live: ["Prognoza na żywo", v ? `Cała Polska, najbliższe 72 h · pogoda ECMWF/ICON i bieżące stany rzek IMGW` : ""],
+      line: ["Moja linia", "Status Twojej linii na 3 dni. Działa też bez zasięgu."],
+      replay2024: ["Powódź 2024 – czy system by ostrzegł?", "System widzi tylko prognozy wydane w tamtych dniach. Naciśnij ▶ i obserwuj."],
+      sim: ["Symulator: co jeśli?", "Postaw ulewę, podnieś rzeki albo wzmocnij opady. Model ML przelicza ryzyko na żywo."],
+      heat: [v ? v.meta.title.split("–")[0].trim() : "Upał", "Szacowana temperatura szyny. Powyżej ok. 50 °C rośnie ryzyko wyboczenia toru."],
+      y1997: ["Powódź 1997 – test na nieznanych danych", "Model nie widział tej powodzi. Fala na Odrze – zobacz, gdzie zapala alarm."],
+    }[st.mode];
+    $("#story").innerHTML = `<h2>${T[0]}</h2><p>${T[1]}</p>`;
+  }
+
+  // ---------- raport dla dyżurnego ----------
   function renderBrief(v, r, alarm, warn) {
     const day = v.days[st.day];
     if (!alarm.length && !warn.length) {
-      $("#brief").innerHTML = `<p><b>${fmtDay(day)}:</b> brak odcinków powyżej progu uwagi. Utrzymać standardowy tryb utrzymania.</p>`;
+      $("#brief").innerHTML = `<p><b>${fmtDay(day)}:</b> brak odcinków powyżej progu uwagi. Standardowy tryb utrzymania.</p>`;
       return;
     }
     const byHz = {};
@@ -309,7 +317,7 @@
     for (const [h, list] of Object.entries(byHz)) {
       const lines = {};
       list.forEach((i) => { (lines[SEG[i].line] = lines[SEG[i].line] || []).push(i); });
-      const items = Object.entries(lines).sort((a, b) => b[1].length - a[1].length).slice(0, 6).map(([ln, ii]) => {
+      const items = Object.entries(lines).sort((a, b) => b[1].length - a[1].length).slice(0, 8).map(([ln, ii]) => {
         const rivers = [...new Set(ii.map((i) => SEG[i].river).filter(Boolean))].slice(0, 2).join(", ");
         const places = [...new Set(ii.map((i) => SEG[i].place).filter(Boolean))].slice(0, 3).join(", ");
         const mx = Math.max(...ii.map((i) => r[h][i]));
@@ -322,7 +330,7 @@
         }
         if (h === "heat") det = `szyna do ${Math.max(...ii.map((i) => r.trail[i])).toFixed(0)} °C`;
         if (h === "wind") det = `porywy do ${Math.max(...ii.map((i) => r.gust[i])).toFixed(0)} km/h`;
-        if (h === "ice") det = `opad do ${Math.max(...ii.map((i) => r.p1[i])).toFixed(1)} mm przy temperaturze ok. 0 °C`;
+        if (h === "ice") det = `marznący opad do ${Math.max(...ii.map((i) => r.p1[i])).toFixed(1)} mm`;
         return `<li><b>Linia ${ln}</b> (${ii.length} odc.${places ? ", " + places : ""}${rivers ? ", dolina " + rivers : ""}) – ${det}, ryzyko ${pct(mx)}</li>`;
       }).join("");
       html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Zalecane działania:</i> ${ACTION[h]}.</p>`;
@@ -330,78 +338,60 @@
     $("#brief").innerHTML = html;
   }
 
+  // ---------- szczegóły odcinka ----------
   function openPopup(i, latlng) {
     const v = view(), r = cur();
     if (!r) return;
-    const s = SEG[i];
-    const why = (r.why[i] || []).map(([k, val]) =>
+    const s = SEG[i], h = domHz(r, i), x = r.total[i];
+    const why = (r.why && r.why[i] || []).map(([k, val]) =>
       `<div>${k}<div class="bar"><i style="width:${Math.min(100, val * 250)}%"></i></div></div>`).join("");
     const dmg = st.mode === "replay2024" && D.replay2024.damaged.includes(s.id);
     const lead = st.mode === "replay2024" && D.replay2024.lead_hours_by_segment[s.id];
-    L.popup({ autoPanPadding: [20, 20], maxWidth: 340 }).setLatLng(latlng).setContent(`<div class="pp">
+    const lvl = x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie ryzyko";
+    L.popup({ autoPanPadding: [30, 30], maxWidth: 340, autoPanPaddingTopLeft: mobile() ? [20, 140] : [400, 90] }).setLatLng(latlng).setContent(`<div class="pp">
       <h4>Linia ${s.line}${s.place ? " · " + s.place : ""}</h4>
-      <div class="sub">${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km toru · ${fmtDay(v.days[st.day])}</div>
-      <table>
-        <tr><td><b>Ryzyko łączne</b></td><td><b>${pct(r.total[i])}</b></td></tr>
-        <tr><td>Woda łącznie</td><td>${pct(r.flood[i])}</td></tr>
-        ${r.flash ? `<tr><td>&nbsp;· ulewa / podmycie (ML)</td><td>${pct(r.flash[i])}</td></tr><tr><td>&nbsp;· fala wezbraniowa (IMGW)</td><td>${pct(r.river[i])}</td></tr>` : ""}
-        <tr><td>Wyboczenie (upał)</td><td>${pct(r.heat[i])}</td></tr>
-        <tr><td>Wiatr</td><td>${pct(r.wind[i])}</td></tr>
-        <tr><td>Oblodzenie</td><td>${pct(r.ice[i])}</td></tr>
-        <tr><td>Opad dobowy / 3-dobowy</td><td>${r.p1[i]} / ${r.p3[i]} mm</td></tr>
-        <tr><td>Porywy wiatru</td><td>${r.gust[i]} km/h</td></tr>
-        <tr><td>Temp. szyny (szac.)</td><td>${r.trail[i]} °C</td></tr>
-      </table>
-      ${why ? `<div class="why"><b>Dlaczego? (wkład czynników do ryzyka)</b>${why}</div>` : ""}
-      ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed pierwszymi zniszczeniami` : ""}</div>` : ""}
+      <div class="sub">${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km · ${fmtDay(v.days[st.day])}</div>
+      <div class="score"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span><span><b>${lvl}</b><br>główne zagrożenie: ${HZS[h]}</span></div>
+      <div class="grid">
+        <div><small>Woda${r.flash ? " (ulewa / rzeka)" : ""}</small><b>${pct(r.flood[i])}</b>${r.flash ? ` <span class="muted small">${pct(r.flash[i])} / ${pct(r.river[i])}</span>` : ""}</div>
+        <div><small>Opad 1 / 3 doby</small><b>${r.p1[i]} / ${r.p3[i]} mm</b></div>
+        <div><small>Upał · szyna</small><b>${pct(r.heat[i])}</b> <span class="muted small">${r.trail[i]} °C</span></div>
+        <div><small>Wiatr · porywy</small><b>${pct(r.wind[i])}</b> <span class="muted small">${r.gust[i]} km/h</span></div>
+      </div>
+      ${why ? `<div class="why"><b>Dlaczego? Wkład czynników do ryzyka</b>${why}</div>` : ""}
+      ${x >= WARN ? `<div class="act"><b>Zalecane:</b> ${ACTION[h]}.</div>` : ""}
+      ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed zniszczeniem` : ""}</div>` : ""}
     </div>`).openOn(map);
   }
-
-  function renderModel() {
-    const m = D.metrics || {};
-    const f = (x, d = 3) => (x == null || isNaN(x) ? "–" : (+x).toFixed(d));
-    $("#panel-model").innerHTML = `
-      <h3>Jak działa RailSentinel</h3>
-      <p>Dla każdego z ${SEG.length} odcinków (ok. 4–5 km) sieci kolejowej w Polsce model łączy prognozę pogody
-      z cechami terenu i infrastruktury i liczy prawdopodobieństwo uszkodzenia w horyzoncie 72 h.</p>
-      <ul>
-        <li><b>Ulewa / podmycie</b> – model ML (gradient boosting) z ograniczeniami monotoniczności: więcej deszczu, bliżej rzeki, niżej w dolinie ⇒ ryzyko nigdy nie maleje.</li>
-        <li><b>Fala wezbraniowa</b> – drugi model ML prognozuje stany ok. 800 wodowskazów IMGW na 1–3 dni (sam znajduje „zwiastuny” fali w górnym biegu); alarm przy przekroczeniu progu ustalonego z góry.</li>
-        <li><b>Cała Polska</b> – ${SEG.length} odcinków sieci; trening i walidacja na obszarze ze zweryfikowanymi etykietami (Dolny Śląsk, Opolszczyzna).</li>
-        <li><b>Wyboczenie, wiatr, oblodzenie</b> – moduły fizyczne (temperatura szyny, progi IMGW, marznący opad).</li>
-        <li><b>Wyjaśnialność</b> – każdy alarm pokazuje, które czynniki go spowodowały.</li>
-      </ul>
-      <h3>Walidacja (GroupKFold po liniach – model ocenia linie, których nie widział)</h3>
-      <div class="mgrid">
-        <div class="mcell"><b>${f(m.pr_auc_model)}</b><small>PR-AUC modelu</small><div class="vs">reguła „opad 3-dobowy”: ${f(m.pr_auc_baseline_p3)}</div></div>
-        <div class="mcell"><b>${f(m.precision_event_days_model * 100, 0)}%</b><small>precyzja alarmów w dniach powodzi</small><div class="vs">reguła: ${f(m.precision_event_days_baseline * 100, 0)}%</div></div>
-        <div class="mcell"><b>${f(m.event_auc_model)}</b><small>AUC w dniach powodzi</small><div class="vs">reguła: ${f(m.event_auc_baseline)} – czy model trafia w <em>właściwe</em> odcinki w strefie ulewy</div></div>
-        <div class="mcell"><b>${f(m.other_alarm_pct_model, 0)}%</b><small>pozostałej sieci w alarmie w dniach powodzi</small><div class="vs">reguła: ${f(m.other_alarm_pct_baseline, 0)}% – <em>o połowę mniej</em> zbędnych obchodów</div></div>
-      </div>
-      <h3>Niezależny test: powódź 1997 (model jej nie widział)</h3>
-      <div class="mgrid">
-        <div class="mcell"><b>${m.test1997_sites_detected_system ?? "–"}/${m.test1997_sites ?? "–"}</b><small>miejsc zniszczeń wykrytych – system</small><div class="vs">sam model ML: ${m.test1997_sites_detected_ml ?? "–"}/${m.test1997_sites ?? "–"}</div></div>
-        <div class="mcell"><b>${f(m.test1997_network_alarm_pct_system, 0)}%</b><small>sieci w alarmie w oknie powodzi</small><div class="vs">reguła opadowa: ${f(m.test1997_network_alarm_pct_baseline, 0)}%</div></div>
-      </div>
-      <p>Etykiety: ${m.positive_segments} odcinków (2024, komunikaty PLK/PAP) i 3 miejsca zniszczeń z 1997 r. („Z Biegiem Szyn” nr 133).
-      Po podłączeniu rejestru zdarzeń PLK model można douczyć na tysiącach przypadków bez zmiany architektury.</p>`;
+  function focusSeg(i) {
+    const b = layers[i].getBounds();
+    map.fitBounds(b, { ...pad(), maxZoom: 11 });
+    setTimeout(() => openPopup(i, b.getCenter()), 350);
   }
 
-  function fmtDay(d, shift = 0) {
+  function dayLbl(d, k) {
+    if (st.mode === "live" || st.mode === "line") return ["Dziś", "Jutro", "Pojutrze"][k] || fmtDay(d);
+    return fmtDay(d, 0, true);
+  }
+  function fmtDay(d, shift = 0, short = false) {
     if (d === "sim") return "symulacja";
     const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + shift);
-    return x.toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    return x.toLocaleDateString("pl-PL", short ? { weekday: "short", day: "numeric", month: "short" }
+      : { weekday: "short", day: "numeric", month: "short", year: "numeric" });
   }
 
   // ---------- zdarzenia ----------
-  $("#modes").addEventListener("click", (e) => {
-    const b = e.target.closest("button"); if (!b) return;
-    document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x === b));
-    st.mode = b.dataset.mode; st.day = st.mode === "replay2024" ? 1 : st.mode === "heat" || st.mode === "y1997" ? 1 : 0;
-    if (st.mode === "line") { st.day = 0; setTimeout(() => renderLine(true), 0); }
-    if (st.mode === "sim" && st.sim.lat == null) { Object.assign(st.sim, (({ view, ...x }) => x)(PRESETS["2024"])); syncSliders(); map.setView([50.45, 16.9], 9); }
+  function setMode(m, fly = true) {
+    st.mode = m;
+    document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
+    st.day = m === "replay2024" || m === "heat" || m === "y1997" ? 1 : 0;
+    lineLayer.clearLayers(); simLayer.clearLayers();
+    if (m === "sim" && st.sim.lat == null && st.sim.scope !== "odra") { Object.assign(st.sim, (({ view, ...x }) => x)(PRESETS["2024"])); syncSliders(); }
+    if (fly && !(m === "line" && byLine[st.line])) goView(m);
     render();
-  });
+    if (m === "line") setTimeout(() => renderLine(fly), 0);
+  }
+  $("#modes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setMode(b.dataset.mode); });
   $("#hazards").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x === b));
@@ -409,58 +399,63 @@
   });
   $("#days").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { st.day = +b.dataset.d; render(); } });
   $("#issue").addEventListener("input", (e) => { st.issue = +e.target.value; render(); });
-  $("#top").addEventListener("click", (e) => {
-    const li = e.target.closest("li"); if (!li) return;
-    const i = +li.dataset.i; const b = layers[i].getBounds();
-    map.fitBounds(b, { maxZoom: 12 }); openPopup(i, b.getCenter());
-  });
-  // symulator – zdarzenia
+  $("#top").addEventListener("click", (e) => { const li = e.target.closest("li[data-i]"); if (li) focusSeg(+li.dataset.i); });
   map.on("click", (e) => { if (st.mode !== "sim") return; st.sim.lat = e.latlng.lat; st.sim.lon = e.latlng.lng; st.sim.scope = "storm"; render(); });
   const bind = (id, key, k = 1) => $(id).addEventListener("input", (e) => { st.sim[key] = +e.target.value / k; render(); });
   bind("#sRain", "rain"); bind("#sRad", "radius"); bind("#sSoil", "soil"); bind("#sRiver", "river", 10); bind("#sClim", "climate");
   $("#presets").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    const pr = PRESETS[b.dataset.p]; const { view: vw, ...rest } = pr;
-    Object.assign(st.sim, rest); syncSliders();
-    if (vw) map.setView([vw[0], vw[1]], vw[2]);
-    render();
+    const { view: vw, ...rest } = PRESETS[b.dataset.p];
+    Object.assign(st.sim, rest); syncSliders(); presetView(vw); render();
   });
-  // animacja powodzi 2024
   let playing = null;
+  const stopPlay = () => { clearInterval(playing); playing = null; $("#play").textContent = "▶"; };
   $("#play").addEventListener("click", () => {
-    if (playing) { clearInterval(playing); playing = null; $("#play").textContent = "▶ Odtwórz"; return; }
+    if (playing) { stopPlay(); return; }
     st.rain = true; $("#rainBtn").classList.add("on");
     st.issue = 0; st.day = 1; $("#issue").value = 0; render();
-    $("#play").textContent = "❚❚ Pauza";
+    $("#play").textContent = "❚❚";
     playing = setInterval(() => {
-      if (st.issue >= D.replay2024.issues.length - 1) { clearInterval(playing); playing = null; $("#play").textContent = "▶ Odtwórz"; return; }
+      if (st.issue >= D.replay2024.issues.length - 1) { stopPlay(); return; }
       st.issue++; $("#issue").value = st.issue; render();
     }, 1400);
   });
   $("#rainBtn").addEventListener("click", () => { st.rain = !st.rain; $("#rainBtn").classList.toggle("on", st.rain); render(); });
-  $("#copy").addEventListener("click", () => navigator.clipboard && navigator.clipboard.writeText($("#brief").innerText));
+  const dlg = $("#briefDlg");
+  $("#briefBtn").addEventListener("click", () => (dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "")));
+  $("#closeDlg").addEventListener("click", () => dlg.close());
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  $("#copy").addEventListener("click", () => { navigator.clipboard && navigator.clipboard.writeText($("#brief").innerText); $("#copy").textContent = "✓ Skopiowano"; setTimeout(() => ($("#copy").textContent = "Kopiuj"), 1500); });
   $("#theme").addEventListener("click", () => {
     const r = document.documentElement;
-    const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-    r.dataset.theme = dark ? "light" : "dark"; setTiles(); render();
+    r.dataset.theme = isDark() ? "light" : "dark"; LS.set("rs_theme", r.dataset.theme); setTiles(); render();
   });
+  $("#grab").addEventListener("click", () => $("#side").classList.toggle("full"));
 
-  if (D.replay2024) { $("#issue").max = D.replay2024.issues.length - 1; st.issue = Math.min(4, D.replay2024.issues.length - 1); $("#issue").value = st.issue; st.day = 1; }
-  if (!D.replay2024) { st.mode = "live"; }
+  // ---------- start ----------
+  const savedTheme = LS.get("rs_theme");
+  if (savedTheme) { document.documentElement.dataset.theme = savedTheme; setTiles(); }
+  if (D.replay2024) {
+    const n = D.replay2024.issues.length;
+    $("#issue").max = n - 1; st.issue = Math.min(4, n - 1); $("#issue").value = st.issue;
+    $("#tlTicks").innerHTML = D.replay2024.issues.map((x) => `<span>${new Date(x.issued + "T12:00:00").getDate() - 1}.09</span>`).join("");
+  }
   // parametry w adresie, np. index.html#mode=heat&day=1&issue=3&hz=flood&lat=50.4&lon=16.8&z=10
   const hp = new URLSearchParams(location.hash.slice(1));
   if (hp.get("theme")) { document.documentElement.dataset.theme = hp.get("theme"); setTiles(); }
-  if (hp.get("mode")) { st.mode = hp.get("mode"); if (st.mode === "live") st.day = 0; }
-  if (hp.get("day")) st.day = +hp.get("day");
-  if (hp.get("issue")) { st.issue = +hp.get("issue"); $("#issue").value = st.issue; }
-  if (hp.get("hz")) st.hz = hp.get("hz");
   if (hp.get("line")) { st.line = hp.get("line"); $("#lineInput").value = st.line; }
+  if (hp.get("hz")) { st.hz = hp.get("hz"); document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x.dataset.h === st.hz)); }
   if (hp.get("rain")) { st.rain = true; $("#rainBtn").classList.add("on"); }
-  if (hp.get("preset")) { const { view: vw, ...x } = PRESETS[hp.get("preset")]; Object.assign(st.sim, x); if (hp.get("clim")) st.sim.climate = +hp.get("clim"); syncSliders(); if (vw && !hp.get("lat")) map.setView([vw[0], vw[1]], vw[2]); }
+  if (hp.get("preset")) { const { view: vw, ...x } = PRESETS[hp.get("preset")]; Object.assign(st.sim, x); if (hp.get("clim")) st.sim.climate = +hp.get("clim"); syncSliders(); }
+  const startMode = hp.get("mode") || (D.live ? "live" : "replay2024");
+  if (hp.get("issue")) { st.issue = +hp.get("issue"); $("#issue").value = st.issue; }
+  setMode(startMode, false);
+  if (hp.get("day")) { st.day = +hp.get("day"); render(); }
   if (hp.get("lat")) map.setView([+hp.get("lat"), +hp.get("lon")], +(hp.get("z") || 9));
-  document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === st.mode));
-  document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x.dataset.h === st.hz));
-  render();
+  else if (hp.get("preset")) presetView(PRESETS[hp.get("preset")].view);
+  else if (startMode === "line" && byLine[st.line]) setTimeout(() => renderLine(true), 0);
+  else if (NATIONAL.includes(startMode)) map.fitBounds(PL, pad());
+  else { const v = VIEWS[startMode]; presetView([v[0][0], v[0][1], v[1]]); }
   window.addEventListener("load", () => map.invalidateSize());
   if (hp.get("popup")) setTimeout(() => {
     // otwórz szczegóły najbardziej zagrożonego odcinka (do zrzutów ekranu)
@@ -472,7 +467,7 @@
       const z = +(hp.get("z") || 11);
       map.setView(c, z, { animate: false });
       const H = map.getSize().y, p = map.latLngToContainerPoint(c);
-      map.panBy([0, -(0.9 * H - p.y)], { animate: false });
+      map.panBy([mobile() ? 0 : -150, -(0.9 * H - p.y)], { animate: false });
       openPopup(i, c);
     }
   }, 400);

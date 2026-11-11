@@ -12,7 +12,7 @@
 **1:30–2:10 – Niezależny test 1997.** Karta „1997”, dzień 13.07.
 „Najtrudniejszy test: powódź tysiąclecia, której model nigdy nie widział. Sam model ML zawiódł – bo w 1997 mosty zniszczyła fala na Odrze, a nie lokalny deszcz. Dlatego dodałem moduł hydrologiczny – i system wykrywa wszystkie trzy udokumentowane miejsca zniszczeń. Pokazuję to otwarcie, bo uczciwa walidacja jest w bezpieczeństwie ważniejsza niż ładne liczby.”
 
-**2:10–3:00 – WOW: Symulator.** Karta „Symulator ⚡”. Kliknij w Karkonosze, przesuń suwak opadu, potem „Fala na Odrze”, potem suwak klimatu do +20%.
+**2:10–3:00 – WOW: Symulator.** Karta „Symulator”. Kliknij w Karkonosze, przesuń suwak opadu, potem „Fala na Odrze”, potem suwak klimatu do +20%.
 „Ten sam model ML działa w przeglądarce – 289 drzew decyzyjnych, 925 odcinków, 10 milisekund. Stawiam ulewę… podnoszę stan Odry… a teraz scenariusz klimatyczny: opady intensywniejsze o 20% – i nagle 2,6 raza więcej kilometrów toru do sprawdzenia. To narzędzie do ćwiczeń sztabowych i planowania inwestycji.”
 
 **3:00–3:30 – Raport i na żywo.** Panel raportu, potem karta „Na żywo”.

@@ -49,18 +49,24 @@ STM = json.load(open(P / "station_meta.json"))["meta"]
 def get(url, params):
     wait = 30
     for _ in range(12):
-        r = requests.get(url, params=params, headers=UA, timeout=180)
+        try:
+            r = requests.get(url, params=params, headers=UA, timeout=180)
+        except requests.exceptions.RequestException as e:
+            print("  błąd sieci, ponawiam:", type(e).__name__)
+            time.sleep(wait); continue
         if r.status_code == 200:
             return r.json()
         print("  czekam", wait, r.text[:100])
         time.sleep(wait)
         wait = min(wait * 2, 600)
-    raise RuntimeError(r.text)
+    raise RuntimeError("Open-Meteo niedostępne")
 
 
 def fetch_cells(url, params, chunk=25, pause=10):
     out = {}
     for i in range(0, len(CELLS), chunk):
+        if i % 100 == 0:
+            print(f"  komórki {i}/{len(CELLS)}", flush=True)
         ch = CELLS[i:i + chunk]
         q = dict(params, latitude=",".join(c.split(",")[0] for c in ch),
                  longitude=",".join(c.split(",")[1] for c in ch))
@@ -373,20 +379,26 @@ def from_archive(name, start, end, show_days, title):
 
 
 def heat_demo():
-    best = None
-    for y in (2021, 2022, 2023, 2024):
-        f = RAW / "weather" / f"{y}.json"
-        if not f.exists():
-            continue
-        w = cell_daily(json.load(open(f)))
-        w["tr"] = rail_temp(w["tmax"], w["sw"])
-        d = w.groupby("date")["tr"].mean().idxmax()
-        v = w.groupby("date")["tr"].mean().max()
-        if best is None or v > best[1]:
-            best = (str(d)[:10], v, y)
-    d = pd.Timestamp(best[0])
-    from_archive("heat", f"{best[2]}-03-01", None, [d - pd.Timedelta(days=1), d, d + pd.Timedelta(days=1)],
-                 f"Fala upałów {best[0]} - ryzyko wyboczeń toru")
+    """Fala upałów lata 2025 dla CAŁEJ Polski (562 komórki, ERA5): najgorętszy dzień sieci +/- 1 dzień."""
+    f = RAW / "weather" / "heat_pl_2025.json"
+    if f.exists():
+        raw = json.load(open(f))
+    else:
+        raw = fetch_cells("https://archive-api.open-meteo.com/v1/archive",
+                          {"start_date": "2025-06-01", "end_date": "2025-07-15", "timezone": "Europe/Warsaw",
+                           "daily": "precipitation_sum,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,"
+                                    "shortwave_radiation_sum"}, chunk=10, pause=8)
+        raw = {c: x["daily"] for c, x in raw.items()}
+        json.dump(raw, open(f, "w"))
+    w = cell_daily(raw)
+    w["tr"] = rail_temp(w["tmax"], w["sw"])
+    tr = w[w["date"] >= "2025-06-20"].groupby("date")["tr"].mean()
+    d = pd.Timestamp(tr.idxmax())
+    print("najgorętszy dzień sieci:", d.date(), round(tr.max(), 1), "°C szyny (średnio)")
+    df = score(frame_from_daily(raw))
+    write_js("heat", pack(df, [d - pd.Timedelta(days=1), d, d + pd.Timedelta(days=1)],
+                          {"title": f"Fala upałów {d:%d.%m.%Y} – ryzyko wyboczeń toru, cała Polska",
+                           "source": "ERA5 (Open-Meteo Archive)"}))
 
 
 if __name__ == "__main__":

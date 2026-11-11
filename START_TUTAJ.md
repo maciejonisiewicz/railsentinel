@@ -6,7 +6,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 
 | Co | Gdzie | Na co patrzeć |
 |---|---|---|
-| **Strona i aplikacja** | https://railsentinel.pl (zapasowo: https://maciejonisiewicz.github.io/railsentinel/) | Zakładki: Moja linia, Powódź 2024 (przycisk ▶ Odtwórz), Symulator ⚡, Na żywo, 1997, Model |
+| **Strona i aplikacja** | https://railsentinel.pl (zapasowo: https://maciejonisiewicz.github.io/railsentinel/) | Zakładki: Na żywo, Moja linia, Powódź 2024 (przycisk ▶ na osi czasu), Symulator, Upał (cała Polska), Powódź 1997; kliknij odcinek na liście lub mapie |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
 | **Strona projektu z filmem** | https://railsentinel.pl/about.html | Odtwarza się film, linki do PDF i kodu |
 | **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, ok. 3,5 min |
@@ -39,7 +39,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 - **Aplikacja (PWA)** – strona, która instaluje się jak aplikacja na Androidzie, iPhonie i komputerze, działa bez zasięgu.
   Nowy tryb **„Moja linia”** dla kolejarzy: status linii, każdy odcinek na 3 dni, „Gdzie jestem”, „Udostępnij komunikat”.
 - **Wdrożenie**: repozytorium GitHub + GitHub Pages (0 zł) pod Twoją domeną **railsentinel.pl** (rekordy DNS ustawiłeś w OVH).
-- **Film** (MP4, 1920×1080): animowane plansze, nagrania prawdziwej aplikacji, lektor (polski głos systemowy z obróbką),
+- **Film** (MP4, 1920×1080): animowane plansze, nagrania prawdziwej aplikacji, lektor (neuronowy polski głos Microsoft „Marek”),
   muzyka skomponowana algorytmicznie (bez problemów z prawami autorskimi), płynne przejścia.
 - **Praca konkursowa** zaktualizowana: nowe rozdziały 08 (prognoza rzek) i 09 (cała Polska i aplikacja), aktualne wyniki.
 - **Poprawki jakości** wychwycone przy sprawdzaniu: moduł oblodzenia dawał fałszywe alarmy przy każdej mżawce

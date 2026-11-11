@@ -56,7 +56,7 @@
     Uczenie maszynowe + prognoza pogody + wodowskazy IMGW + teren → lista odcinków, które trzeba sprawdzić, zanim stanie się wypadek.</p>
   </div>
   <img src="fig/screen_replay.png" alt="Dashboard RailSentinel – backtest powodzi 2024">
-  <p class="small muted" style="margin-top:6px">Dashboard RailSentinel: odcinki linii kolejowych Dolnego Śląska i Opolszczyzny pokolorowane według ryzyka, prognoza z wieczora 11.09.2024; przerywana obwódka – odcinki faktycznie zniszczone w powodzi.</p>
+  <p class="small muted" style="margin-top:6px">Dashboard RailSentinel: odcinki linii kolejowych Dolnego Śląska i Opolszczyzny pokolorowane według ryzyka, prognoza wydana wieczorem 12.09.2024 na 14.09; przerywana obwódka – odcinki faktycznie zniszczone w powodzi.</p>
   <div class="meta">
     <div><b>Autor</b>{{author}}</div>
     <div><b>Uczelnia / kierunek</b>Politechnika Wrocławska · Informatyczne Systemy Automatyki</div>
@@ -196,10 +196,10 @@
 <!-- 07 SYMULATOR -->
 <section class="page">
   <h2><span class="n">07</span>Symulator „co jeśli?” i test klimatyczny</h2>
-  <p>Cały model ML, czyli {{n_trees}} drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko {{n_segments}} odcinków w całej Polsce przelicza się w ułamku sekundy. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 160 mm?”</i>.</p>
-  <figure><img src="fig/screen_sim.png" style="max-height:112mm"><figcaption>Rys. 8. Symulator: ulewa 160 mm w Karkonoszach, scenariusz klimatyczny +20% intensywności opadu.</figcaption></figure>
+  <p>Cały model ML, czyli {{n_trees}} drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko {{n_segments}} odcinków w całej Polsce przelicza się w ułamku sekundy. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 190 mm?”</i>.</p>
+  <figure><img src="fig/screen_sim.png" style="max-height:112mm"><figcaption>Rys. 8. Symulator: ulewa 190 mm w Karkonoszach, scenariusz klimatyczny +20% intensywności opadu.</figcaption></figure>
   <h3>Test klimatyczny</h3>
-  <p>Suwak „scenariusz klimatyczny” zwiększa intensywność opadu. Ponieważ zniszczenia mają charakter progowy, skutki rosną nieproporcjonalnie: dla ulewy 160 mm w Karkonoszach wzrost intensywności o 20% oznacza <b>7 zamiast 4 odcinków w alarmie i 26 zamiast 10 km toru do sprawdzenia (2,6×)</b>. Taka analiza wskazuje, gdzie inwestycje adaptacyjne (przepusty, umocnienia skarp) dadzą największy efekt w zmieniającym się klimacie.</p>
+  <p>Suwak „scenariusz klimatyczny” zwiększa intensywność opadu. Ponieważ zniszczenia mają charakter progowy, skutki rosną nieproporcjonalnie: dla ulewy 190 mm w Karkonoszach wzrost intensywności o 20% oznacza <b>7 zamiast 4 odcinków w alarmie i 26 zamiast 10 km toru do sprawdzenia (2,6×)</b>. Taka analiza wskazuje, gdzie inwestycje adaptacyjne (przepusty, umocnienia skarp) dadzą największy efekt w zmieniającym się klimacie.</p>
   <h3>Animacja i warstwa opadu</h3>
   <p>W trybie backtestu przycisk „▶ Odtwórz” odtwarza kolejne prognozy z 9–15.09.2024 razem z warstwą opadu. Widać, jak ulewa nasuwa się na Sudety, a alarmy zapalają się na odcinkach, które dwa dni później zostały zniszczone.</p>
 </section>
@@ -238,7 +238,7 @@
   <ul>
     <li><b>„Moja linia”</b>: dyżurny, toromistrz czy kierownik sekcji wpisuje numer linii albo klika <b>📍 Gdzie jestem</b> i od razu widzi status linii (bez zagrożeń / uwaga / alarm), każdy odcinek z ryzykiem na 3 dni i zalecane działanie. Przycisk „Udostępnij komunikat” wysyła go do zespołu.</li>
     <li><b>Praca w terenie:</b> aplikacja zapamiętuje ostatnią prognozę i mapę (Service Worker), więc działa także bez zasięgu na szlaku. Duże przyciski są wygodne w rękawicach.</li>
-    <li><b>Dla sztabu i analityków:</b> mapa całej Polski, backtest 2024, test 1997, symulator, opis modelu i metryki.</li>
+    <li><b>Dla sztabu i analityków:</b> mapa całej Polski, backtest 2024, test 1997 i symulator; opis modelu i metryki na stronie „O projekcie”.</li>
   </ul>
   <p><b>Film prezentacyjny</b> (ok. 3,5 min, lektor, muzyka) pokazuje działanie aplikacji na tle historycznych powodzi. Jest dostępny na stronie <b>railsentinel.pl/about.html</b>, a link do niego jest w mailu zgłoszeniowym.</p>
   <div class="box">Koszt uruchomienia: hosting strony i aplikacji 0 zł (GitHub Pages, HTTPS); jedyny wydatek to domena railsentinel.pl. Odświeżanie prognozy to jedno polecenie (<code>src/05_predict.py live</code>). W pilotażu uruchamiałby je co kilka godzin harmonogram po stronie PLK.</div>

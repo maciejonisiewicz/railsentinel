@@ -27,7 +27,7 @@ def chrome(*args):
 
 def shot(name, hash_, w=1500, h=900):
     out = FIG / f"{name}.png"
-    chrome(f"--screenshot={out}", f"--window-size={w},{h}", f"{INDEX}#theme=light&{hash_}")
+    chrome(f"--screenshot={out}", f"--window-size={w},{h}", f"{INDEX}#theme=dark&{hash_}")
     print("zrzut", out.name)
 
 
@@ -39,18 +39,25 @@ def load_js(name):
 def main():
     author = sys.argv[1] if len(sys.argv) > 1 else "[Imię i nazwisko autora]"
     FIG.mkdir(parents=True, exist_ok=True)
-    shot("screen_replay", "mode=replay2024&issue=4&day=1&lat=50.45&lon=16.95&z=9")
+    shot("screen_replay", "mode=replay2024&issue=4&day=1")
     shot("screen_popup", "mode=replay2024&issue=4&day=1&lat=50.40&lon=16.75&z=11&popup=1", 1500, 820)
-    shot("screen_1997", "mode=y1997&day=2&lat=50.75&lon=17.3&z=8", 1300, 900)
-    shot("screen_sim", "mode=sim&preset=storm&clim=20&lat=50.86&lon=15.75&z=10", 1500, 900)
-    shot("screen_live_pl", "mode=live&lat=52.0&lon=19.2&z=6", 1300, 1000)
-    shot("screen_phone", "mode=line&line=276", 412, 900)
-    shot("screen_heat", "mode=heat&day=1&hz=heat&lat=50.9&lon=16.9&z=8", 1300, 900)
+    shot("screen_1997", "mode=y1997&day=2", 1500, 900)
+    shot("screen_sim", "mode=sim&preset=storm&clim=20", 1500, 900)
+    shot("screen_live_pl", "mode=live", 1500, 950)
+    # telefon: Playwright (Chrome headless nie zwęża okna poniżej ~500 px)
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        b = p.chromium.launch(channel="chrome")
+        pg = b.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
+        pg.goto(f"{INDEX}#theme=dark&mode=line&line=276"); pg.wait_for_timeout(4000)
+        pg.screenshot(path=str(FIG / "screen_phone.png")); b.close()
+    print("zrzut screen_phone.png")
+    shot("screen_heat", "mode=heat&day=1&hz=heat", 1500, 950)
     # wycinek mapy z dymkiem szczegółów (czytelny w druku)
     from PIL import Image
     im = Image.open(FIG / "screen_popup.png")
     W, H = im.size
-    im.crop((int(W * 0.43), int(H * 0.30), int(W * 0.88), int(H * 0.93))).save(FIG / "popup_crop.png")
+    im.crop((int(W * 0.455), int(H * 0.195), int(W * 0.74), int(H * 0.855))).save(FIG / "popup_crop.png")
 
     m = json.load(open(ROOT / "data" / "processed" / "metrics.json"))
     rp = load_js("replay2024")

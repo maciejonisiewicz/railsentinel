@@ -1,6 +1,6 @@
-"""Montaż filmu prezentacyjnego RailSentinel (MP4 1920x1080, ok. 4 min).
+"""Montaż filmu prezentacyjnego RailSentinel (MP4 1920x1080, ok. 3,5 min).
 
-1. Lektor: polski głos systemowy macOS (say) + obróbka (EQ, kompresja, delikatny pogłos).
+1. Lektor: neuronowy polski głos (Microsoft Edge TTS, pl-PL-MarekNeural) + lekka obróbka (EQ, kompresja).
 2. Sceny: animowane plansze (video/scenes.html) i nagrania PRAWDZIWEJ aplikacji (Playwright + Chrome).
 3. Montaż: płynne przejścia (xfade), muzyka skomponowana algorytmicznie (bez praw autorskich osób trzecich),
    automatyczne ściszanie muzyki pod lektorem (ducking), normalizacja głośności (EBU R128).
@@ -25,6 +25,7 @@ BASE = "http://127.0.0.1:8765"
 SR = 48000
 XF = 0.7          # długość przejścia [s]
 LEAD, TAIL = 0.6, 0.9
+VOICE = "pl-PL-MarekNeural"
 
 
 def ff(*a):
@@ -86,13 +87,16 @@ def script(v):
 
 # ---------------------------------------------------------------- lektor
 def tts(i, text):
-    aiff, wav = TMP / f"v{i:02d}.aiff", TMP / f"v{i:02d}.wav"
-    subprocess.run(["say", "-v", "Zosia", "-r", "168", "-o", str(aiff), text], check=True)
-    # obróbka: filtr dolnoprzepustowy szumu, ocieplenie, obecność, kompresja, delikatny pogłos
-    ff("-i", str(aiff), "-af",
-       "highpass=f=90,equalizer=f=180:t=q:w=1:g=2.5,equalizer=f=3200:t=q:w=1.2:g=3,"
-       "acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=4,"
-       "aecho=0.85:0.6:38|71:0.10|0.06,aresample=48000", "-ac", "1", str(wav))
+    """Neuronowy polski głos (Microsoft Edge TTS, pl-PL-MarekNeural) + lekka obróbka studyjna."""
+    mp3, wav = TMP / f"v{i:02d}.mp3", TMP / f"v{i:02d}.wav"
+    tag = mp3.with_suffix(".txt")
+    if not (mp3.exists() and tag.exists() and tag.read_text() == VOICE + text):
+        subprocess.run([str(ROOT / ".venv/bin/edge-tts"), "--voice", VOICE, "--rate=-3%", "--pitch=-2Hz",
+                        "--text", text, "--write-media", str(mp3)], check=True)
+        mp3.with_suffix(".txt").write_text(VOICE + text)
+    ff("-i", str(mp3), "-af",
+       "highpass=f=70,equalizer=f=150:t=q:w=1:g=1.5,equalizer=f=4500:t=q:w=1.5:g=1.2,"
+       "acompressor=threshold=-18dB:ratio=2.2:attack=10:release=150:makeup=2,aresample=48000", "-ac", "1", str(wav))
     with wave.open(str(wav)) as w:
         return w.getnframes() / w.getframerate()
 
@@ -162,7 +166,7 @@ def music(dur):
 
 # ---------------------------------------------------------------- nagrania scen
 CAPTION_JS = """(txt) => { const d = document.createElement('div'); d.id='rsCap'; d.textContent = txt;
-  Object.assign(d.style, {position:'fixed', left:'40px', bottom:'40px', zIndex: 99999, background:'rgba(7,10,15,.82)',
+  Object.assign(d.style, {position:'fixed', left:'420px', top:'110px', zIndex: 99999, background:'rgba(7,10,15,.82)',
   color:'#fff', font:'700 30px Inter, sans-serif', padding:'16px 26px', borderRadius:'16px', borderLeft:'8px solid #ffb020',
   boxShadow:'0 20px 60px rgba(0,0,0,.5)', opacity: 0, transform:'translateY(20px)', transition:'all .7s cubic-bezier(.2,.8,.2,1)'});
   document.body.appendChild(d); setTimeout(() => { d.style.opacity = 1; d.style.transform = 'none'; }, 300); }"""
@@ -197,14 +201,14 @@ def record(sid, kind, dur, caption, v):
             start = time.time() - t0 - 1.6
             fr = pg.frame_locator("#f")
             pg.wait_for_timeout(int(dur * 400))
-            pg.evaluate("document.getElementById('f').contentWindow.scrollTo({top: 560, behavior: 'smooth'})")
+            pg.evaluate("(()=>{const d=document.getElementById('f').contentDocument; const s=d.getElementById('side'); s.classList.add('full'); setTimeout(()=>s.scrollTo({top: 260, behavior: 'smooth'}), 400);})()")
             pg.wait_for_timeout(int(dur * 600) + 300)
         else:
             urls = {"live": "#mode=live&theme=dark&hz=total",
-                    "replay": "#mode=replay2024&theme=dark&issue=0&day=1&lat=50.45&lon=16.95&z=9",
+                    "replay": "#mode=replay2024&theme=dark&issue=0&day=1",
                     "popup": "#mode=replay2024&theme=dark&issue=4&day=1&lat=50.40&lon=16.75&z=11&popup=1",
-                    "t1997": "#mode=y1997&theme=dark&day=0&lat=50.75&lon=17.2&z=8",
-                    "sim": "#mode=sim&theme=dark&preset=clear&lat=50.95&lon=16.4&z=8"}
+                    "t1997": "#mode=y1997&theme=dark&day=0",
+                    "sim": "#mode=sim&theme=dark&preset=clear&lat=50.95&lon=15.9&z=8"}
             pg.goto(f"{BASE}/web/index.html{urls[sid]}")
             pg.wait_for_timeout(2600)
             if caption:
@@ -212,9 +216,8 @@ def record(sid, kind, dur, caption, v):
             start = time.time() - t0
             ms = int(dur * 1000)
             if sid == "live":
-                pg.evaluate("void RS_MAP.setView([52.0, 19.2], 6, {animate:false})")
                 pg.wait_for_timeout(int(ms * 0.35))
-                pg.evaluate("void RS_MAP.flyTo([50.5, 16.8], 9, {duration: 5})")
+                pg.evaluate("void RS_MAP.flyTo([50.45, 16.3], 9, {duration: 5})")
                 pg.wait_for_timeout(int(ms * 0.65))
             elif sid == "replay":
                 pg.click("#play")
