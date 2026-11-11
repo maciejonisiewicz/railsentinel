@@ -2,7 +2,6 @@
 .venv/
 __pycache__/
 .DS_Store
-.claude/
 # surowe dane (odtwarzalne skryptami 01-03, 08, 09, 13) i duże pliki pośrednie
 data/raw/
 data/processed/hydro_daily.pkl

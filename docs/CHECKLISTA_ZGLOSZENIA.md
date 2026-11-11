@@ -24,5 +24,5 @@
 ## Spakowanie kodu
 
 ```bash
-cd ~/Desktop && zip -r RailSentinel_kod.zip RailSentinel -x "RailSentinel/.venv/*" "RailSentinel/data/raw/*" "RailSentinel/.claude/*"
+cd ~/Desktop && zip -r RailSentinel_kod.zip RailSentinel -x "RailSentinel/.venv/*" "RailSentinel/data/raw/*"
 ```

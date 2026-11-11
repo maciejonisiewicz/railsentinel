@@ -128,8 +128,21 @@ def main():
     subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
                     "--virtual-time-budget=10000", f"--print-to-pdf={pdf}", out_html.as_uri()],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=180)
+    set_pdf_author(pdf, author)
     print("PDF:", pdf, json.dumps(vals, ensure_ascii=False))
+
+
+def set_pdf_author(path, author):
+    """Metadane PDF: tytuł i autor."""
+    import pypdf
+    r = pypdf.PdfReader(str(path)); w = pypdf.PdfWriter()
+    for pg in r.pages:
+        w.add_page(pg)
+    w.add_metadata({"/Title": "RailSentinel – praca konkursowa", "/Author": author, "/Creator": author, "/Producer": "RailSentinel"})
+    with open(path, "wb") as f:
+        w.write(f)
 
 
 if __name__ == "__main__":
     main()
+
