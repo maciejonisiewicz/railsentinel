@@ -1,0 +1,23 @@
+[
+  {
+    "plik": "toromistrz.mp4",
+    "od": "1:12",
+    "do": "1:44",
+    "podpis": "Toromistrz",
+    "opis": "20 lat stażu · linia nr 2",
+    "anonim": false,
+    "napisy": [
+      ["1:12", "1:17", "Tekst napisów dokładnie tak, jak padł w nagraniu."],
+      ["1:17", "1:23", "Kolejne zdanie."]
+    ]
+  },
+  {
+    "plik": "dyzurny.mp4",
+    "od": "0:40",
+    "do": "1:05",
+    "podpis": "Dyżurny ruchu",
+    "opis": "15 lat stażu",
+    "anonim": true,
+    "napisy": []
+  }
+]

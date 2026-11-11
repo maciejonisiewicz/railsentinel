@@ -79,6 +79,7 @@ def script(v):
          "Symulator: model ML działa w przeglądarce"),
         ("phone", "phone", "Dla ludzi w terenie jest Moja linia. Instalujesz aplikację na telefonie, wybierasz swoją linię albo klikasz "
                            "Gdzie jestem, i widzisz każdy odcinek na trzy dni. Działa także bez zasięgu.", None),
+    ] + interview_scenes() + [
         ("whom", "html", "RailSentinel rozwiązuje problemy dyżurnych ruchu, zakładów linii kolejowych, sztabów kryzysowych i planistów inwestycji. "
                          "Wszystko na otwartych danych, bez montowania czegokolwiek w torze.", None),
         ("outro", "html", "RailSentinel. Wiesz, który tor sprawdzić, zanim pogoda go uszkodzi.", None),
@@ -162,6 +163,90 @@ def music(dur):
     fade[:fi] = np.linspace(0, 1, fi)
     fade[-fo:] = np.linspace(1, 0, fo)
     return out * fade
+
+
+# ---------------------------------------------------------------- wywiady (prawdziwe nagrania)
+WYW = V / "wywiady"
+
+
+def tsec(x):
+    """'1:23.5' / '83.5' / 83.5 -> sekundy."""
+    if isinstance(x, (int, float)):
+        return float(x)
+    p = [float(a) for a in str(x).replace(",", ".").split(":")]
+    return sum(v * 60 ** (len(p) - 1 - k) for k, v in enumerate(p))
+
+
+def interviews():
+    f = WYW / "wywiady.json"
+    if not f.exists():
+        return []
+    return [e for e in json.load(open(f, encoding="utf-8")) if (WYW / e["plik"]).exists()]
+
+
+def interview_scenes():
+    ii = interviews()
+    if not ii:
+        return []
+    return [("voices", "html", "Zapytałem ludzi, którzy pilnują torów na co dzień. Oto, co powiedzieli.", None)] + \
+           [(f"int{k}", "interview", e, None) for k, e in enumerate(ii)]
+
+
+def render_overlays(items):
+    """items: [(plik_png, query)] -> przezroczyste PNG 1920x1080 z video/overlay.html."""
+    from urllib.parse import urlencode
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        b = p.chromium.launch(channel="chrome", headless=True)
+        pg = b.new_page(viewport={"width": 1920, "height": 1080})
+        for png, q in items:
+            pg.goto(f"{BASE}/video/overlay.html?{urlencode(q)}")
+            pg.wait_for_timeout(500)
+            pg.screenshot(path=str(png), omit_background=True)
+        b.close()
+
+
+def prep_interview(sid, e):
+    """Fragment prawdziwego nagrania: kadr 16:9 (pion -> rozmyte tło), belka z podpisem, napisy, czysty dźwięk."""
+    t0, t1 = tsec(e["od"]), tsec(e["do"])
+    dur = t1 - t0
+    src = WYW / e["plik"]
+    anon = bool(e.get("anonim"))
+    ov = [(TMP / f"{sid}_lt.png", {"k": "lt", "a": e["podpis"], "b": e.get("opis", "")})]
+    subs = [(tsec(a) - t0, tsec(b) - t0, txt) for a, b, txt in e.get("napisy", [])]
+    ov += [(TMP / f"{sid}_sub{j}.png", {"k": "sub", "a": txt}) for j, (_, _, txt) in enumerate(subs)]
+    if anon:
+        ov.append((TMP / f"{sid}_anon.png", {"k": "anon"}))
+    render_overlays(ov)
+    inp = ["-ss", f"{t0:.2f}", "-t", f"{dur:.2f}", "-i", str(src)]
+    for png, _ in ov:
+        inp += ["-loop", "1", "-t", f"{dur:.2f}", "-i", str(png)]
+    if anon:
+        fc = [f"[{len(ov)}:v]fps=30,format=rgba[bg]",
+              "[0:a]aformat=channel_layouts=mono,showwaves=s=1100x180:mode=cline:rate=30:colors=0xffb020:scale=sqrt:draw=full[wv]",
+              "[bg][wv]overlay=(W-w)/2:690,format=yuv420p[v0]"]
+    else:
+        fc = ["[0:v]fps=30,split[a][b]",
+              "[a]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=40:4,eq=brightness=-0.12[bg]",
+              "[b]scale=1920:1080:force_original_aspect_ratio=decrease[fg]",
+              "[bg][fg]overlay=(W-w)/2:(H-h)/2[v0]"]
+    lt_end = min(dur - 0.3, 6.5)
+    fc.append(f"[1:v]format=rgba,fade=in:st=0.6:d=0.5:alpha=1,fade=out:st={lt_end - 0.5:.2f}:d=0.5:alpha=1[lt]")
+    fc.append("[v0][lt]overlay=0:0[v1]")
+    last = "[v1]"
+    for j, (a, b, _) in enumerate(subs):
+        fc.append(f"{last}[{2 + j}:v]overlay=0:0:enable='between(t,{max(0, a):.2f},{b:.2f})'[s{j}]")
+        last = f"[s{j}]"
+    fc.append(f"{last}scale=1920:1080,setsar=1,format=yuv420p[vout]")
+    mp4 = TMP / f"s_{sid}.mp4"
+    ff(*inp, "-filter_complex", ";".join(fc), "-map", "[vout]", "-t", f"{dur:.2f}",
+       "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-an", str(mp4))
+    wav = TMP / f"a_{sid}.wav"
+    ff("-ss", f"{t0:.2f}", "-t", f"{dur:.2f}", "-i", str(src), "-af",
+       f"highpass=f=80,afftdn=nf=-25,acompressor=threshold=-20dB:ratio=2.5:attack=8:release=200:makeup=3,"
+       f"loudnorm=I=-17:TP=-2:LRA=9,afade=in:d=0.15,afade=out:st={dur - 0.35:.2f}:d=0.35,aresample=48000",
+       "-ac", "1", str(wav))
+    return mp4, wav, dur
 
 
 # ---------------------------------------------------------------- nagrania scen
@@ -262,11 +347,17 @@ def main():
     v = metrics()
     print("liczby:", v)
     sc = script(v)
-    durs, clips = [], []
+    durs, clips, auds = [], [], []   # auds: (plik wav, przesunięcie w scenie, czy wywiad)
     for i, (sid, kind, text, cap) in enumerate(sc):
+        if kind == "interview":
+            mp4, wav, dur = prep_interview(sid, text)
+            durs.append(dur); clips.append(mp4); auds.append((wav, 0.0, True))
+            print(f"scena {sid}: wywiad {text['podpis']} {dur:.1f} s", flush=True)
+            continue
         d = tts(i, text)
         dur = LEAD + d + TAIL
         durs.append(dur)
+        auds.append((TMP / f"v{i:02d}.wav", LEAD, False))
         print(f"scena {sid}: lektor {d:.1f} s -> {dur:.1f} s", flush=True)
         clips.append(record(sid, kind, dur, cap, v))
     # --- wideo z przejściami
@@ -285,17 +376,21 @@ def main():
     # --- audio: lektor w miejscach scen + muzyka z duckingiem
     n = int(total * SR) + SR
     voice = np.zeros(n, np.float32)
+    quiet = np.ones(n, np.float32)       # pod prawdziwymi wypowiedziami muzyka prawie znika
     start = 0.0
-    for i, d in enumerate(durs):
-        x = read_wav(TMP / f"v{i:02d}.wav")
-        s = int((start + LEAD) * SR)
+    for (wav, off, is_int), d in zip(auds, durs):
+        x = read_wav(wav)
+        s = int((start + off) * SR)
         voice[s:s + len(x)] += x[: max(0, n - s)]
+        if is_int:
+            quiet[s:s + int(d * SR)] = 0.25
         start += d - XF
+    quiet = np.convolve(quiet, np.ones(SR) / SR, mode="same").astype(np.float32)
     mus = music(n / SR)
     env = np.convolve(np.abs(voice), np.ones(int(0.25 * SR)) / int(0.25 * SR), mode="same")
     env = np.clip(env / (env.max() + 1e-9) * 4, 0, 1)
     env = np.convolve(env, np.ones(int(0.4 * SR)) / int(0.4 * SR), mode="same")
-    mix = voice * 0.95 + mus * (1.0 - 0.62 * env) * 2.4
+    mix = voice * 0.95 + mus * (1.0 - 0.62 * env) * 2.4 * quiet
     mix = np.clip(mix / max(1e-9, np.abs(mix).max()) * 0.9, -1, 1)
     with wave.open(str(TMP / "mix.wav"), "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)

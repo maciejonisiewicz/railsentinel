@@ -112,8 +112,12 @@ Kogo o co dopytać:
 
 ## 7. Co dalej z materiałem
 
-- **Film**: na końcu filmu dodam krótki blok „Opinie praktyków” z 20–40 s każdej rozmowy, podpisany stanowiskiem
-  i stażem, oraz napisami.
+- **Film**: przed zakończeniem filmu wstawię blok „Głos z terenu” z **oryginalnymi nagraniami**, czyli obrazem
+  i głosem rozmówców, a nie cytatami czytanymi przez lektora. Z każdej rozmowy wejdzie jeden ciągły fragment
+  (20–40 s) bez cięć w środku zdania. Na nim będzie belka z podpisem (stanowisko, staż) i napisy słowo w słowo.
+  W wariancie anonimowym zamiast twarzy pojawi się wykres fali głosu, ale głos zostaje prawdziwy.
+- **Pliki**: oryginalne nagrania z telefonu (.mp4 albo .mov), przesłane w pełnej jakości razem ze zdjęciami podpisanych zgód.
+  Pełne nagrania zachowuję. Gdyby komisja zapytała, mogę pokazać całą rozmowę.
 - **Praca pisemna**: dodam sekcję „Opinie praktyków” z liczbą i rodzajem rozmówców, średnią oceną, cytatami
   i listą zmian wprowadzonych po ich uwagach, np. poprawionymi prędkościami.
 - Cytuję **dokładnie to, co padło w rozmowie, łącznie z krytyką**. Niczego nie dopisuję.
