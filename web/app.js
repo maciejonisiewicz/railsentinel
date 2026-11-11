@@ -5,12 +5,26 @@
   const HZ = { flood: "Woda: podmycie lub fala", heat: "Wyboczenie toru (upał)", wind: "Wiatr: drzewa na torze", ice: "Oblodzenie sieci" };
   const HZS = { flood: "woda", heat: "upał", wind: "wiatr", ice: "oblodzenie" };
   const ACTION = {
-    flood: "obchód toru i kontrola przepustów, mostów i nasypów przed pierwszym pociągiem; ograniczenie prędkości do 40 km/h; gotowość pociągu sieciowego i sprzętu do zabezpieczenia skarp; przy fali wezbraniowej – obserwacja filarów mostów i usuwanie spływającego drewna",
-    heat: "kontrola geometrii toru w godz. 13–19, szczególnie na odcinkach po robotach torowych; doraźne ograniczenie prędkości do 60–80 km/h",
+    flood: "obchód toru i kontrola przepustów, mostów i nasypów przed pierwszym pociągiem; gotowość pociągu sieciowego i sprzętu do zabezpieczenia skarp; przy fali wezbraniowej – obserwacja filarów mostów i usuwanie spływającego drewna",
+    heat: "kontrola geometrii toru w godz. 13–19, szczególnie na odcinkach po robotach torowych",
     wind: "gotowość brygad do usuwania powalonych drzew; objazd linii po przejściu frontu przed wznowieniem ruchu",
     ice: "kursy pociągów odladzających sieć trakcyjną; rozważenie trakcji spalinowej na odcinkach krytycznych",
   };
   const ALARM = 0.5, WARN = 0.3;
+  // Proponowana prędkość maksymalna na zagrożonym odcinku [pasażerskie, towarowe] w km/h.
+  // Towarowe niżej: większe naciski osi (nasyp, siły poprzeczne przy upale) i dłuższa droga hamowania.
+  // To propozycja do decyzji zarządcy – nigdy nie więcej niż prędkość rozkładowa.
+  const SPEED = {
+    flood: { warn: [80, 60], alarm: [40, 30], note: "po obchodzie toru; przy wodzie na torowisku – wstrzymanie ruchu" },
+    heat:  { warn: [100, 70], alarm: [70, 50], note: "w godz. 13–19" },
+    wind:  { warn: [100, 80], alarm: [60, 40], note: "jazda z gotowością do zatrzymania przed przeszkodą" },
+    ice:   { warn: [100, 80], alarm: [60, 50], note: "przy oblodzeniu sieci – rozważyć trakcję spalinową" },
+  };
+  const speedOf = (h, x) => (x >= ALARM ? SPEED[h].alarm : x >= WARN ? SPEED[h].warn : null);
+  const speedTxt = (h, x) => { const v = speedOf(h, x); return v ? `pasażerskie ${v[0]} km/h, towarowe ${v[1]} km/h (${SPEED[h].note})` : ""; };
+  const speedBox = (h, x) => { const v = speedOf(h, x); return v ? `<div class="vmax"><div class="vm-h">Proponowana prędkość maks.</div>
+      <div class="vm-row"><span><small>pasażerskie</small><b>${v[0]}</b> km/h</span><span><small>towarowe</small><b>${v[1]}</b> km/h</span></div>
+      <div class="vm-n">${SPEED[h].note} · nie więcej niż prędkość rozkładowa</div></div>` : ""; };
   const VIEWS = { live: [[52.0, 19.3], 6], line: [[52.0, 19.3], 6], heat: [[52.0, 19.3], 6],
     replay2024: [[50.55, 16.95], 8], y1997: [[50.85, 17.45], 8], sim: [[50.45, 16.9], 9] };
 
@@ -24,6 +38,7 @@
 
   // ---------- mapa ----------
   const map = L.map("map", { zoomControl: false, zoomSnap: 0.25, preferCanvas: true, attributionControl: true }).setView([52.0, 19.3], 6);
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
   window.RS_MAP = map; // dostęp do mapy dla automatycznych testów i nagrań
   let tiles;
   function setTiles() {
@@ -204,7 +219,7 @@
     $("#lineStatus").innerHTML = `<b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>
       <span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span><br>
       ${lvl === "ok" ? "W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi." :
-        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, rejon ${SEG[worst.i].place || "?"}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
+        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, rejon ${SEG[worst.i].place || "?"}.<br><i>Prędkość maks.:</i> ${speedTxt(worst.h, worst.x)}.<br><i>Zalecane:</i> ${ACTION[worst.h]}.`}`;
     $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d, k) => `<th class="c">${dayLbl(d, k)}</th>`).join("")}</tr>` +
       ord.map((i) => `<tr data-i="${i}"><td>${SEG[i].place || "–"}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
         v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
@@ -333,7 +348,7 @@
         if (h === "ice") det = `marznący opad do ${Math.max(...ii.map((i) => r.p1[i])).toFixed(1)} mm`;
         return `<li><b>Linia ${ln}</b> (${ii.length} odc.${places ? ", " + places : ""}${rivers ? ", dolina " + rivers : ""}) – ${det}, ryzyko ${pct(mx)}</li>`;
       }).join("");
-      html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Zalecane działania:</i> ${ACTION[h]}.</p>`;
+      html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Proponowana prędkość maks. na odcinkach w alarmie:</i> ${speedTxt(h, 1)}.<br><i>Zalecane działania:</i> ${ACTION[h]}.</p>`;
     }
     $("#brief").innerHTML = html;
   }
@@ -359,6 +374,7 @@
         <div><small>Wiatr · porywy</small><b>${pct(r.wind[i])}</b> <span class="muted small">${r.gust[i]} km/h</span></div>
       </div>
       ${why ? `<div class="why"><b>Dlaczego? Wkład czynników do ryzyka</b>${why}</div>` : ""}
+      ${speedBox(h, x)}
       ${x >= WARN ? `<div class="act"><b>Zalecane:</b> ${ACTION[h]}.</div>` : ""}
       ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed zniszczeniem` : ""}</div>` : ""}
     </div>`).openOn(map);
