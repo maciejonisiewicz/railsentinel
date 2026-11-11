@@ -25,7 +25,41 @@ BASE = "http://127.0.0.1:8765"
 SR = 48000
 XF = 0.7          # długość przejścia [s]
 LEAD, TAIL = 0.6, 0.9
-VOICE = "pl-PL-MarekNeural"
+VOICE = "pl-PL-MarekNeural"   # zapasowy głos, gdy nie ma klucza ElevenLabs
+
+
+def env():
+    """Ustawienia z pliku .env w katalogu projektu (nie trafia do repozytorium)."""
+    out = {}
+    f = ROOT / ".env"
+    if f.exists():
+        for line in f.read_text().splitlines():
+            if "=" in line and not line.lstrip().startswith("#"):
+                k, v = line.split("=", 1)
+                out[k.strip()] = v.strip().strip('"')
+    return out
+
+
+ENV = env()
+EL_KEY, EL_VOICE = ENV.get("ELEVENLABS_API_KEY"), ENV.get("ELEVENLABS_VOICE_ID")
+EL_MODEL = ENV.get("ELEVENLABS_MODEL", "eleven_multilingual_v2")
+EL_SET = {"stability": float(ENV.get("ELEVENLABS_STABILITY", 0.45)), "similarity_boost": 0.8,
+          "style": float(ENV.get("ELEVENLABS_STYLE", 0.15)), "use_speaker_boost": True}
+
+
+def el_tts(text, out, voice=None, prev="", nxt=""):
+    """ElevenLabs text-to-speech -> mp3. prev/nxt: sąsiednie zdania, żeby intonacja płynnie łączyła sceny."""
+    import requests
+    body = {"text": text, "model_id": EL_MODEL, "voice_settings": EL_SET}
+    if prev:
+        body["previous_text"] = prev
+    if nxt:
+        body["next_text"] = nxt
+    r = requests.post(f"https://api.elevenlabs.io/v1/text-to-speech/{voice or EL_VOICE}?output_format=mp3_44100_192",
+                      headers={"xi-api-key": EL_KEY}, json=body, timeout=120)
+    if r.status_code != 200:
+        raise RuntimeError(f"ElevenLabs {r.status_code}: {r.text[:300]}")
+    Path(out).write_bytes(r.content)
 
 
 def ff(*a):
@@ -87,17 +121,23 @@ def script(v):
 
 
 # ---------------------------------------------------------------- lektor
-def tts(i, text):
-    """Neuronowy polski głos (Microsoft Edge TTS, pl-PL-MarekNeural) + lekka obróbka studyjna."""
+def tts(i, text, prev="", nxt=""):
+    """Lektor: ElevenLabs (gdy jest klucz w .env), w przeciwnym razie Edge TTS. Wynik w cache wg tekstu i głosu."""
     mp3, wav = TMP / f"v{i:02d}.mp3", TMP / f"v{i:02d}.wav"
     tag = mp3.with_suffix(".txt")
-    if not (mp3.exists() and tag.exists() and tag.read_text() == VOICE + text):
-        subprocess.run([str(ROOT / ".venv/bin/edge-tts"), "--voice", VOICE, "--rate=-3%", "--pitch=-2Hz",
-                        "--text", text, "--write-media", str(mp3)], check=True)
-        mp3.with_suffix(".txt").write_text(VOICE + text)
-    ff("-i", str(mp3), "-af",
-       "highpass=f=70,equalizer=f=150:t=q:w=1:g=1.5,equalizer=f=4500:t=q:w=1.5:g=1.2,"
-       "acompressor=threshold=-18dB:ratio=2.2:attack=10:release=150:makeup=2,aresample=48000", "-ac", "1", str(wav))
+    el = bool(EL_KEY and EL_VOICE)
+    key = (f"EL:{EL_VOICE}:{EL_MODEL}:{json.dumps(EL_SET, sort_keys=True)}:" if el else VOICE) + text
+    if not (mp3.exists() and tag.exists() and tag.read_text() == key):
+        if el:
+            el_tts(text, mp3, prev=prev, nxt=nxt)
+        else:
+            subprocess.run([str(ROOT / ".venv/bin/edge-tts"), "--voice", VOICE, "--rate=-3%", "--pitch=-2Hz",
+                            "--text", text, "--write-media", str(mp3)], check=True)
+        tag.write_text(key)
+    chain = ("highpass=f=60,acompressor=threshold=-20dB:ratio=1.8:attack=15:release=200:makeup=1.5,aresample=48000" if el else
+             "highpass=f=70,equalizer=f=150:t=q:w=1:g=1.5,equalizer=f=4500:t=q:w=1.5:g=1.2,"
+             "acompressor=threshold=-18dB:ratio=2.2:attack=10:release=150:makeup=2,aresample=48000")
+    ff("-i", str(mp3), "-af", chain, "-ac", "1", str(wav))
     with wave.open(str(wav)) as w:
         return w.getnframes() / w.getframerate()
 
@@ -354,7 +394,10 @@ def main():
             durs.append(dur); clips.append(mp4); auds.append((wav, 0.0, True))
             print(f"scena {sid}: wywiad {text['podpis']} {dur:.1f} s", flush=True)
             continue
-        d = tts(i, text)
+        texts = [t for _, k, t, _ in sc]
+        prev = texts[i - 1] if i > 0 and isinstance(texts[i - 1], str) else ""
+        nxt = texts[i + 1] if i + 1 < len(texts) and isinstance(texts[i + 1], str) else ""
+        d = tts(i, text, prev, nxt)
         dur = LEAD + d + TAIL
         durs.append(dur)
         auds.append((TMP / f"v{i:02d}.wav", LEAD, False))

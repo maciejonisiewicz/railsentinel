@@ -14,3 +14,4 @@ video/build/
 *.webm
 video/*.mp4
 video/poster.jpg
+.env
