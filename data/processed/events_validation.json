@@ -1,0 +1,34 @@
+{
+ "flood_2010": [
+  {
+   "name": "Ulewy i fala na Odrze, maj 2010 – linia 273 Głogów–Krzepów zamknięta",
+   "src": "Rzeczpospolita (rp.pl), relacja z powodzi 2010",
+   "risk": 0.376,
+   "alarm": false,
+   "warn": true,
+   "top_pct": 20.3,
+   "net_alarm_pct": 18.5,
+   "day": "2010-05-27"
+  },
+  {
+   "name": "Ulewy na Śląsku, maj 2010 – osunięcie nasypu linii 149 (Zabrze – Leszczyny)",
+   "src": "Transport Problems / PWr, artykuł o stateczności nasypu linii 149",
+   "risk": 1.0,
+   "alarm": true,
+   "warn": true,
+   "top_pct": 2.9,
+   "net_alarm_pct": 18.5,
+   "day": "2010-05-18"
+  },
+  {
+   "name": "Powódź błyskawiczna, 7.08.2010 – Bogatynia, linia wzdłuż Miedzianki i Nysy Łużyckiej zniszczona",
+   "src": "RMF24: zniszczona linia Görlitz–Zittau przez Bogatynię",
+   "risk": 0.999,
+   "alarm": true,
+   "warn": true,
+   "top_pct": 0.2,
+   "net_alarm_pct": 0.7,
+   "day": "2010-08-08"
+  }
+ ]
+}

@@ -339,7 +339,25 @@
 
 <!-- 13 ŹRÓDŁA -->
 <section class="page">
-  <h2><span class="n">15</span>Źródła, dane i narzędzia</h2>
+  <h2><span class="n">15</span>Kolejne niezależne testy i funkcje dla praktyków</h2>
+  <h3>Ranking zamiast progu: od czego zacząć obchody</h3>
+  <p>Przy wielkiej powodzi próg alarmu obejmuje wiele odcinków, więc liczy się <b>kolejność</b> na liście „Do sprawdzenia”. W prognozie wydanej <b>12.09.2024</b> (na 12–14.09) w alarmie było {{rk_alarm}} odcinków, czyli tylko <b>{{rk_alarm_pct}}% sieci krajowej</b>, a wśród nich <b>{{rk_dmg}} z {{rk_nd}}</b> późniejszych zniszczeń. To <b>{{rk_lift}}× trafniej niż obchody w losowej kolejności</b>. Pierwsza setka listy (ok. 2% sieci) zawierała {{rk100}} zniszczeń. Już prognoza z 9.09, pięć dni przed zniszczeniami i jeszcze poniżej progu alarmu, umieściła {{rk09_25}} z nich w pierwszej 25.</p>
+  <h3>Powodzie 2010 – nowe zdarzenia, model bez douczania</h3>
+  <table class="small"><tr><th>Udokumentowane zdarzenie (źródło w rozdz. 16)</th><th>Najwyższe ryzyko odcinka</th><th>Część sieci z ryzykiem ≥ tego odcinka</th></tr>{{ev_flood_rows}}</table>
+  <p class="small">Test na reanalizie ERA5 i archiwalnych stanach wód IMGW, jak w teście 1997. Ostatnia kolumna mówi, jaka część sieci miała w tym oknie ryzyko co najmniej takie jak uszkodzony odcinek: im mniej, tym wyżej na liście. Linia 273 pod Głogowem dostała tylko poziom UWAGA: fala na Odrze nie przekroczyła w danych progu alarmu. Maj 2010 to powódź o zasięgu krajowym, więc w ciągu czterech tygodni alarm objął łącznie znaczną część sieci. Tym bardziej liczy się ranking, a dokładność poprawi radar IMGW i rejestr usterek PLK.</p>
+  <h3>Orkany 2007–2022 – czy dzień orkanu wyróżnia się w systemie</h3>
+  <table class="small"><tr><th>Orkan</th><th>Dzień</th><th>Sieć ≥ UWAGA</th><th>Zwykłe dni (±10 dni)</th><th>Miejsce</th><th>Porywy</th></tr>{{ev_wind_rows}}</table>
+  <p class="small">W {{ev_wind_hit}} z {{ev_wind_n}} orkanów dzień uderzenia był pierwszym lub drugim najgorszym dniem w 21-dniowym oknie. Moduł wiatru to reguła oparta na progach IMGW, bez uczenia. Test sprawdza, czy dobrze wskazuje dni zagrożenia dla całej sieci.</p>
+  <h3>Funkcje dla praktyków</h3>
+  <ul class="small">
+    <li><b>Kilometraż linii i miejscowości</b> przy każdym odcinku, np. „Linia 276 · km 85,9–93,3 · Bardo – Kłodzko” ({{km_pct}}% odcinków; kilometraż wyznaczony ze słupków kilometrowych w OSM).</li>
+    <li><b>Proponowana prędkość maksymalna osobno dla pociągów pasażerskich i towarowych</b>, nigdy wyższa niż prędkość dopuszczalna na odcinku.</li>
+    <li><b>Wydruk A4 dla dyżurnego</b> z polami „przyjął / godzina / podjęte działania” i <b>codzienna automatyczna aktualizacja prognozy</b> (GitHub Actions, ok. 4:15) – działa bez udziału autora.</li>
+  </ul>
+</section>
+
+<section class="page">
+  <h2><span class="n">16</span>Źródła, dane i narzędzia</h2>
   <h3>Fakty i etykiety</h3>
   <ul class="small">
     <li>PAP: „880 mln zł. PKP PLK szacuje straty w związku z powodzią” (19.09.2024); „Utrudnienia na kolei i drogach krajowych – najnowsze informacje”.</li>
@@ -347,6 +365,8 @@
     <li>K. Trammer, „Powódź na dekady” oraz relacja z powodzi 2024, <i>Z Biegiem Szyn</i> nr 6 (133) – zbs.net.pl/zbs133.pdf.</li>
     <li>Polsat News, „Orkan Eunice zatrzymał pociągi” (19.02.2022); Sejm RP, odpowiedź na interpelację (ograniczenia upałowe 3.07.2025, z02575).</li>
     <li>PKP PLK – długość eksploatowanych linii za 2023 r. (raport spółki za PAP).</li>
+    <li>Powodzie 2010: Rzeczpospolita (rp.pl) – zamknięcie linii Głogów–Krzepów; RMF24 – zniszczona linia Görlitz–Zittau przez Bogatynię (08.2010); <i>Transport Problems</i> (PWr) – osunięcie nasypu linii 149 w 2010 r.</li>
+    <li>Orkany: Kyrill (18.01.2007), Xaver (6.12.2013), Ksawery i Grzegorz (10.2017), Friederike (18.01.2018), Sabina (10.02.2020), Eunice (19.02.2022) – daty wg IMGW i relacji prasowych (m.in. money.pl, Polsat News).</li>
   </ul>
   <h3>Dane</h3>
   <table class="small">
@@ -356,9 +376,10 @@
     <tr><td>Open-Meteo: Archive (ERA5), Previous Runs (ECMWF IFS), Forecast</td><td>Historia pogody, archiwalne prognozy, prognoza bieżąca</td><td>CC BY 4.0</td></tr>
     <tr><td>AWS Terrain Tiles (SRTM, EU-DEM i in.)</td><td>Model wysokościowy</td><td>licencje otwarte, atrybucja</td></tr>
     <tr><td>Natural Earth; Esri World Gray Canvas</td><td>Granica Polski; podkład mapy</td><td>domena publiczna; atrybucja Esri/OSM</td></tr>
+    <tr><td>IMGW-PIB – archiwum dobowych stanów wód 2010</td><td>Test powodzi 2010</td><td>dane publiczne IMGW-PIB</td></tr>
   </table>
   <h3>Narzędzia i biblioteki</h3>
-  <p class="small">Python 3, scikit-learn (BSD-3), pandas, NumPy (BSD-3), matplotlib, requests (Apache-2.0), Pillow (HPND), Leaflet (BSD-2). Całość kodu jest mojego autorstwa i znajduje się w repozytorium: <code>src/</code> to potok danych i modele, <code>web/</code> to dashboard i symulator.</p>
+  <p class="small">Python 3, scikit-learn (BSD-3), pandas, NumPy (BSD-3), matplotlib, requests (Apache-2.0), Pillow (HPND), Leaflet (BSD-2), Playwright (Apache-2.0, nagrania i zrzuty ekranu), GitHub Actions (codzienna prognoza). Lektor w filmie: syntezator mowy ElevenLabs (plan Starter, licencja na użytek komercyjny). Całość kodu jest mojego autorstwa i znajduje się w repozytorium: <code>src/</code> to potok danych i modele, <code>web/</code> to dashboard i symulator.</p>
   <h3>Materiały dołączone do zgłoszenia</h3>
   <ul class="small">
     <li>Kod źródłowy i dane pośrednie (ZIP / link)</li>

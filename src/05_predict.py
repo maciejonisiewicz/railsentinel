@@ -63,7 +63,11 @@ def get(url, params):
             print("  błąd sieci, ponawiam:", type(e).__name__)
             time.sleep(wait); continue
         if r.status_code == 200:
-            return r.json()
+            try:
+                return r.json()
+            except ValueError:            # przeciążony serwer potrafi zwrócić stronę HTML z kodem 200
+                print("  odpowiedź nie jest JSON-em, ponawiam")
+                time.sleep(wait); wait = min(wait * 2, 600); continue
         print("  czekam", wait, r.text[:100])
         time.sleep(wait)
         wait = min(wait * 2, 600)
