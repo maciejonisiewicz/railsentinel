@@ -73,7 +73,7 @@ const V = JSON.parse(decodeURIComponent(P.get("v") || "%7B%7D"));
 const LOGO = `<svg viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" rx="8" fill="#ffb020"/><path d="M9 25 L14 7 M23 25 L18 7 M10.5 20h11 M12 14.5h8" stroke="#0b0f14" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="8" r="3.2" fill="#ff4d4f" stroke="#0b0f14" stroke-width="1.5"/></svg>`;
 const T = {
   intro: `<div class="scene"><div class="logo in d1">${LOGO}<h1>RailSentinel</h1></div>
-    <p class="lead in d3">Wiesz, który odcinek toru sprawdzić – <span class="accent">zanim pogoda go uszkodzi.</span></p>
+    <p class="lead in d3">Pomaga zdecydować, który odcinek toru sprawdzić najpierw – <span class="accent">zanim pogoda go uszkodzi.</span></p>
     <div class="pills in d5"><span class="pill">🌧 podmycie</span><span class="pill">🌊 fala na rzece</span><span class="pill">🔥 wyboczenie</span><span class="pill">🌬 wichura</span><span class="pill">🧊 oblodzenie</span></div></div>`,
   y1997: `<div class="scene"><div class="left"><div class="kicker in d1">Lipiec 1997 · powódź tysiąclecia</div><div class="year in d2">1997</div>
     <p class="lead in d3">Fala na Odrze niszczy mosty kolejowe:<br><b class="accent">Kędzierzyn-Koźle · Krapkowice · Brzeg Dolny</b></p>
@@ -90,6 +90,7 @@ const T = {
     <div class="arrow in d4">+</div><div class="box in d4"><h3>🌊 Model B · rzeki</h3><p>Prognoza stanów ${V.stations || "800"} wodowskazów IMGW na 3 dni. Sam znajduje „zwiastuny” fali w górnym biegu.</p></div>
     <div class="arrow in d5">→</div><div class="box in d6"><h3>🚆 Odcinek toru</h3><p>Ryzyko na 72 h, wyjaśnienie „dlaczego” i zalecane działanie dla dyżurnego.</p></div></div></div>`,
   river: `<div class="scene"><div class="kicker in d1">Nowość · prognoza fali (ML)</div><h2 class="in d2">Wykryte przekroczenia stanu rzeki<br>z wyprzedzeniem 2 dni – powódź 2024</h2>
+    <p class="lead in d2" style="font-size:28px;margin-top:10px">Test historyczny przy znanym opadzie (górna granica)</p>
     <div class="bars"><div class="bar in d3" style="--h:${(V.pod_p || 45) * 4}px;background:#5b6676"><b>${V.pod_p || 45}%</b><span>„rzeka się nie zmieni”</span></div>
     <div class="bar in d4" style="--h:${(V.pod_s || 66) * 4}px;background:linear-gradient(#4c8dff,#2563eb)"><b class="blue">${V.pod_s || 66}%</b><span>RailSentinel (ML)</span></div>
     <div style="font-size:120px;font-weight:900;color:var(--green)" class="in d6">+${V.gain || 47}%</div></div></div>`,
@@ -101,7 +102,7 @@ const T = {
   voices: `<div class="scene"><div class="kicker in d1">Głos z terenu</div><h2 class="in d2">Zapytałem ludzi,<br>którzy <span class="accent">pilnują torów</span> na co dzień.</h2>
     <p class="lead in d3">Toromistrz i dyżurny ruchu oglądają RailSentinel – nagrania bez reżyserii i bez skrótów myśli.</p></div>`,
   outro: `<div class="scene"><div class="logo in d1">${LOGO}<h1>RailSentinel</h1></div>
-    <p class="lead in d2">Wiesz, który tor sprawdzić, <span class="accent">zanim pogoda go uszkodzi.</span></p>
+    <p class="lead in d2">Pomaga zdecydować, <span class="accent">gdzie najpierw zweryfikować zagrożenie.</span></p>
     <div class="url in d3">railsentinel.pl</div>
     <p class="lead in d4" style="font-size:28px">Maciej Onisiewicz · Politechnika Wrocławska · Konkurs PKP PLK „Kolej na bezpieczeństwo”</p>
     <div class="qr in d4"><img src="img/qr.png"></div></div>`,

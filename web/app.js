@@ -527,7 +527,8 @@
     map.invalidateSize();
     const r = cur();
     if (r) {
-      const i = r[st.hz].reduce((b, x, k, a) => (x > a[b] ? k : b), 0);
+      const want = hp.get("seg") ? SEG.findIndex((x) => x.id === hp.get("seg")) : -1;
+      const i = want >= 0 ? want : r[st.hz].reduce((b, x, k, a) => (x > a[b] ? k : b), 0);
       const c = layers[i].getBounds().getCenter();
       const z = +(hp.get("z") || 11);
       map.setView(c, z, { animate: false });

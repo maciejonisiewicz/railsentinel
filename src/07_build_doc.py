@@ -130,6 +130,18 @@ def main():
                     "--virtual-time-budget=10000", f"--print-to-pdf={pdf}", out_html.as_uri()],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=180)
     set_pdf_author(pdf, author)
+    ann = (DOCS / "zalacznik_template.html").read_text(encoding="utf-8")
+    for k, v in vals.items():
+        ann = ann.replace("{{" + k + "}}", str(v))
+    if re.findall(r"\{\{\w+\}\}", ann):
+        print("UWAGA - załącznik, niewypełnione:", set(re.findall(r"\{\{\w+\}\}", ann)))
+    ann_html = DOCS / "zalacznik.html"
+    ann_html.write_text(ann, encoding="utf-8")
+    ann_pdf = DOCS / "RailSentinel_zalacznik_techniczny.pdf"
+    subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+                    "--virtual-time-budget=10000", f"--print-to-pdf={ann_pdf}", ann_html.as_uri()],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=180)
+    set_pdf_author(ann_pdf, author)
     print("PDF:", pdf, json.dumps(vals, ensure_ascii=False))
 
 
@@ -142,18 +154,42 @@ def new_tests(rp, segs):
     rng = np.random.default_rng(0)
     def top(v, k, n=300):   # remisy rozstrzygane losowo, średnia z wielu losowań (uczciwe porównanie)
         return float(np.mean([dam[np.lexsort((rng.random(len(v)), -v))[:k]].sum() for _ in range(n)]))
-    for it in rp["issues"]:
-        if it["issued"] != "2024-09-12":
-            continue
-        mx = lambda key: np.max([it["risk"][d][key] for d in it["days"]], axis=0)
-        R, FL, P3 = mx("total"), mx("flash"), mx("p3")
-        al = R >= 0.5
-        out.update({"rk_alarm": int(al.sum()), "rk_alarm_pct": f"{al.mean() * 100:.1f}".replace(".", ","),
-                    "rk_dmg": int(dam[al].sum()), "rk_lift": f"{(dam[al].mean()) / (nd / len(ids)):.0f}"})
-        for k in (10, 50, 100):
-            out[f"rk_m{k}"] = f"{top(FL, k):.0f}"
-            out[f"rk_b{k}"] = f"{top(P3, k):.0f}"
-            out[f"rk_r{k}"] = f"{k * nd / len(ids):.1f}".replace(".", ",")
+    ISS = {it["issued"]: it for it in rp["issues"]}
+    mx = lambda it, key: np.max([it["risk"][d][key] for d in it["days"]], axis=0)
+    it = ISS["2024-09-12"]                      # prognoza wydana 11.09 ok. 20:00 (na 12–14.09)
+    W, FL, P3 = mx(it, "flood"), mx(it, "flash"), mx(it, "p3")
+    al = W >= 0.5
+    out.update({"rk_alarm": int(al.sum()), "rk_alarm_pct": f"{al.mean() * 100:.1f}".replace(".", ","),
+                "rk_dmg": int(dam[al].sum()), "rk_lift": f"{(dam[al].mean()) / (nd / len(ids)):.0f}"})
+    for k in (10, 50, 100):
+        out[f"rk_m{k}"] = f"{top(FL, k):.0f}"
+        out[f"rk_b{k}"] = f"{top(P3, k):.0f}"
+        out[f"rk_r{k}"] = f"{k * nd / len(ids):.1f}".replace(".", ",")
+    # tabela błędów: pełny system (ulewa + fala), dwie prognozy, trzy progi
+    rows = []
+    for key, lbl in (("2024-09-12", "11.09, 20:00 (52 h)"), ("2024-09-14", "13.09, 20:00 (4 h)")):
+        Wk = mx(ISS[key], "flood")
+        for thr in (0.3, 0.5, 0.7):
+            a = Wk >= thr
+            tp, fp, fn = int((a & dam).sum()), int((a & ~dam).sum()), int((~a & dam).sum())
+            b = "<b>" if thr == 0.5 else ""
+            e = "</b>" if thr == 0.5 else ""
+            rows.append(f"<tr><td>{lbl}</td>" + f"<td>{b}{thr:.1f}{e}".replace(".", ",") +
+                        f"</td><td>{b}{tp}{e}</td><td>{fn}</td><td>{fp}</td><td>{b}{(tp + fp) / max(tp, 1):.1f}{e}</td>".replace(".", ",") +
+                        f"<td>{a.mean() * 100:.1f}%</td></tr>".replace(".", ","))
+    out["err_rows"] = "".join(rows)
+    # przypadek: linia 309, km 0,2–3,2
+    ci = ids.index("L309_1008_332")
+    rank = lambda it: int((mx(it, "flood") > mx(it, "flood")[ci]).sum()) + 1
+    out["cs_p3_10"] = f"{mx(ISS['2024-09-10'], 'p3')[ci]:.0f}"
+    out["cs_p3_11"] = f"{mx(ISS['2024-09-11'], 'p3')[ci]:.0f}"
+    out["cs_p3_12"] = f"{mx(ISS['2024-09-12'], 'p3')[ci]:.0f}"
+    out["cs_r12"] = f"{mx(ISS['2024-09-12'], 'flood')[ci] * 100:.0f}"
+    out["cs_rank12"] = rank(ISS["2024-09-12"])
+    out["cs_r13"] = f"{mx(ISS['2024-09-13'], 'flood')[ci] * 100:.0f}"
+    out["cs_h13"] = f"{mx(ISS['2024-09-13'], 'h3')[ci]:.1f}".replace(".", ",")
+    out["cs_rv14"] = f"{mx(ISS['2024-09-14'], 'river')[ci] * 100:.0f}"
+    out["cs_h14"] = f"{mx(ISS['2024-09-14'], 'h3')[ci]:.1f}".replace(".", ",")
     out["rk_nd"] = nd
     ev = json.load(open(ROOT / "data" / "processed" / "events_validation.json"))
     pl = lambda x: f"{x:.1f}".replace(".", ",")

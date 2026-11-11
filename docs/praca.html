@@ -43,6 +43,10 @@
   .arch div b { display: block; font-size: 9.2pt; margin-bottom: 2px; }
   .arch .h { background: var(--chip); font-weight: 700; text-align: center; border: 0; }
   .tag { display: inline-block; border-radius: 5px; padding: 0 5px; font-size: 8.4pt; font-weight: 600; background: #ffe9e9; color: var(--red); }
+
+  .flowline { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
+  .flowline span { flex: 1; text-align: center; border: 1px solid #c9d2dd; border-radius: 8px; padding: 5px 6px; background: #f6f8fb; }
+  .flowline b { color: #ffb020; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -75,7 +79,7 @@
     <div class="kpi"><b>37/37</b><small>odcinków zniszczonych w 2024 r. z alarmem przed czasem, mediana <strong>52 h</strong> przed pierwszymi zniszczeniami</small></div>
     <div class="kpi"><b>3/3</b><small>udokumentowanych miejsc zniszczeń z 1997 r. wykrytych w niezależnym teście (sam model ML: 0/3)</small></div>
     <div class="kpi"><b>0,948</b><small>AUC w strefie ulewy: trafność wskazania <i>właściwych</i> odcinków (reguła opadowa: 0,864)</small></div>
-    <div class="kpi"><b>+46%</b><small>więcej przekroczeń stanu rzek wykrytych z 2-dniowym wyprzedzeniem dzięki ML-owej prognozie fali</small></div>
+    <div class="kpi"><b>+46%</b><small>więcej przekroczeń stanu rzek wykrytych z 2-dniowym wyprzedzeniem (test historyczny przy znanym opadzie – górna granica)</small></div>
   </div>
   <p><b>Odbiorcy.</b> Dyżurni i dyspozytorzy (Centra Zarządzania Ruchem), zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
   <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ograniczenia prędkości na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
@@ -193,37 +197,59 @@
   <div class="box warn"><b>Granice obecnej wersji (plan w rozdz. 14).</b> (1) Model ML zna tylko mechanizm podgórski. Ulewa na nizinie (np. nad Wrocławiem) daje w nim niskie ryzyko podmycia, a tam zagrożenie pokrywa moduł B. (2) Przy pełnej informacji hydrologicznej system w szczycie powodzi obejmuje alarmem więcej sieci (28%). To cena wykrycia fali, dlatego raport pokazuje falę jako osobną kategorię z innymi działaniami. (3) Moduł upału jest ostrożny: w dniu 3.07.2025 alarmował tylko 1,5% odcinków regionu. Wszystkie trzy punkty poprawi podłączenie rejestru zdarzeń PLK.</div>
 </section>
 
-<!-- 07 SYMULATOR -->
+<!-- 07 PRZYPADEK -->
 <section class="page">
-  <h2><span class="n">07</span>Symulator „co jeśli?” i test klimatyczny</h2>
-  <p>Cały model ML, czyli 300 drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko 4606 odcinków w całej Polsce przelicza się w ułamku sekundy. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 190 mm?”</i>.</p>
-  <figure><img src="fig/screen_sim.png" style="max-height:112mm"><figcaption>Rys. 8. Symulator: ulewa 190 mm w Karkonoszach, scenariusz klimatyczny +20% intensywności opadu.</figcaption></figure>
-  <h3>Test klimatyczny</h3>
-  <p>Suwak „scenariusz klimatyczny” zwiększa intensywność opadu. Ponieważ zniszczenia mają charakter progowy, skutki rosną nieproporcjonalnie: dla ulewy 190 mm w Karkonoszach wzrost intensywności o 20% oznacza <b>7 zamiast 4 odcinków w alarmie i 26 zamiast 10 km toru do sprawdzenia (2,6×)</b>. Taka analiza wskazuje, gdzie inwestycje adaptacyjne (przepusty, umocnienia skarp) dadzą największy efekt w zmieniającym się klimacie.</p>
-  <h3>Animacja i warstwa opadu</h3>
-  <p>W trybie backtestu przycisk „▶ Odtwórz” odtwarza kolejne prognozy z 9–15.09.2024 razem z warstwą opadu. Widać, jak ulewa nasuwa się na Sudety, a alarmy zapalają się na odcinkach, które dwa dni później zostały zniszczone.</p>
+  <h2><span class="n">07</span>Jeden przypadek od początku do końca: linia 309 pod Kłodzkiem</h2>
+  <p>Odcinek <b>linii 309, km 0,2–3,2 (Kłodzko – Szalejów Dolny)</b> w dolinie Bystrzycy Dusznickiej. Każdy wiersz pokazuje, co system wiedział <b>w chwili wydania prognozy</b>, czyli tylko z danych dostępnych wieczorem dnia poprzedniego (archiwalne prognozy ECMWF i stany wód IMGW).</p>
+  <table class="small">
+    <tr><th style="width:21%">Prognoza wydana</th><th>Co pokazał RailSentinel dla tego odcinka</th></tr>
+    <tr><td>9.09, wieczorem</td><td>Ryzyko niskie. Prognozowany opad 3-dobowy do 39 mm.</td></tr>
+    <tr><td>10.09, wieczorem</td><td>Ryzyko niskie, choć prognoza opadu na 13.09 rośnie do 74 mm.</td></tr>
+    <tr><td><b>11.09, ok. 20:00</b></td><td><b>ALARM 86% na 14.09</b>, <b>22. miejsce na liście krajowej</b> z 4606 odcinków. Prognozowany opad 3-dobowy 162 mm. Przyczyny wg modelu: położenie w górskiej dolinie (wysokość, spadek terenu) i opad z ostatnich 7 dni.</td></tr>
+    <tr><td>12.09, wieczorem</td><td>Alarm 93% na 14–15.09. Moduł fali: prognozowany stan wody 2,0 (1 = poziom 1% najwyższych dni).</td></tr>
+    <tr><td>13.09, wieczorem</td><td>Do ulewy dochodzi fala: ryzyko fali 92%, stan wody 2,6.</td></tr>
+    <tr><td><b>14–16.09: zdarzenie</b></td><td><b>Zniszczone torowisko i 300 m nasypu</b> na początku linii do Kudowy-Zdroju (PLK za: K. Trammer, <i>Z Biegiem Szyn</i> nr 133). Według PLK najtrudniejsza sytuacja była w węźle Kłodzko, a Kłodzko Główne było nieprzejezdne (PAP, 19.09.2024).</td></tr>
+  </table>
+  <div class="kpis" style="margin:8px 0"><div class="kpi"><b>52 h</b><small>od pierwszego alarmu (11.09, 20:00) do początku dnia zniszczeń; dokładna godzina zniszczenia nie jest znana</small></div>
+  <div class="kpi"><b>22. z 4606</b><small>pozycja odcinka na krajowej liście priorytetów w prognozie z 11.09</small></div></div>
+  <div class="box"><b>Co mógł zrobić toromistrz, w granicach swoich kompetencji:</b> 12.09 rano zaplanować oględziny nasypu, przepustów i odwodnienia na km 0,2–3,2, zgłosić wynik dyżurnemu i przełożonym oraz przygotować sprzęt. Decyzje o ruchu pociągów podejmuje uprawniony pracownik według obowiązujących procedur. RailSentinel wskazuje miejsce i kolejność, ale niczego nie decyduje.</div>
+  <h3>To samo zdarzenie: ostrzeżenie IMGW a RailSentinel</h3>
+  <table class="small">
+    <tr><th style="width:18%"></th><th>Ostrzeżenie meteorologiczne IMGW</th><th>RailSentinel</th></tr>
+    <tr><td>Wydane</td><td>11.09.2024 (środa), 3. stopień, ważne do 16.09, 7:00</td><td>11.09.2024, ok. 20:00</td></tr>
+    <tr><td>Obszar</td><td>całe województwo dolnośląskie i północ opolskiego; sumy opadu do ok. 380 mm</td><td>150 odcinków w alarmie, czyli <b>3,3% sieci krajowej</b></td></tr>
+    <tr><td>Co mówi</td><td>gdzie i ile spadnie</td><td>który odcinek (linia, kilometr), dlaczego i w jakiej kolejności go sprawdzić</td></tr>
+    <tr><td>Wynik</td><td>ostrzeżenie obszarowe, bez wskazania odcinków toru</td><td>wśród 150 alarmów było <b>31 z 37</b> późniejszych zniszczeń (26× lepiej niż losowo)</td></tr>
+  </table>
+  <p class="small"><b>RailSentinel nie prognozuje tylko złej pogody. Wskazuje, które odcinki infrastruktury kolejowej wymagają uwagi i w jakiej kolejności.</b> Nie zastępuje ostrzeżeń IMGW: korzysta z tych samych prognoz i przekłada je na konkretne odcinki toru. Źródła ostrzeżeń: TVN24 i RMF24 (11–12.09.2024). Etykieta zniszczenia pochodzi z korytarza zniszczeń opisanego w źródłach (bufor 2 km), a nie z pomiaru punktowego.</p>
 </section>
 
-<!-- 08 PROGNOZA RZEK -->
+<!-- 08 CENA SKUTECZNOŚCI -->
 <section class="page">
-  <h2><span class="n">08</span>Nowy model ML: prognoza stanów rzek na 3 dni</h2>
-  <p>Moduł B zakładał wcześniej, że stan rzeki się utrzyma. Fala jednak <b>wędruje</b>: to, co dziś widać w górnym biegu, jutro dochodzi do mostu niżej. Drugi model ML prognozuje indeks stanu wody dla <b>814 wodowskazów IMGW w całej Polsce</b> z wyprzedzeniem 1, 2 i 3 dni.</p>
-  <ul>
-    <li><b>Zwiastuny fali:</b> dla każdego wodowskazu model automatycznie wybiera do 3 wodowskazów na tej samej rzece, których przyrost stanu poprzedza przyrost tutaj (korelacja z opóźnieniem 1–2 dni, dane 2021–2023). Znalazł je dla 315 stacji.</li>
-    <li><b>Cechy:</b> bieżący stan i trend, stany zwiastunów, opad z ok. 1000 posterunków IMGW (przeszły i prognozowany).</li>
-    <li><b>System:</b> alarm, gdy rzeka <i>już jest</i> wysoko <b>albo</b> model <i>przewiduje</i> przekroczenie. Próg modelu dobrałem wyłącznie na danych treningowych.</li>
-  </ul>
-  <table>
-    <tr><th>Test (model ich nie widział)</th><th>Wyprzedzenie</th><th>Wykryte przekroczenia: system / persystencja</th><th>CSI: system / persystencja</th><th>Błąd przy wysokich stanach: model / persystencja</th></tr>
-    <tr><td rowspan="3">Powódź 09.2024</td><td>1 dzień</td><td>72% / 68%</td><td>0,52 / 0,52</td><td>0,66 / 0,75</td></tr>
-    <tr><td><b>2 dni</b></td><td><b>66% / 45%</b></td><td><b>0,40 / 0,29</b></td><td>0,95 / 1,28</td></tr>
-    <tr><td>3 dni</td><td>39% / 28%</td><td>0,22 / 0,16</td><td>1,23 / 1,62</td></tr>
-    <tr><td rowspan="3">Powódź 07.1997</td><td>1 dzień</td><td>79% / 76%</td><td>0,59 / 0,62</td><td>0,51 / 0,49</td></tr>
-    <tr><td><b>2 dni</b></td><td><b>66% / 58%</b></td><td><b>0,46 / 0,43</b></td><td>0,76 / 0,83</td></tr>
-    <tr><td>3 dni</td><td>57% / 45%</td><td>0,35 / 0,30</td><td>0,95 / 1,05</td></tr>
+  <h2><span class="n">08</span>Cena skuteczności: alarmy, przeoczenia i rodzaje testów</h2>
+  <p>Wynik „37/37” trzeba czytać razem z jego ceną, czyli liczbą odcinków do sprawdzenia. Poniżej pełny system (moduł ulewy i moduł fali), cała sieć krajowa (4606 odcinków), powódź 2024, dwie prognozy i trzy progi.</p>
+  <table class="small">
+    <tr><th>Prognoza wydana (wyprzedzenie)</th><th>Próg</th><th>Trafne alarmy</th><th>Przeoczenia</th><th>Alarmy bez potwierdzonego zniszczenia</th><th>Odcinków do sprawdzenia na 1 trafny</th><th>Część sieci</th></tr>
+    <tr><td>11.09, 20:00 (52 h)</td><td>0,3</td><td>31</td><td>6</td><td>148</td><td>5,8</td><td>3,9%</td></tr><tr><td>11.09, 20:00 (52 h)</td><td><b>0,5</b></td><td><b>31</b></td><td>6</td><td>119</td><td><b>4,8</b></td><td>3,3%</td></tr><tr><td>11.09, 20:00 (52 h)</td><td>0,7</td><td>27</td><td>10</td><td>89</td><td>4,3</td><td>2,5%</td></tr><tr><td>13.09, 20:00 (4 h)</td><td>0,3</td><td>37</td><td>0</td><td>371</td><td>11,0</td><td>8,9%</td></tr><tr><td>13.09, 20:00 (4 h)</td><td><b>0,5</b></td><td><b>37</b></td><td>0</td><td>326</td><td><b>9,8</b></td><td>7,9%</td></tr><tr><td>13.09, 20:00 (4 h)</td><td>0,7</td><td>35</td><td>2</td><td>236</td><td>7,7</td><td>5,9%</td></tr>
   </table>
-  <p><b>Wniosek:</b> z 2-dniowym wyprzedzeniem system wykrywa o <b>46% więcej</b> przekroczeń niż założenie „rzeka się nie zmieni”, a błąd prognozy przy wysokich stanach spada o ok. 26%. To dodatkowe godziny na obserwację mostów i usuwanie zatorów. Prognoza rzek zasila moduł B w backteście i w trybie na żywo, gdzie bieżące stany pochodzą z API IMGW.</p>
-  <div class="box warn"><b>Uczciwie:</b> w tym teście opad „przyszły” pochodzi z pomiarów, czyli jest to idealna prognoza opadu. W backteście 2024 (rozdz. 05) model korzysta z prawdziwych prognoz ECMWF. Na żywo API IMGW podaje tylko bieżący stan, bez historii z ostatnich dni, więc trend przyjmuję jako zerowy. Pełny dostęp do telemetrii IMGW usunie to ograniczenie.</div>
+  <p class="small"><b>Jak to czytać.</b> Próg 0,5 to domyślny ALARM, a 0,3 to UWAGA. Wyższy próg daje mniej obchodów i więcej przeoczeń, czyli wybór dla zespołu utrzymania w pilotażu. „Alarm bez potwierdzonego zniszczenia” nie musi być fałszywy: część odcinków była zalana lub zamknięta, ale do etykiet trafiły tylko udokumentowane zniszczenia. Liczymy je jednak jako fałszywe, żeby nie zawyżać wyniku.</p>
+  <h3>Ranking: od czego zacząć obchody (prognoza z 11.09, wieczór)</h3>
+  <table class="small"><tr><th>Zniszczone odcinki na szczycie listy (z 37)</th><th>pierwsze 10</th><th>pierwsze 50</th><th>pierwsze 100 (2% sieci)</th></tr>
+    <tr><td><b>Lista „podmycie” – model ML ulewy</b></td><td>4</td><td><b>19</b></td><td><b>28</b></td></tr>
+    <tr><td>Kolejność wg samej prognozowanej sumy opadu</td><td><b>8</b></td><td>15</td><td>15</td></tr>
+    <tr><td>Kolejność losowa</td><td>0,1</td><td>0,4</td><td>0,8</td></tr></table>
+  <p class="small">Sama suma opadu najlepiej wskazuje epicentrum (pierwsza dziesiątka). Model ML znajduje więcej zagrożonych odcinków w szerszej grupie, bo uwzględnia dolinę, spadek terenu i uwilgotnienie gruntu.</p>
+  <h3>Co jest jakim testem</h3>
+  <div class="flowline small"><span>Dane dostępne w chwili prognozy<br><i>prognoza ECMWF, stany IMGW</i></span><b>→</b><span>Model<br><i>ulewa + fala + fizyka</i></span><b>→</b><span>Wynik<br><i>alarm, priorytet, km</i></span><b>→</b><span>Późniejsze zdarzenie<br><i>źródła PLK, PAP</i></span></div>
+  <table class="small">
+    <tr><th>Wynik w pracy</th><th>Rodzaj testu</th><th style="width:30%">Czy model znał tylko dane dostępne w chwili prognozy?</th></tr>
+    <tr><td>37/37, 52 h, ranking, tabela błędów (2024)</td><td>backtest na archiwalnych prognozach ECMWF</td><td><b>tak</b></td></tr>
+    <tr><td>Powódź 1997, powodzie 2010</td><td>reanaliza ERA5 i zmierzone stany wód</td><td>nie, pogoda znana po fakcie (idealna prognoza)</td></tr>
+    <tr><td>+46% w prognozie rzek</td><td>zmierzony opad użyty jako prognoza</td><td>nie, górna granica zysku</td></tr>
+    <tr><td>Orkany 2007–2022, upał 2025</td><td>reanaliza porywów i temperatury</td><td>nie</td></tr>
+    <tr><td>Symulator, test klimatyczny</td><td>scenariusz „co jeśli”</td><td>nie dotyczy</td></tr>
+  </table>
+  <p class="small">Szczegóły metod, prognozy rzek i symulatora: <b>Załącznik techniczny</b> (osobny plik PDF).</p>
 </section>
 
 <!-- 09 CAŁA POLSKA I APLIKACJA -->
@@ -275,13 +301,16 @@
 <!-- 09 WDROŻENIE + AI -->
 <section class="page">
   <h2><span class="n">11</span>Zastosowanie w rzeczywistym środowisku kolejowym</h2>
-  <table>
-    <tr><th style="width:18%">Etap</th><th>Zakres</th><th style="width:16%">Czas</th></tr>
-    <tr><td><b>0. Prototyp</b></td><td>Gotowy: cała Polska, codzienna automatyczna prognoza, kilometraż, wydruk dla dyżurnego; testy: 2024, 1997, 2010, 7 orkanów</td><td>zrobione</td></tr>
-    <tr><td><b>1. Pilotaż „w cieniu”</b></td><td>1–2 zakłady linii kolejowych (np. Kłodzko, Nysa). System działa równolegle i nie wpływa na decyzje. Porównanie z rzeczywistymi zdarzeniami, douczenie na rejestrze PLK.</td><td>6 miesięcy</td></tr>
-    <tr><td><b>2. Wsparcie decyzji</b></td><td>Raporty trafiają do dyżurnych i utrzymania; potwierdzenie alarmu po obchodzie zamyka pętlę uczenia.</td><td>6–12 miesięcy</td></tr>
-    <tr><td><b>3. Skala</b></td><td>Cała sieć PLK, prognozy wysokiej rozdzielczości, prognozy hydrologiczne IMGW.</td><td>12–24 miesiące</td></tr>
+  <p class="small">Proponuję <b>pilotaż na jednej linii</b>, a nie od razu wdrożenie w całej Polsce. Przykład: linia 276 Wrocław – Kłodzko – Międzylesie. To propozycja, PKP PLK nie wyraziło na nią zgody.</p>
+  <table class="small">
+    <tr><th style="width:20%">Etap</th><th>Zakres</th><th style="width:15%">Czas</th></tr>
+    <tr><td><b>0. Prototyp</b></td><td>Gotowy: cała Polska, codzienna automatyczna prognoza, kilometraż, wydruk dla dyżurnego; testy 2024, 1997, 2010 i 7 orkanów</td><td>zrobione</td></tr>
+    <tr><td><b>1. Przygotowanie</b></td><td>Uzgodnienie z zarządcą; dostęp do odczytu ewidencji (kilometraż, obiekty) i rejestru zdarzeń; osoba po stronie PLK odpowiedzialna za walidację; szkolenie użytkowników (1–2 h)</td><td>1–2 miesiące</td></tr>
+    <tr><td><b>2. Obserwacja „w cieniu”</b></td><td>30 dni, najlepiej w sezonie burzowym (V–IX). Codzienny raport dla zespołu pilotażu, <b>bez wpływu na ruch pociągów</b>. Każdy alarm porównany z obchodami i raportami.</td><td>30 dni</td></tr>
+    <tr><td><b>3. Ocena</b></td><td>Trafne i fałszywe wskazania, przeoczenia, czas reakcji użytkowników, zrozumiałość raportu (krótka ankieta)</td><td>2 tygodnie</td></tr>
+    <tr><td><b>4. Decyzja</b></td><td>Szerszy test tylko, jeśli: ≥ 70% zdarzeń pogodowych miało wcześniejszy alarm, liczba alarmów jest akceptowana przez zespół i ani razu brak danych nie został pokazany jako niskie ryzyko</td><td>–</td></tr>
   </table>
+  <p class="small"><b>Potrzebne zasoby:</b> dostęp do danych zarządcy, jedna osoba do walidacji, serwer (wystarcza obecna infrastruktura chmurowa), szkolenie użytkowników.</p>
   <p>System działa jako niezależna aplikacja i nie wymaga integracji z urządzeniami sterowania ruchem. Potrzebuje tylko dostępu do odczytu ewidencji infrastruktury i rejestru zdarzeń oraz danych meteorologicznych i hydrologicznych. Przeliczenie całej sieci zajmuje minuty na jednym serwerze.</p>
   <table>
     <tr><th style="width:32%">Ryzyko</th><th>Mitygacja</th></tr>
@@ -320,32 +349,25 @@
   <h2 style="margin-top:10px"><span class="n">14</span>Ograniczenia i plan rozwoju</h2>
   <table class="small">
     <tr><th style="width:27%">Granica obecnej wersji</th><th style="width:36%">Jak system sobie z nią radzi już dziś</th><th>Następny krok</th></tr>
-    <tr><td>Przy wielkiej powodzi alarm obejmuje wiele odcinków</td><td>Ranking i osobna kategoria fali; w alarmie 12.09.2024 było 3,5% sieci i 31/37 zniszczeń</td><td>Kalibracja progów z zespołami utrzymania w pilotażu</td></tr>
+    <tr><td>Przy wielkiej powodzi alarm obejmuje wiele odcinków</td><td>Ranking i osobna kategoria fali; w prognozie z 11.09.2024 alarm objął 3,3% sieci i 31/37 zniszczeń</td><td>Kalibracja progów z zespołami utrzymania w pilotażu</td></tr>
     <tr><td>Burze lokalne mniejsze niż siatka 25 km</td><td>Moduł fali na wodowskazach IMGW; Bogatynia 2010 wykryta</td><td>Nowcasting radarowy IMGW (0–6 h)</td></tr>
     <tr><td>Etykiety zniszczeń z publikacji prasowych i branżowych</td><td>Test na niezależnych zdarzeniach (1997, 2010) bez douczania</td><td>Douczenie na rejestrze zdarzeń i usterek PLK</td></tr>
     <tr><td>Upał, wiatr i oblodzenie to moduły regułowe</td><td>Progi IMGW i fizyka szyny; test na 7 orkanach i upale 2025</td><td>Kalibracja na zdarzeniach PLK, mapa zadrzewień (Sentinel-2, LiDAR)</td></tr>
     <tr><td>Dane infrastruktury z OSM</td><td>Kontrola spójności; kilometraż dla 92% odcinków</td><td>Ewidencja infrastruktury PLK (kilometraż, prędkości, obiekty)</td></tr>
-    <tr><td>Proponowane prędkości nie są przepisem</td><td>Nigdy powyżej prędkości dopuszczalnej; decyduje uprawniony pracownik</td><td>Dostosowanie do instrukcji PLK i opinii praktyków</td></tr>
+    <tr><td>Brak danych lub dane nieaktualne</td><td>Komunikat „prognoza nieaktualna”, odcinki bez oceny na szaro; nigdy jako niskie ryzyko</td><td>Monitoring automatu i powiadomienie administratora</td></tr>
   </table>
 </section>
 
 <!-- 13 ŹRÓDŁA -->
 <section class="page">
-  <h2><span class="n">15</span>Kolejne niezależne testy i funkcje dla praktyków</h2>
-  <h3>Ranking zamiast progu: od czego zacząć obchody</h3>
-  <p>Przy wielkiej powodzi liczy się nie tylko próg alarmu, ale też <b>kolejność</b> na liście „Do sprawdzenia”. W prognozie wydanej <b>12.09.2024</b> (na 12–14.09) w alarmie było 159 odcinków, czyli <b>3,5% sieci krajowej</b>, a wśród nich <b>31 z 37</b> późniejszych zniszczeń: <b>24× trafniej niż obchody w losowej kolejności</b>.</p>
-  <table class="small"><tr><th>Zniszczone odcinki na szczycie listy (z 37)</th><th>pierwsze 10</th><th>pierwsze 50</th><th>pierwsze 100 (2% sieci)</th></tr>
-    <tr><td><b>Lista „podmycie” – model ML ulewy</b></td><td>4</td><td><b>19</b></td><td><b>28</b></td></tr>
-    <tr><td>Kolejność wg samej prognozowanej sumy opadu</td><td><b>8</b></td><td>15</td><td>15</td></tr>
-    <tr><td>Kolejność losowa</td><td>0,1</td><td>0,4</td><td>0,8</td></tr></table>
-  <p class="small">Sama suma opadu najlepiej wskazuje epicentrum (pierwsza dziesiątka), ale model ML znajduje więcej zagrożonych odcinków w szerszej grupie, bo uwzględnia dolinę, spadek terenu i uwilgotnienie. Odcinki zagrożone falą na rzekach system pokazuje jako osobną kategorię, bo wymagają innych działań: obserwacji mostów i usuwania zatorów.</p>
+  <h2><span class="n">15</span>Kolejne testy na prawdziwych zdarzeniach i funkcje dla praktyków</h2>
   <h3>Powodzie 2010 – nowe zdarzenia, model bez douczania</h3>
   <table class="small"><tr><th>Udokumentowane zdarzenie (źródło w rozdz. 16)</th><th>Najwyższe ryzyko odcinka</th><th>Część sieci z ryzykiem ≥ tego odcinka</th></tr><tr><td>Ulewy i fala na Odrze, maj 2010 – linia 273 Głogów–Krzepów zamknięta</td><td>UWAGA (38%)</td><td>20,3%</td></tr><tr><td>Ulewy na Śląsku, maj 2010 – osunięcie nasypu linii 149 (Zabrze – Leszczyny)</td><td><b>ALARM</b> (100%)</td><td>2,9%</td></tr><tr><td>Powódź błyskawiczna, 7.08.2010 – Bogatynia, linia wzdłuż Miedzianki i Nysy Łużyckiej zniszczona</td><td><b>ALARM</b> (100%)</td><td>0,2%</td></tr></table>
   <p class="small">Reanaliza ERA5 i archiwalne stany wód IMGW, jak w teście 1997. Ostatnia kolumna: im mniejsza, tym wyżej odcinek na liście. Linia 273 pod Głogowem dostała tylko poziom UWAGA: fala na Odrze nie przekroczyła w danych progu alarmu. Maj 2010 to powódź o zasięgu krajowym, więc w ciągu czterech tygodni alarm objął łącznie znaczną część sieci. Tym bardziej liczy się ranking, a dokładność poprawi radar IMGW i rejestr usterek PLK.</p>
   <h3>Orkany 2007–2022 – czy dzień orkanu wyróżnia się w systemie</h3>
   <table class="small"><tr><th>Orkan</th><th>Dzień</th><th>Sieć ≥ UWAGA</th><th>Zwykłe dni ±10: mediana / maks.</th><th>Miejsce</th><th>Porywy</th></tr><tr><td>Kyrill</td><td>19.01.2007</td><td><b>99,7%</b></td><td>0,0% / 46,4%</td><td>1/21</td><td>121 km/h</td></tr><tr><td>Xaver</td><td>06.12.2013</td><td><b>92,2%</b></td><td>0,0% / 0,0%</td><td>1/21</td><td>113 km/h</td></tr><tr><td>Ksawery</td><td>05.10.2017</td><td><b>56,1%</b></td><td>0,0% / 2,2%</td><td>1/21</td><td>126 km/h</td></tr><tr><td>Grzegorz</td><td>29.10.2017</td><td><b>62,2%</b></td><td>0,0% / 0,0%</td><td>1/21</td><td>123 km/h</td></tr><tr><td>Friederike</td><td>18.01.2018</td><td><b>36,3%</b></td><td>0,0% / 5,0%</td><td>1/21</td><td>103 km/h</td></tr><tr><td>Sabina (Ciara)</td><td>10.02.2020</td><td><b>91,0%</b></td><td>0,0% / 11,6%</td><td>1/21</td><td>105 km/h</td></tr><tr><td>Eunice</td><td>19.02.2022</td><td><b>91,1%</b></td><td>0,0% / 82,7%</td><td>1/21</td><td>113 km/h</td></tr></table>
   <p class="small">W 7 z 7 orkanów dzień uderzenia był najgorszym dniem w 21-dniowym oknie (w zwykłe dni mediana: 0% sieci). Moduł wiatru to reguła oparta na progach IMGW, bez uczenia. Test sprawdza, czy dobrze wskazuje dni zagrożenia dla całej sieci. Porywy pochodzą z ERA5 w siatce 0,5°, wystarczającej dla zjawisk o zasięgu setek kilometrów.</p>
-  <p class="small"><b>Funkcje dla praktyków:</b> kilometraż linii i miejscowości przy każdym odcinku, np. „Linia 276 · km 85,9–93,3 · Bardo – Kłodzko” (92% odcinków, ze słupków kilometrowych OSM); proponowana prędkość osobno dla pociągów pasażerskich i towarowych, nigdy wyższa niż dopuszczalna; wydruk A4 dla dyżurnego z polami „przyjął / godzina / działania”; <b>codzienna automatyczna aktualizacja prognozy</b> (ok. 4:15), działająca bez udziału autora.</p>
+  <p class="small"><b>Funkcje dla praktyków:</b> kilometraż linii i miejscowości przy każdym odcinku, np. „Linia 276 · km 85,9–93,3 · Bardo – Kłodzko” (92% odcinków, ze słupków kilometrowych OSM); priorytet weryfikacji, pewność oceny i aktualność danych przy każdym alarmie; komunikat „prognoza nieaktualna” i szary kolor dla odcinków bez danych (nigdy jako niskie ryzyko); wydruk A4 dla dyżurnego z polami „przyjął / godzina / działania”; <b>codzienna automatyczna aktualizacja prognozy</b> (ok. 4:15), działająca bez udziału autora.</p>
 </section>
 
 <section class="page">

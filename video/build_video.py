@@ -82,14 +82,14 @@ def metrics():
             "s97": m["test1997_sites_detected_system"], "pod_p": round(k2["pod_persist"] * 100),
             "pod_s": round(k2["pod_system"] * 100),
             "gain": round((k2["pod_system"] / k2["pod_persist"] - 1) * 100), "stations": rm["stations"],
-            "nseg": len(segs)}
+            "nseg": len(segs), "d52": sum(1 for x in json.loads(re.search(r"\]=(\{.*\});\s*$", t, re.S).group(1))["lead_hours_by_segment"].values() if x >= 48)}
 
 
 def script(v):
     """(id, typ, tekst lektora, podpis). Liczby z aktualnych wyników."""
     return [
         ("intro", "html", "Każdego dnia po polskich torach jeżdżą tysiące pociągów. Ale tor nie jest odporny na pogodę. "
-                          "Oto RailSentinel: system, który mówi, który odcinek toru sprawdzić, zanim pogoda go uszkodzi.", None),
+                          "Oto RailSentinel: system, który pomaga zdecydować, który odcinek toru sprawdzić najpierw, zanim pogoda go uszkodzi.", None),
         ("y1997", "html", "Lipiec, rok tysiąc dziewięćset dziewięćdziesiąty siódmy. Powódź tysiąclecia. Fala na Odrze niszczy "
                           "mosty kolejowe w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym. Część tych zniszczeń ogranicza ruch do dziś.", None),
         ("y2024", "html", "Wrzesień, rok dwa tysiące dwudziesty czwarty. Ulewa w Sudetach. Woda zabiera trzysta metrów nasypu pod Kłodzkiem "
@@ -104,15 +104,15 @@ def script(v):
                         f"położenie w dolinie, mosty i nasypy. Drugi prognozuje stany rzek z {v['stations']} wodowskazów IMGW i sam odkrywa, "
                         "które wodowskazy w górnym biegu zapowiadają nadchodzącą falę.", None),
         ("replay", "app", "Sprawdźmy to na prawdziwej powodzi. System dostaje tylko to, co było wiadomo wtedy: archiwalne prognozy ECMWF. "
-                          "Wieczorem jedenastego września zapala alarmy dokładnie tam, gdzie dwa dni później woda zniszczyła tory. "
-                          f"{v['det']} z {v['dam']} odcinków, ponad dwie doby wcześniej.", "Backtest: powódź 09.2024 na archiwalnych prognozach"),
-        ("popup", "app", "Każdy alarm ma wyjaśnienie. Dyżurny widzi, dlaczego właśnie ten odcinek, i co zrobić: obchód przed pierwszym pociągiem, "
-                         "ograniczenie prędkości, gotowość sprzętu.", "Wyjaśnialna AI: dlaczego ten odcinek?"),
+                          f"Wieczorem jedenastego września zapala alarmy na {v['d52']} z {v['dam']} odcinków, które później zniszczyła woda, ponad dwie doby wcześniej. "
+                          "W alarmie jest wtedy tylko około trzech procent sieci. Pozostałe odcinki dostają alarm wieczorem przed zniszczeniem.", "Backtest: powódź 09.2024 na archiwalnych prognozach"),
+        ("popup", "app", "Każdy alarm ma wyjaśnienie: linię i kilometr, przyczynę, priorytet weryfikacji i aktualność danych. "
+                         "Decyzję podejmuje uprawniony pracownik, zgodnie z procedurami.", "Wyjaśnialna AI: dlaczego ten odcinek?"),
         ("t1997", "app", "A najtrudniejszy test? Powódź z tysiąc dziewięćset dziewięćdziesiątego siódmego roku, której model nigdy nie widział. "
-                         f"System wskazuje {'wszystkie trzy' if v['s97'] == 3 else 'dwa z trzech'} udokumentowane miejsca zniszczeń.",
-         "Niezależny test: powódź 1997"),
-        ("river", "html", f"Nowa prognoza rzek daje dodatkowy czas. Z dwudniowym wyprzedzeniem wykrywa o {v['gain']} procent więcej "
-                          "przekroczeń stanu wody niż założenie, że rzeka się nie zmieni.", None),
+                         f"W teście historycznym system wskazuje {'wszystkie trzy' if v['s97'] == 3 else 'dwa z trzech'} udokumentowane miejsca zniszczeń.",
+         "Test historyczny: powódź 1997 (reanaliza)"),
+        ("river", "html", f"Nowa prognoza rzek daje dodatkowy czas. W teście historycznym, przy znanym opadzie, z dwudniowym wyprzedzeniem "
+                          f"wykrywa o {v['gain']} procent więcej przekroczeń stanu wody niż założenie, że rzeka się nie zmieni.", None),
         ("sim", "app", "W symulatorze można przećwiczyć każdy scenariusz. Stawiam ulewę w Karkonoszach. Podnoszę stan Odry. "
                        "I włączam scenariusz klimatyczny: opady mocniejsze o dwadzieścia procent to ponad dwa razy więcej kilometrów toru do sprawdzenia.",
          "Symulator: model ML działa w przeglądarce"),
@@ -121,7 +121,7 @@ def script(v):
     ] + interview_scenes() + [
         ("whom", "html", "RailSentinel rozwiązuje problemy dyżurnych ruchu, zakładów linii kolejowych, sztabów kryzysowych i planistów inwestycji. "
                          "Wszystko na otwartych danych, bez montowania czegokolwiek w torze.", None),
-        ("outro", "html", "RailSentinel. Wiesz, który tor sprawdzić, zanim pogoda go uszkodzi.", None),
+        ("outro", "html", "RailSentinel pomaga zdecydować, gdzie w pierwszej kolejności zweryfikować zagrożenie.", None),
     ]
 
 

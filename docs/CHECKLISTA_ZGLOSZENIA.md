@@ -6,6 +6,12 @@
 - [x] Strona i aplikacja online: https://railsentinel.pl
 - [x] Film: `video/RailSentinel_film.mp4` (też na railsentinel.pl/about.html)
 - [x] Kod: https://github.com/maciejonisiewicz/railsentinel
+- [x] Praca: 15 stron (limit regulaminu: 15 stron dokumentu); załącznik techniczny jako materiał uzupełniający
+- [ ] **Film ≤ 5 minut** – sprawdź długość po wmontowaniu wywiadów
+- [ ] **Załączniki w mailu ≤ 50 MB** (PDF ok. 5 MB + załącznik ok. 2 MB + podpisane dokumenty) – film tylko jako link
+- [ ] **Zgody osób z wywiadów** – zdjęcia podpisanych kartek zachowaj u siebie; w filmie tylko wariant, na który się zgodzili
+- [ ] **Licencje i źródła** – rozdz. 16 pracy (wymóg §10 ust. 9); zdanie o autorstwie kodu w rozdz. 16 – zdecyduj o brzmieniu
+- [ ] **Prototyp bez logowania** – otwórz railsentinel.pl na telefonie (dane komórkowe) i sprawdź datę prognozy (aktualizuje się codziennie ok. 4:15)
 - [ ] **Przeczytaj całą pracę** (`docs/RailSentinel_praca_konkursowa.pdf`). Musisz umieć obronić każde zdanie, bo Komisja może zaprosić do prezentacji (§7 ust. 2).
 - [ ] **Załącznik nr 1 – formularz zgłoszeniowy:** pobierz ze strony konkursu i wypełnij.
 - [ ] **Załącznik nr 2 – oświadczenia uczestnika:** podpisz. Dopuszczalne podpisy: kwalifikowany, zaufany (profil zaufany – najprościej) albo odręczny w formie skanu. **Przy odręcznym skanie trzeba też wysłać oryginały pocztą** na adres: IPR7 Biuro Spraw Pracowniczych, ul. Targowa 74, 03-734 Warszawa.
@@ -15,11 +21,9 @@
   `Kolej na bezpieczeństwo – zgłoszenie konkursowe`
 - [ ] Zachowaj potwierdzenie otrzymania (§6 ust. 5). Organizator może wezwać do uzupełnień w ciągu 3 dni roboczych.
 
-## Odświeżenie prognozy „na żywo” przed wysłaniem / prezentacją
+## Prognoza „na żywo”
 
-```bash
-.venv/bin/python src/05_predict.py live
-```
+Odświeża się sama codziennie ok. 4:15 (GitHub Actions). Ręcznie: zakładka Actions w repozytorium → „Codzienna prognoza” → Run workflow.
 
 ## Spakowanie kodu
 

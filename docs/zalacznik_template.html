@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Załącznik techniczny – RailSentinel – praca konkursowa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 13mm 15mm 13mm 15mm; }
+  :root { --ink:#121821; --muted:#5b6676; --line:#e3e7ee; --accent:#ffb020; --red:#e5484d; --blue:#3b82f6; --chip:#f3f5f8; }
+  * { box-sizing: border-box; }
+  body { font: 9.7pt/1.42 Inter, Helvetica, sans-serif; color: var(--ink); margin: 0; }
+  h1 { font-size: 30pt; letter-spacing: -.03em; margin: 0; line-height: 1.05; }
+  h2 { font-size: 15pt; margin: 0 0 8px; letter-spacing: -.01em; padding-top: 2px; }
+  h2 .n { color: var(--accent); margin-right: 6px; }
+  h3 { font-size: 11pt; margin: 12px 0 4px; }
+  p { margin: 0 0 8px; text-align: justify; }
+  ul, ol { margin: 0 0 8px; padding-left: 18px; } li { margin-bottom: 3px; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .muted { color: var(--muted); }
+  .small { font-size: 8.8pt; }
+  figure { margin: 6px 0 8px; text-align: center; } figure img { max-width: 100%; max-height: 72mm; border-radius: 6px; border: 1px solid var(--line); } .two figure img { max-height: 62mm; }
+  figcaption { font-size: 8.6pt; color: var(--muted); margin-top: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.2pt; margin: 6px 0 10px; }
+  th, td { text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--chip); font-weight: 600; }
+  .box { background: var(--chip); border-radius: 10px; padding: 10px 12px; margin: 8px 0 10px; }
+  .box.warn { background: #fff6e5; border: 1px solid #ffd99a; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+  .kpi { background: var(--chip); border-radius: 10px; padding: 10px; }
+  .kpi b { display: block; font-size: 19pt; letter-spacing: -.02em; line-height: 1.1; }
+  .kpi small { color: var(--muted); font-size: 8.4pt; line-height: 1.25; display: block; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cover { height: 268mm; display: flex; flex-direction: column; }
+  .cover .band { background: #0b0f14; color: #e8edf3; border-radius: 16px; padding: 28px; margin-bottom: 18px; }
+  .cover .band p { color: #9fb0c3; text-align: left; font-size: 11.5pt; }
+  .cover .chip { display: inline-block; background: var(--accent); color: #0b0f14; border-radius: 999px; padding: 3px 10px; font-weight: 700; font-size: 9pt; margin-bottom: 14px; }
+  .cover img { width: 100%; border-radius: 12px; border: 1px solid var(--line); }
+  .cover .meta { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; font-size: 10pt; }
+  .cover .meta b { display: block; font-size: 8.5pt; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .arch { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0; font-size: 8pt; line-height: 1.3; }
+  .arch div { border: 1px solid var(--line); border-radius: 7px; padding: 4px 7px; background: #fff; }
+  .arch div b { display: block; font-size: 9.2pt; margin-bottom: 2px; }
+  .arch .h { background: var(--chip); font-weight: 700; text-align: center; border: 0; }
+  .tag { display: inline-block; border-radius: 5px; padding: 0 5px; font-size: 8.4pt; font-weight: 600; background: #ffe9e9; color: var(--red); }
+</style>
+</head>
+<body>
+<section class="page">
+  <h2><span class="n">A</span>Załącznik techniczny – metodologia testów</h2>
+  <p>Ten załącznik uzupełnia 15-stronicową pracę konkursową „RailSentinel”. Opisuje szczegóły metod, które w pracy zostały skrócone.</p>
+  <h3>Definicje</h3>
+  <ul class="small">
+    <li><b>Odcinek:</b> fragment linii z OpenStreetMap ({{n_segments}} odcinków, {{km}} km torów, {{n_lines}} linii). <b>UWAGA</b>: ryzyko ≥ 0,3; <b>ALARM</b>: ryzyko ≥ 0,5. Ryzyko modułu ulewy jest skalibrowane tak, że próg modelu odpowiada 0,5.</li>
+    <li><b>Etykiety zniszczeń 2024:</b> „słabe etykiety”. Odcinek jest pozytywny, jeśli leży w buforze (2–4 km) korytarza zniszczeń opisanego w źródłach (PLK, PAP, <i>Z Biegiem Szyn</i>) w dniach 14–16.09.2024; {{n_pos}} odcinków. Współrzędne miejscowości są przybliżone.</li>
+    <li><b>Backtest 2024:</b> prognoza „wydana wieczorem dnia D-1” widzi obserwacje do D-1 i archiwalną prognozę ECMWF IFS na D..D+2 (Open-Meteo Previous Runs API). Model jest stosowany <i>poza foldem</i>: odcinek ocenia model, który nie widział jego linii w treningu (GroupKFold po liniach).</li>
+    <li><b>Wyprzedzenie:</b> od wydania pierwszej prognozy z alarmem (D-1, 20:00) do początku pierwszego dnia zniszczeń (14.09.2024, 0:00). Dokładne godziny zniszczeń nie są znane.</li>
+    <li><b>Alarm bez potwierdzonego zniszczenia:</b> każdy alarm poza odcinkami z etykietą. To ostrożne (zawyżające) liczenie fałszywych alarmów.</li>
+    <li><b>Testy 1997 i 2010:</b> reanaliza ERA5 i archiwalne dobowe stany wód IMGW. Model niczego się z nich nie uczył (niedouczany). To test „idealnej prognozy”: pogoda jest znana po fakcie.</li>
+    <li><b>Orkany:</b> porywy z ERA5 w siatce 0,5°; dzień orkanu ±1 dzień porównany z pozostałymi dniami okna ±10 dni.</li>
+    <li><b>Ranking:</b> remisy rozstrzygane losowo, wynik uśredniony z 300 losowań.</li>
+  </ul>
+  <h3>Odtworzenie wyników</h3>
+  <p class="small">Kod i dane pośrednie są w repozytorium projektu: <code>src/04_train.py</code> (model ulewy), <code>src/12_river_forecast.py</code> (prognoza rzek), <code>src/05_predict.py replay y1997 heat live</code> (backtest i prognozy), <code>src/15_events.py</code> (powodzie 2010, orkany), <code>src/14_kilometraz.py</code> (kilometraż), <code>src/07_build_doc.py</code> (tabele w pracy).</p>
+</section>
+<!-- 07 SYMULATOR -->
+<section class="page">
+  <h2><span class="n">A1</span>Symulator „co jeśli?” i test klimatyczny</h2>
+  <p>Cały model ML, czyli {{n_trees}} drzew decyzyjnych, działa <b>bezpośrednio w przeglądarce</b>, a wynik jest identyczny z wersją w Pythonie. Użytkownik klika na mapie i „stawia” ulewę o wybranej sile i promieniu, ustawia uwilgotnienie gruntu i stan rzek, a ryzyko {{n_segments}} odcinków w całej Polsce przelicza się w ułamku sekundy. To narzędzie do ćwiczeń sztabowych, szkoleń dyżurnych i planowania inwestycji: <i>„co, jeśli nad Karkonoszami spadnie 190 mm?”</i>.</p>
+  <figure><img src="fig/screen_sim.png" style="max-height:112mm"><figcaption>Rys. 8. Symulator: ulewa 190 mm w Karkonoszach, scenariusz klimatyczny +20% intensywności opadu.</figcaption></figure>
+  <h3>Test klimatyczny</h3>
+  <p>Suwak „scenariusz klimatyczny” zwiększa intensywność opadu. Ponieważ zniszczenia mają charakter progowy, skutki rosną nieproporcjonalnie: dla ulewy 190 mm w Karkonoszach wzrost intensywności o 20% oznacza <b>7 zamiast 4 odcinków w alarmie i 26 zamiast 10 km toru do sprawdzenia (2,6×)</b>. Taka analiza wskazuje, gdzie inwestycje adaptacyjne (przepusty, umocnienia skarp) dadzą największy efekt w zmieniającym się klimacie.</p>
+  <h3>Animacja i warstwa opadu</h3>
+  <p>W trybie backtestu przycisk „▶ Odtwórz” odtwarza kolejne prognozy z 9–15.09.2024 razem z warstwą opadu. Widać, jak ulewa nasuwa się na Sudety, a alarmy zapalają się na odcinkach, które dwa dni później zostały zniszczone.</p>
+</section>
+
+<!-- 08 PROGNOZA RZEK -->
+<section class="page">
+  <h2><span class="n">A2</span>Nowy model ML: prognoza stanów rzek na 3 dni</h2>
+  <p>Moduł B zakładał wcześniej, że stan rzeki się utrzyma. Fala jednak <b>wędruje</b>: to, co dziś widać w górnym biegu, jutro dochodzi do mostu niżej. Drugi model ML prognozuje indeks stanu wody dla <b>{{n_gauges_rf}} wodowskazów IMGW w całej Polsce</b> z wyprzedzeniem 1, 2 i 3 dni.</p>
+  <ul>
+    <li><b>Zwiastuny fali:</b> dla każdego wodowskazu model automatycznie wybiera do 3 wodowskazów na tej samej rzece, których przyrost stanu poprzedza przyrost tutaj (korelacja z opóźnieniem 1–2 dni, dane 2021–2023). Znalazł je dla {{n_ups}} stacji.</li>
+    <li><b>Cechy:</b> bieżący stan i trend, stany zwiastunów, opad z ok. 1000 posterunków IMGW (przeszły i prognozowany).</li>
+    <li><b>System:</b> alarm, gdy rzeka <i>już jest</i> wysoko <b>albo</b> model <i>przewiduje</i> przekroczenie. Próg modelu dobrałem wyłącznie na danych treningowych.</li>
+  </ul>
+  <table>
+    <tr><th>Test (model ich nie widział)</th><th>Wyprzedzenie</th><th>Wykryte przekroczenia: system / persystencja</th><th>CSI: system / persystencja</th><th>Błąd przy wysokich stanach: model / persystencja</th></tr>
+    <tr><td rowspan="3">Powódź 09.2024</td><td>1 dzień</td><td>{{r24_1p}}</td><td>{{r24_1c}}</td><td>{{r24_1m}}</td></tr>
+    <tr><td><b>2 dni</b></td><td><b>{{r24_2p}}</b></td><td><b>{{r24_2c}}</b></td><td>{{r24_2m}}</td></tr>
+    <tr><td>3 dni</td><td>{{r24_3p}}</td><td>{{r24_3c}}</td><td>{{r24_3m}}</td></tr>
+    <tr><td rowspan="3">Powódź 07.1997</td><td>1 dzień</td><td>{{r97_1p}}</td><td>{{r97_1c}}</td><td>{{r97_1m}}</td></tr>
+    <tr><td><b>2 dni</b></td><td><b>{{r97_2p}}</b></td><td><b>{{r97_2c}}</b></td><td>{{r97_2m}}</td></tr>
+    <tr><td>3 dni</td><td>{{r97_3p}}</td><td>{{r97_3c}}</td><td>{{r97_3m}}</td></tr>
+  </table>
+  <p><b>Rodzaj testu:</b> test historyczny, w którym przyszły opad wzięto z pomiarów posterunków IMGW, czyli tak, jakby prognoza opadu była idealna. To <b>górna granica</b> zysku. W pracy na żywo i w backteście 2024 model dostaje prognozę opadu ECMWF, więc zysk będzie mniejszy. <b>Wniosek:</b> z 2-dniowym wyprzedzeniem system wykrywa o <b>{{rgain}}% więcej</b> przekroczeń niż założenie „rzeka się nie zmieni”, a błąd prognozy przy wysokich stanach spada o ok. {{rmae}}%. To dodatkowe godziny na obserwację mostów i usuwanie zatorów. Prognoza rzek zasila moduł B w backteście i w trybie na żywo, gdzie bieżące stany pochodzą z API IMGW.</p>
+  <div class="box warn"><b>Uczciwie:</b> w tym teście opad „przyszły” pochodzi z pomiarów, czyli jest to idealna prognoza opadu. W backteście 2024 (rozdz. 05 pracy) model korzysta z prawdziwych prognoz ECMWF. Na żywo API IMGW podaje tylko bieżący stan, bez historii z ostatnich dni, więc trend przyjmuję jako zerowy. Pełny dostęp do telemetrii IMGW usunie to ograniczenie.</div>
+</section>
+
+
+</body>
+</html>
