@@ -104,9 +104,9 @@
     <li>Zdarzenie to przekroczenie indeksu 2,0 (próg modułu fali). System ogłasza alarm, gdy odczyt z dnia D jest już ≥ 2,0 albo model przewiduje ≥ progu modelu; persystencja ogłasza alarm tylko z odczytu. Przy braku zdarzeń wykrywalność nie jest określona (w tabeli „–”).</li>
     <li>Wyniki nie są selekcjonowane: każdy przebieg trafia do dziennika automatycznie, a zmiana kodu nie zmienia przeszłych wpisów.</li>
   </ul>
-  <h3>Wynik (stan na dzień złożenia pracy)</h3>
-  <table class="small"><tr><th>Horyzont</th><th>Par prognoza–pomiar</th><th>Błąd model / „bez zmian”</th><th>Zysk modelu</th><th>Przekroczenia progu</th></tr><tr><td colspan='5'>Dziennik zbiera dane od 12.11.2026, pierwsze wyniki pojawią się po kilku dniach.</td></tr></table>
-  <p class="small"></p>
+  <h3>Wynik (stan na 12.11.2026)</h3>
+  <table class="small"><tr><th>Horyzont</th><th>Par prognoza–pomiar</th><th>Błąd model / „bez zmian”</th><th>Zysk modelu</th><th>Przekroczenia progu</th></tr><tr><td>1 dzień</td><td colspan='4'>za mało danych (dziennik ma 1 dni)</td></tr><tr><td>2 dni</td><td colspan='4'>za mało danych (dziennik ma 1 dni)</td></tr><tr><td>3 dni</td><td colspan='4'>za mało danych (dziennik ma 1 dni)</td></tr></table>
+  <p class="small">W okresie weryfikacji nie było przekroczeń progu alarmu fali, więc wykrywalność będzie widoczna dopiero przy pierwszym wezbraniu. W 1 dniach dziennika mediana odcinków w stanie ALARM wynosiła 0 dziennie, a w stanie UWAGA 0. Narastająco 0 wskazań RailSentinel mieściło się w powiatach z ostrzeżeniem IMGW, a 0 poza nimi.</p>
   <h3>Test wrażliwości: prognoza rzek bez historii stanów wód</h3>
   <p class="small">W trybie na żywo API IMGW podaje tylko bieżący stan, więc w pierwszych dniach dziennika cechy trendu (h<sub>1</sub>, h<sub>2</sub>, h<sub>max7</sub>, przyrosty) są zerowe. Powtórzyłem test powodzi 2024 (8–25.09.2024, <code>src/20_live_skew.py</code>), zerując te cechy.</p>
   <table class="small"><tr><th>Horyzont</th><th>Wykryte przekroczenia: pełna historia / bez trendu / „bez zmian”</th><th>CSI: pełna / bez trendu / „bez zmian”</th><th>Błąd średni: pełna / bez trendu / „bez zmian”</th></tr><tr><td>1 dzień</td><td>72% / 72% / 68%</td><td>0,52 / 0,50 / 0,52</td><td>0,092 / 0,099 / 0,116</td></tr><tr><td>2 dni</td><td>66% / 52% / 45%</td><td>0,40 / 0,32 / 0,29</td><td>0,142 / 0,166 / 0,204</td></tr><tr><td>3 dni</td><td>39% / 51% / 28%</td><td>0,22 / 0,27 / 0,16</td><td>0,185 / 0,210 / 0,274</td></tr></table>

@@ -60,6 +60,8 @@ i zapisz „nie udało się”. Najlepiej nagraj ten etap (ekran albo ręce z te
 | **Z2.** „Proszę wyjaśnić własnymi słowami, dlaczego aplikacja uważa ten odcinek za zagrożony.” | czas; co powiedział (w punktach); bez pomocy / z podpowiedzią |
 | **Z3.** „Co zrobiłby Pan po takiej informacji, w ramach swoich obowiązków?” | co powiedział; czy by kogoś powiadomił, zlecił obchód itp. |
 
+**Z4 (opcjonalnie, jeśli rozmówca ma czas).** „Proszę otworzyć zakładkę »Moja linia«, wpisać numer swojej linii i powiedzieć, czy któryś odcinek wymaga obchodu w ciągu 3 dni.” Link: **https://railsentinel.pl/#mode=line**. Zapisz: czas; czy sam znalazł zakładkę; czy rozumie schemat liniowy i listę „Do obchodu”.
+
 Zapisz też: **co sprawiło trudność** albo było niezrozumiałe (np. słowa, kolory, liczby).
 
 ## 4. Jak nagrywać pytania do kamery
@@ -103,7 +105,8 @@ Kogo o co dopytać:
 2. **Czy jest jasne, kiedy dane były aktualizowane** i co znaczy „UWAGA” i „ALARM”?
 3. **Czego brakuje** w aplikacji? Przykłady: powiadomienia SMS, inne zagrożenia, mapa przepustów.
 4. **Czego się obawiają** w takim systemie, np. fałszywych alarmów, odpowiedzialności albo nadmiaru informacji?
-5. Czy pamiętają **konkretny przypadek** wyboczenia toru w upał albo podmycia (gdzie i kiedy, w przybliżeniu)?
+5. Czy **ostrzeżenia IMGW** pokazane przy odcinku (karta „Ostrzeżenia IMGW”) i **karta obchodu do wydruku** byłyby przydatne? Tak/nie i dlaczego.
+6. Czy pamiętają **konkretny przypadek** wyboczenia toru w upał albo podmycia (gdzie i kiedy, w przybliżeniu)?
    Sprawdzę go w modelu.
 
 ## 7. Arkusz do wypełnienia (jeden na rozmówcę)
@@ -113,6 +116,8 @@ Stanowisko / staż: ..........................   Wariant zgody: twarz+nazwisko /
 Z1: czas ....... s   odpowiedź: linia ..... km .......   bez pomocy / z podpowiedzią / nie udało się
 Z2: czas ....... s   wyjaśnienie: ...........................................   bez pomocy / z podpowiedzią
 Z3: co by zrobił: .......................................................................
+Z4 (opcjonalnie): czas ....... s   znalazł „Moja linia” sam: tak / nie   rozumie schemat i „Do obchodu”: tak / nie
+IMGW przy odcinku / karta obchodu przydatne: tak / nie, bo: ............................................
 Trudności / niejasne: ...................................................................
 Ocena 1–10: .....   Czego brakuje: .........................   Obawy: .........................
 Konkretny przypadek z pamięci (gdzie, kiedy): ...........................................

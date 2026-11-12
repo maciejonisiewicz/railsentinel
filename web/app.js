@@ -295,6 +295,7 @@
     $("#kKm").textContent = Math.round(alarm.reduce((a, [, i]) => a + SEG[i].len, 0)).toLocaleString("pl-PL");
     $("#statusCard").className = "status " + (alarm.length ? "" : warn.length ? "warn" : "ok");
 
+    $("#topH").textContent = idx.length && idx[0][0] >= WARN ? "Do sprawdzenia" : "Najwyższe ryzyko (poniżej progu uwagi)";
     const list = idx.filter(([x]) => x >= 0.15).slice(0, 8);
     $("#top").innerHTML = list.length ? list.map(([x, i]) => {
       const s = SEG[i], h = st.hz === "total" ? domHz(r, i) : st.hz;
