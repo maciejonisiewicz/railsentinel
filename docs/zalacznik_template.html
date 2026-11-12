@@ -91,9 +91,31 @@
     <tr><td>3 dni</td><td>{{r97_3p}}</td><td>{{r97_3c}}</td><td>{{r97_3m}}</td></tr>
   </table>
   <p><b>Rodzaj testu:</b> test historyczny, w którym przyszły opad wzięto z pomiarów posterunków IMGW, czyli tak, jakby prognoza opadu była idealna. To <b>górna granica</b> zysku. W pracy na żywo i w backteście 2024 model dostaje prognozę opadu ECMWF, więc zysk będzie mniejszy. <b>Wniosek:</b> z 2-dniowym wyprzedzeniem system wykrywa o <b>{{rgain}}% więcej</b> przekroczeń niż założenie „rzeka się nie zmieni”, a błąd prognozy przy wysokich stanach spada o ok. {{rmae}}%. To dodatkowe godziny na obserwację mostów i usuwanie zatorów. Prognoza rzek zasila moduł B w backteście i w trybie na żywo, gdzie bieżące stany pochodzą z API IMGW.</p>
-  <div class="box warn"><b>Uczciwie:</b> w tym teście opad „przyszły” pochodzi z pomiarów, czyli jest to idealna prognoza opadu. W backteście 2024 (rozdz. 05 pracy) model korzysta z prawdziwych prognoz ECMWF. Na żywo API IMGW podaje tylko bieżący stan, bez historii z ostatnich dni, więc trend przyjmuję jako zerowy. Pełny dostęp do telemetrii IMGW usunie to ograniczenie.</div>
+  <div class="box warn"><b>Uczciwie:</b> w tym teście opad „przyszły” pochodzi z pomiarów, czyli jest to idealna prognoza opadu. W backteście 2024 (rozdz. 05 pracy) model korzysta z prawdziwych prognoz ECMWF. Na żywo API IMGW podaje tylko bieżący stan, więc historię stanów buduję z własnego dziennika prognoz (od 12.11.2026); do czasu jej zebrania trend jest zerowy. Test wrażliwości w A3 pokazuje, ile to kosztuje.</div>
 </section>
 
+<section class="page">
+  <h2><span class="n">A3</span>Dziennik prognoz, weryfikacja prospektywna i test wrażliwości</h2>
+  <h3>Dziennik prognoz</h3>
+  <p class="small">Każdy przebieg <code>src/05_predict.py live</code> (dwa razy na dobę, GitHub Actions) zapisuje w gałęzi <code>logs</code> repozytorium plik JSON (ok. 50 KB): bieżące i prognozowane stany wodowskazów (h<sub>0</sub>, h<sub>eff</sub> i h<sub>pred</sub> dla 1–3 dni), liczbę alarmów i odcinków UWAGA, 25 najwyżej ocenionych odcinków, 25 linii o najwyższym ryzyku, skrót pogody (opad, porywy, szyna, temperatura minimalna, śnieg) oraz aktualne ostrzeżenia IMGW wraz z porównaniem do wskazań RailSentinel. Do weryfikacji używam <b>pierwszego przebiegu każdego dnia</b>, a plik <code>status.json</code> powstaje automatycznie z całego dziennika (<code>src/18_verify.py</code>).</p>
+  <h3>Procedura weryfikacji</h3>
+  <ul class="small">
+    <li>Prognoza z dnia D dla horyzontu k (h<sub>pred</sub>, k = 1, 2, 3 dni) jest porównywana z odczytem wodowskazu z dziennika dnia D+k. Przy każdej parze liczę błąd bezwzględny modelu i błąd założenia „rzeka się nie zmieni” (persystencja: odczyt z dnia D).</li>
+    <li>Zdarzenie to przekroczenie indeksu 2,0 (próg modułu fali). System ogłasza alarm, gdy odczyt z dnia D jest już ≥ 2,0 albo model przewiduje ≥ progu modelu; persystencja ogłasza alarm tylko z odczytu. Przy braku zdarzeń wykrywalność nie jest określona (w tabeli „–”).</li>
+    <li>Wyniki nie są selekcjonowane: każdy przebieg trafia do dziennika automatycznie, a zmiana kodu nie zmienia przeszłych wpisów.</li>
+  </ul>
+  <h3>Wynik (stan na {{prosp_date}})</h3>
+  <table class="small"><tr><th>Horyzont</th><th>Par prognoza–pomiar</th><th>Błąd model / „bez zmian”</th><th>Zysk modelu</th><th>Przekroczenia progu</th></tr>{{prosp_rows}}</table>
+  <p class="small">{{prosp_note}}</p>
+  <h3>Test wrażliwości: prognoza rzek bez historii stanów wód</h3>
+  <p class="small">W trybie na żywo API IMGW podaje tylko bieżący stan, więc w pierwszych dniach dziennika cechy trendu (h<sub>1</sub>, h<sub>2</sub>, h<sub>max7</sub>, przyrosty) są zerowe. Powtórzyłem test powodzi 2024 (8–25.09.2024, <code>src/20_live_skew.py</code>), zerując te cechy.</p>
+  <table class="small"><tr><th>Horyzont</th><th>Wykryte przekroczenia: pełna historia / bez trendu / „bez zmian”</th><th>CSI: pełna / bez trendu / „bez zmian”</th><th>Błąd średni: pełna / bez trendu / „bez zmian”</th></tr>{{skew_rows}}</table>
+  <p class="small">Bez trendu zysk modelu względem założenia „rzeka się nie zmieni” przy 2 dniach spada z {{skew_gain_full}} do {{skew_gain_flat}} (wykryte przekroczenia), ale pozostaje dodatni. Po trzech dniach dziennika model ma już przyrosty stanów, a po tygodniu pełny parametr h<sub>max7</sub>. Dlatego dziennik służy dwóm celom: dowodowi działania na żywo i uzupełnianiu historii dla modelu.</p>
+  <h3>Ostrzeżenia IMGW i granice powiatów</h3>
+  <p class="small">Ostrzeżenia meteorologiczne IMGW (API <code>danepubliczne.imgw.pl/api/data/warningsmeteo</code>) są adresowane kodami TERYT powiatów. Granice 380 powiatów pochodzą z publicznego zbioru GeoJSON (repozytorium polska-geojson, licencja MIT), a kody TERYT z Wikidanych; dopasowanie (<code>src/16_powiaty.py</code>) sprawdziłem względem granic województw (0 niezgodności) i przypisałem do powiatów wszystkie {{n_segments}} odcinków (punkty wzdłuż geometrii). Aplikacja pobiera ostrzeżenia bezpośrednio z IMGW w przeglądarce i niczego nie zmienia w ich treści; ostrzeżenia hydrologiczne są pokazywane w układzie województw, bo API nie podaje powiatów.</p>
+  <h3>Statyczne API</h3>
+  <p class="small">Po każdym przebiegu na <code>railsentinel.pl/api/v1/</code> pojawiają się pliki: <code>alarms.json</code> (odcinki UWAGA i ALARM na 3 dni z kilometrażem, przyczyną, pewnością i ostrzeżeniami IMGW), <code>alarms.geojson</code> (ta sama lista z geometrią), <code>alarms.csv</code> (Excel, separator „;”) i <code>lines.json</code> (status każdej z {{n_lines}} linii). To zestaw danych do integracji bez serwera po stronie PLK. Format opisuje <code>docs/API.md</code>.</p>
+</section>
 
 </body>
 </html>

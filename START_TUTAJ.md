@@ -6,11 +6,13 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 
 | Co | Gdzie | Na co patrzeć |
 |---|---|---|
-| **Strona i aplikacja** | https://railsentinel.pl (zapasowo: https://maciejonisiewicz.github.io/railsentinel/) | Zakładki: Na żywo, Moja linia, Powódź 2024 (przycisk ▶ na osi czasu), Symulator, Upał (cała Polska), Powódź 1997; kliknij odcinek na liście lub mapie |
+| **Strona i aplikacja** | https://railsentinel.pl (zapasowo: https://maciejonisiewicz.github.io/railsentinel/) | Zakładki: Na żywo (karta ostrzeżeń IMGW), Moja linia (schemat liniowy, odcinki do obchodu, karta obchodu), Powódź 2024 (przycisk ▶ i komentarz do każdej daty), Symulator, Upał, Powódź 1997; przycisk **?** pokazuje przewodnik, ◍ paletę dla daltonistów |
+| **Status i weryfikacja na żywo** | https://railsentinel.pl/status.html | Publiczny dziennik prognoz od 12.11.2026: czy prognoza rzek jest lepsza niż „bez zmian”, ile alarmów dziennie, zgodność z ostrzeżeniami IMGW |
+| **API do integracji** | https://railsentinel.pl/api/v1/alarms.json (też `.geojson`, `.csv`, `lines.json`) | Opis: `docs/API.md` |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
 | **Strona projektu z filmem** | https://railsentinel.pl/about.html | Odtwarza się film, linki do PDF i kodu |
 | **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, ok. 3,5 min |
-| **Praca konkursowa** | `docs/RailSentinel_praca_konkursowa.pdf` | 14 stron (limit 15); przeczytaj całość – Komisja może zaprosić na prezentację |
+| **Praca konkursowa** | `docs/RailSentinel_praca_konkursowa.pdf` | 15 stron (limit 15) i `docs/RailSentinel_zalacznik_techniczny.pdf`; przeczytaj całość – Komisja może zaprosić na prezentację |
 | **Kod** | https://github.com/maciejonisiewicz/railsentinel | Publiczne repozytorium |
 
 > **Ważne:** sprawdziłem, że strona działa w internecie (HTTPS, certyfikat wystawiony), ale **sieć, z której korzysta Twój
@@ -46,6 +48,15 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
   (teraz alarm tylko przy prognozowanym marznącym deszczu), kontrola jakości odczytów wodowskazów na żywo
   (np. Głuchołazy po odbudowie mają nowe zero), trening tylko na obszarze ze zweryfikowanymi etykietami.
 
+### Co dodałem 12.11.2026
+
+- **Ostrzeżenia IMGW zawężone do odcinków**: karta na stronie „Na żywo”, informacja w oknie odcinka i w raporcie. Pokazuje, ile odcinków leży w powiatach z ostrzeżeniem, a ile z nich system wskazuje do sprawdzenia. Śnieg, mróz i zawieje (których system sam nie prognozuje) są pokazane jako informacja oficjalna.
+- **Dziennik prognoz i weryfikacja prospektywna**: każdy przebieg (teraz dwa razy na dobę) zapisuje się w gałęzi `logs`; strona `status.html` porównuje prognozy rzek z pomiarami, które potem nadeszły. Dziennik uzupełnia też historię stanów wód, której brakowało modelowi rzek na żywo (bez niej zysk spadał z +46% do +15%).
+- **Dla praktyków**: schemat liniowy, odcinki robocze do obchodu, karta obchodu A4, eksport CSV/GeoJSON i statyczne API.
+- **Pierwsze wrażenie**: przewodnik przy pierwszej wizycie, komentarz przy odtwarzaniu powodzi 2024, „pogoda w liczbach”.
+- **Jakość**: testy (jednostkowe i w przeglądarce) w repozytorium i w GitHub Actions, paleta dla daltonistów, obsługa klawiatury, `prefers-reduced-motion`.
+- **Błąd w pracy**: podpis pod Rys. 5 mówił „3. najgorszy dzień”, a dane dawały miejsce 2. Poprawione i zabezpieczone testem.
+
 ## 4. Najważniejsze wyniki (do zapamiętania na ewentualną prezentację)
 
 | | Wynik |
@@ -63,7 +74,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 ## 5. Jak to działa – w skrócie
 
 `src/` – potok danych i modele (kroki 01–13), `web/` – aplikacja i strona, `docs/` – praca konkursowa,
-`video/` – skrypty filmu. Szczegóły i polecenia: `README.md`.
+`video/` – skrypty filmu, `tests/` – testy. Szczegóły i polecenia: `README.md`.
 
 **Odświeżenie prognozy na żywo na stronie** (np. przed prezentacją):
 

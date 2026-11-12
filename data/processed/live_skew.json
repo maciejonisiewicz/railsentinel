@@ -1,0 +1,120 @@
+{
+ "powodz_2024": {
+  "1": {
+   "pelna": {
+    "mae_model": 0.0924,
+    "pod_system": 0.7196,
+    "far_system": 0.3483,
+    "csi_system": 0.5197
+   },
+   "persystencja": {
+    "mae_persist": 0.1155,
+    "pod_persist": 0.6849,
+    "csi_persist": 0.5237
+   },
+   "plaska": {
+    "mae_model": 0.0994,
+    "pod_system": 0.7196,
+    "far_system": 0.3763,
+    "csi_system": 0.5017
+   }
+  },
+  "2": {
+   "pelna": {
+    "mae_model": 0.1423,
+    "pod_system": 0.6576,
+    "far_system": 0.5019,
+    "csi_system": 0.3955
+   },
+   "persystencja": {
+    "mae_persist": 0.2042,
+    "pod_persist": 0.4516,
+    "csi_persist": 0.294
+   },
+   "plaska": {
+    "mae_model": 0.1659,
+    "pod_system": 0.5186,
+    "far_system": 0.5466,
+    "csi_system": 0.3191
+   }
+  },
+  "3": {
+   "pelna": {
+    "mae_model": 0.1846,
+    "pod_system": 0.3905,
+    "far_system": 0.6702,
+    "csi_system": 0.2178
+   },
+   "persystencja": {
+    "mae_persist": 0.2741,
+    "pod_persist": 0.2786,
+    "csi_persist": 0.1633
+   },
+   "plaska": {
+    "mae_model": 0.21,
+    "pod_system": 0.5075,
+    "far_system": 0.6415,
+    "csi_system": 0.266
+   }
+  }
+ },
+ "rok_2024": {
+  "1": {
+   "pelna": {
+    "mae_model": 0.0357,
+    "pod_system": 0.7073,
+    "far_system": 0.3612,
+    "csi_system": 0.5052
+   },
+   "persystencja": {
+    "mae_persist": 0.0397,
+    "pod_persist": 0.6732,
+    "csi_persist": 0.5092
+   },
+   "plaska": {
+    "mae_model": 0.0386,
+    "pod_system": 0.7073,
+    "far_system": 0.3946,
+    "csi_system": 0.4841
+   }
+  },
+  "2": {
+   "pelna": {
+    "mae_model": 0.0537,
+    "pod_system": 0.6463,
+    "far_system": 0.5093,
+    "csi_system": 0.3869
+   },
+   "persystencja": {
+    "mae_persist": 0.0642,
+    "pod_persist": 0.4439,
+    "csi_persist": 0.2871
+   },
+   "plaska": {
+    "mae_model": 0.0602,
+    "pod_system": 0.5098,
+    "far_system": 0.5553,
+    "csi_system": 0.3115
+   }
+  },
+  "3": {
+   "pelna": {
+    "mae_model": 0.0658,
+    "pod_system": 0.3839,
+    "far_system": 0.6776,
+    "csi_system": 0.2124
+   },
+   "persystencja": {
+    "mae_persist": 0.0816,
+    "pod_persist": 0.2738,
+    "csi_persist": 0.1598
+   },
+   "plaska": {
+    "mae_model": 0.0735,
+    "pod_system": 0.4988,
+    "far_system": 0.6483,
+    "csi_system": 0.2599
+   }
+  }
+ }
+}

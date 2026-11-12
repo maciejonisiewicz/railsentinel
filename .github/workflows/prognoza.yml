@@ -65,10 +65,11 @@ jobs:
           git worktree add site FETCH_HEAD
           cp web/data/live.js site/data/live.js
           cp data/log/status.json site/data/status.json
+          python src/19_api.py site/api/v1
           cd site
           git config user.name "RailSentinel"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/live.js data/status.json
+          git add data/live.js data/status.json api
           if git diff --cached --quiet; then echo "bez zmian"; exit 0; fi
           git commit -q -m "Prognoza $(date +%F)"
           git push origin HEAD:gh-pages

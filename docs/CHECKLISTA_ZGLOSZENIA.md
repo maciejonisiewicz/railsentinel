@@ -11,7 +11,9 @@
 - [ ] **Załączniki w mailu ≤ 50 MB** (PDF ok. 5 MB + załącznik ok. 2 MB + podpisane dokumenty) – film tylko jako link
 - [ ] **Zgody osób z wywiadów** – zdjęcia podpisanych kartek zachowaj u siebie; w filmie tylko wariant, na który się zgodzili
 - [ ] **Licencje i źródła** – rozdz. 16 pracy (wymóg §10 ust. 9); zdanie o autorstwie kodu w rozdz. 16 – zdecyduj o brzmieniu
-- [ ] **Prototyp bez logowania** – otwórz railsentinel.pl na telefonie (dane komórkowe) i sprawdź datę prognozy (aktualizuje się codziennie ok. 4:15)
+- [ ] **Prototyp bez logowania** – otwórz railsentinel.pl na telefonie (dane komórkowe) i sprawdź datę prognozy (aktualizuje się dwa razy na dobę, ok. 4:15 i 16:15)
+- [ ] **Zajrzyj na railsentinel.pl/status.html** (od 13.11): dziennik powinien rosnąć o 1–2 przebiegi na dobę. Jeśli długo nie ma nowych wpisów, uruchom ręcznie workflow „Codzienna prognoza”.
+- [ ] **19.11: przebuduj PDF z aktualnym dziennikiem** (tabela weryfikacji prospektywnej w rozdz. 15 i w załączniku A3 zasila się z `status.json`).
 - [ ] **Przeczytaj całą pracę** (`docs/RailSentinel_praca_konkursowa.pdf`). Musisz umieć obronić każde zdanie, bo Komisja może zaprosić do prezentacji (§7 ust. 2).
 - [ ] **Załącznik nr 1 – formularz zgłoszeniowy:** pobierz ze strony konkursu i wypełnij.
 - [ ] **Załącznik nr 2 – oświadczenia uczestnika:** podpisz. Dopuszczalne podpisy: kwalifikowany, zaufany (profil zaufany – najprościej) albo odręczny w formie skanu. **Przy odręcznym skanie trzeba też wysłać oryginały pocztą** na adres: IPR7 Biuro Spraw Pracowniczych, ul. Targowa 74, 03-734 Warszawa.
@@ -23,7 +25,7 @@
 
 ## Prognoza „na żywo”
 
-Odświeża się sama codziennie ok. 4:15 (GitHub Actions). Ręcznie: zakładka Actions w repozytorium → „Codzienna prognoza” → Run workflow.
+Odświeża się sama dwa razy na dobę, ok. 4:15 i 16:15 (GitHub Actions). Ręcznie: zakładka Actions w repozytorium → „Codzienna prognoza” → Run workflow.
 
 ## Spakowanie kodu
 

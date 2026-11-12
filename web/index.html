@@ -47,7 +47,7 @@
     <div class="grab" id="grab" role="button" aria-label="Rozwiń lub zwiń panel"></div>
     <div id="story" class="story"></div>
 
-    <div class="status" id="statusCard">
+    <div class="status" id="statusCard" aria-live="polite">
       <div class="st-main"><span id="kAlarm" class="st-num">–</span><span class="st-lbl" id="kAlarmLbl">odcinków w alarmie</span></div>
       <div class="st-side">
         <div><b id="kWarn">–</b><small>uwaga</small></div>
@@ -77,8 +77,11 @@
       </div>
       <div id="lineStatus" class="linestatus"></div>
       <div id="lineWarn" class="linewarn"></div>
+      <div id="lineRounds" class="linerounds"></div>
+      <div id="lineStrip" class="linestrip"></div>
       <div id="lineTable"></div>
-      <div class="row"><button id="shareBtn" class="btn big">Udostępnij komunikat</button><span id="lineUpd" class="muted small"></span></div>
+      <div class="row"><button id="shareBtn" class="btn big">Udostępnij komunikat</button><button id="cardBtn" class="btn big">🖨 Karta obchodu</button><button id="csvLine" class="btn big">⬇ CSV</button></div>
+      <div class="row"><span id="lineUpd" class="muted small"></span></div>
     </div>
 
     <div id="simCtrl" class="simbox" hidden>
@@ -86,11 +89,11 @@
         <button data-p="2024">Powódź 2024</button><button data-p="storm">Ulewa w Karkonoszach</button><button data-p="odra">Fala na Odrze</button><button data-p="clear">Wyczyść</button>
       </div>
       <p class="hint" id="simHint"></p>
-      <label>Opad w centrum (3 doby) <b id="vRain"></b></label><input type="range" id="sRain" min="20" max="320" value="180">
-      <label>Promień ulewy <b id="vRad"></b></label><input type="range" id="sRad" min="8" max="90" value="35">
-      <label>Wilgotność gruntu (opad 30 dni) <b id="vSoil"></b></label><input type="range" id="sSoil" min="0" max="220" value="80">
-      <label>Stan rzek <b id="vRiver"></b></label><input type="range" id="sRiver" min="0" max="40" value="5">
-      <label>Klimat: opady mocniejsze o <b id="vClim"></b></label><input type="range" id="sClim" min="0" max="40" value="0">
+      <label for="sRain">Opad w centrum (3 doby) <b id="vRain"></b></label><input type="range" id="sRain" min="20" max="320" value="180">
+      <label for="sRad">Promień ulewy <b id="vRad"></b></label><input type="range" id="sRad" min="8" max="90" value="35">
+      <label for="sSoil">Wilgotność gruntu (opad 30 dni) <b id="vSoil"></b></label><input type="range" id="sSoil" min="0" max="220" value="80">
+      <label for="sRiver">Stan rzek <b id="vRiver"></b></label><input type="range" id="sRiver" min="0" max="40" value="5">
+      <label for="sClim">Klimat: opady mocniejsze o <b id="vClim"></b></label><input type="range" id="sClim" min="0" max="40" value="0">
       <div class="climdelta" id="climDelta"></div>
     </div>
 
@@ -99,13 +102,14 @@
       <ol id="top" class="top"></ol>
     </div>
 
-    <footer class="foot">Dane: IMGW-PIB · © OpenStreetMap (ODbL) · Open-Meteo (ECMWF, ERA5) · Prototyp studencki, nie jest systemem PKP PLK.</footer>
+    <footer class="foot">Dane: IMGW-PIB · © OpenStreetMap (ODbL) · Open-Meteo (ECMWF, ERA5) · <a href="status.html">Status i weryfikacja</a> · Prototyp studencki, nie jest systemem PKP PLK.</footer>
   </aside>
 
   <div id="issueCtrl" class="timeline glass" hidden>
     <button id="play" class="playbtn" aria-label="Odtwórz powódź">▶</button>
     <div class="tl-body">
       <div class="tl-top"><span>Prognoza wydana <b id="issueLbl"></b></span><span id="tlStat" class="tl-stat"></span></div>
+      <div class="tl-cap" id="tlCap" aria-live="polite"></div>
       <input type="range" id="issue" min="0" max="6" value="3" aria-label="Moment wydania prognozy">
       <div class="tl-ticks" id="tlTicks"></div>
     </div>
@@ -119,11 +123,21 @@
   <div class="mapbtns">
     <button id="rainBtn" class="btn icon" title="Warstwa opadu" aria-label="Warstwa opadu">☂</button>
     <button id="theme" class="btn icon" title="Jasny / ciemny" aria-label="Przełącz motyw">◐</button>
+    <button id="helpBtn" class="btn icon" title="Szybki start" aria-label="Szybki start">?</button>
+    <button id="cvdBtn" class="btn icon" title="Paleta przyjazna dla daltonistów" aria-label="Paleta przyjazna dla daltonistów" aria-pressed="false">◍</button>
   </div>
   <div id="updChip" class="updchip glass"></div>
 
+  <div id="tour" class="tour glass" role="dialog" aria-labelledby="tourH" hidden>
+    <button class="tour-x" data-go="close" aria-label="Zamknij">✕</button>
+    <h3 id="tourH">Zobacz to w 30 sekund</h3>
+    <p>RailSentinel codziennie wskazuje odcinki toru, które warto sprawdzić, zanim pogoda je uszkodzi. <span id="tourLive"></span> Zobacz, co system pokazałby przed powodzią z września 2024.</p>
+    <div class="tour-b"><button id="tourPlay" class="btn primary big" data-go="replay">▶ Powódź 2024: odtwórz</button><button class="btn big" data-go="line">Moja linia</button></div>
+    <button class="link" data-go="close">Pomiń</button>
+  </div>
+
   <dialog id="briefDlg">
-    <div class="dlg-h"><h2>Raport dla dyżurnego</h2><div><button id="print" class="btn">🖨 Drukuj A4</button> <button id="copy" class="btn">Kopiuj</button> <button id="closeDlg" class="btn" aria-label="Zamknij">✕</button></div></div>
+    <div class="dlg-h"><h2>Raport dla dyżurnego</h2><div><button id="print" class="btn">🖨 Drukuj A4</button> <button id="csvNet" class="btn">⬇ CSV</button> <button id="geoNet" class="btn">⬇ GeoJSON</button> <button id="copy" class="btn">Kopiuj</button> <button id="closeDlg" class="btn" aria-label="Zamknij">✕</button></div></div>
     <div id="brief" class="brief"></div>
   </dialog>
 </div>

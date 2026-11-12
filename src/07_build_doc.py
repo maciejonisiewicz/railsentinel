@@ -80,7 +80,7 @@ def main():
         "net97": pc(m["test1997_network_alarm_pct_system"]), "net97ml": pc(m["test1997_network_alarm_pct_ml"]),
         "b97_seg": m["test1997_detected_baseline"], "b97_net": pc(m["test1997_network_alarm_pct_baseline"]),
         "sys_oa": pc(m["sys2024_other_alarm_pct_system"]),
-        "w_n": mv["wind_2022-02-19"]["of_days"], "w_pct": pc(mv["wind_2022-02-19"]["network_alarm_pct"]),
+        "w_n": mv["wind_2022-02-19"]["of_days"], "w_rank": int(mv["wind_2022-02-19"]["rank"]), "w_pct": pc(mv["wind_2022-02-19"]["network_alarm_pct"]),
         "h_rank": int(mv["heat_2025_07_03"]["rank"]), "h_n": mv["heat_2025_07_03"]["of_days"],
         "h_t": pc(mv["heat_2025_07_03"]["rail_temp_max"]),
         "h_pct": f"{mv['heat_2025_07_03']['network_alarm_pct']:.1f}".replace(".", ","),
@@ -110,6 +110,7 @@ def main():
         vals[f"v_oa_{tag}"] = pc(V[key]["other_alarm_pct_model"])
         vals[f"v_97_{tag}"] = f3(V[key]["test1997_auc_model"])
     vals.update(new_tests(rp, segs))
+    vals.update(extra_vals(m))
     html = (DOCS / "praca_template.html").read_text(encoding="utf-8")
     for k, v in vals.items():
         html = html.replace("{{" + k + "}}", str(v))
@@ -136,6 +137,68 @@ def main():
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=180)
     set_pdf_author(ann_pdf, author)
     print("PDF:", pdf, json.dumps(vals, ensure_ascii=False))
+
+
+def fetch_status():
+    snap = DOCS / "status_snapshot.json"
+    try:
+        import requests
+        r = requests.get("https://raw.githubusercontent.com/maciejonisiewicz/railsentinel/gh-pages/data/status.json", timeout=30)
+        r.raise_for_status()
+        d = r.json()
+        snap.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+        return d
+    except Exception as e:
+        print("status.json niedostępny, używam zapisanej kopii:", type(e).__name__)
+        return json.load(open(snap)) if snap.exists() else None
+
+
+def extra_vals(m):
+    pl = lambda x, d=1: f"{x:.{d}f}".replace(".", ",")
+    out = {}
+    sk = json.load(open(ROOT / "data" / "processed" / "live_skew.json"))["powodz_2024"]
+    rows = []
+    for k in "123":
+        r = sk[k]
+        pf, pp, pq = r["pelna"], r["plaska"], r["persystencja"]
+        rows.append(f"<tr><td>{k} {'dzień' if k == '1' else 'dni'}</td>"
+                    f"<td>{pf['pod_system'] * 100:.0f}% / {pp['pod_system'] * 100:.0f}% / {pq['pod_persist'] * 100:.0f}%</td>"
+                    f"<td>{pl(pf['csi_system'], 2)} / {pl(pp['csi_system'], 2)} / {pl(pq['csi_persist'], 2)}</td>"
+                    f"<td>{pl(pf['mae_model'], 3)} / {pl(pp['mae_model'], 3)} / {pl(pq['mae_persist'], 3)}</td></tr>")
+    out["skew_rows"] = "".join(rows)
+    r2 = sk["2"]
+    out["skew_gain_full"] = f"+{(r2['pelna']['pod_system'] / r2['persystencja']['pod_persist'] - 1) * 100:.0f}%"
+    out["skew_gain_flat"] = f"+{(r2['plaska']['pod_system'] / r2['persystencja']['pod_persist'] - 1) * 100:.0f}%"
+    n_reg = round(m["rows"] / 856)
+    rate = m["sys_normal_alarms_per_1000_system"]
+    out["normal_n"], out["normal_rate"] = n_reg, pl(rate, 2)
+    out["normal_every"] = pl(1 / (rate / 1000 * n_reg), 1)
+    st = fetch_status()
+    rows, note = [], ""
+    if st and st.get("daily"):
+        for k in "123":
+            x = st["river"].get(k)
+            lbl = f"{k} {'dzień' if k == '1' else 'dni'}"
+            if x:
+                g = x["gain_pct"]
+                rows.append(f"<tr><td>{lbl}</td><td>{x['n']}</td><td>{pl(x['mae_model'], 3)} / {pl(x['mae_persist'], 3)}</td>"
+                            f"<td>{'+' if g and g > 0 else ''}{pl(g)}%</td><td>{x['events']}</td></tr>")
+            else:
+                rows.append(f"<tr><td>{lbl}</td><td colspan='4'>za mało danych (dziennik ma {st['days']} dni)</td></tr>")
+        al = sorted(d["alarm"] for d in st["daily"])
+        wa = sorted(d["warn"] for d in st["daily"])
+        ev = sum((st["river"].get(k) or {}).get("events", 0) for k in "123")
+        note = (("W okresie weryfikacji nie było przekroczeń progu alarmu fali, więc wykrywalność będzie widoczna dopiero przy pierwszym wezbraniu. "
+                 if ev == 0 else f"W okresie weryfikacji było {ev} przekroczeń progu; wykrywalność w tabeli na stronie statusu. ") +
+                f"W {st['days']} dniach dziennika mediana odcinków w stanie ALARM wynosiła {al[len(al) // 2]} dziennie, a w stanie UWAGA {wa[len(wa) // 2]}. "
+                f"Narastająco {st['imgw_overlap']['rs_in']} wskazań RailSentinel mieściło się w powiatach z ostrzeżeniem IMGW, a {st['imgw_overlap']['rs_out']} poza nimi.")
+        out["prosp_date"] = f"{st['updated'][8:10]}.{st['updated'][5:7]}.{st['updated'][:4]}"
+        out["prosp_days"], out["prosp_gauges"] = st["days"], st["daily"][-1].get("gauges") or 780
+    else:
+        rows.append("<tr><td colspan='5'>Dziennik zbiera dane od 12.11.2026, pierwsze wyniki pojawią się po kilku dniach.</td></tr>")
+        out.update({"prosp_date": "dzień złożenia pracy", "prosp_days": 0, "prosp_gauges": 780})
+    out["prosp_rows"], out["prosp_note"] = "".join(rows), note
+    return out
 
 
 def new_tests(rp, segs):

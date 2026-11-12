@@ -48,22 +48,27 @@
   const PL = [[49.0, 14.1], [54.85, 24.15]];
   const NATIONAL = ["live", "line", "heat"];
   function goView(mode) {
-    if (NATIONAL.includes(mode)) { map.flyToBounds(PL, { ...pad(), duration: 0.9 }); return; }
+    if (NATIONAL.includes(mode)) { map.flyToBounds(PL, { ...pad(), duration: reduced ? 0 : 0.9 }); return; }
     const v = VIEWS[mode]; if (!v) return;
     const off = mobile() ? [0, (sheetPx() - 70) / 2] : [-190, -20];
     const c = map.project(L.latLng(v[0]), v[1]).add(L.point(off));
-    map.flyTo(map.unproject(c, v[1]), v[1], { duration: 0.9 });
+    map.flyTo(map.unproject(c, v[1]), v[1], { duration: reduced ? 0 : 0.9 });
   }
 
+  const STOPS = {
+    std: [[0, [43, 182, 115]], [0.3, [255, 210, 63]], [0.5, [255, 138, 0]], [0.75, [229, 72, 77]], [1, [163, 19, 58]]],
+    cvd: [[0, [44, 123, 182]], [0.3, [255, 224, 102]], [0.5, [253, 141, 60]], [0.75, [215, 48, 39]], [1, [128, 0, 38]]],
+  };
+  let cvd = false;
   const color = (v) => {
-    const stops = [[0, [43, 182, 115]], [0.3, [255, 210, 63]], [0.5, [255, 138, 0]], [0.75, [229, 72, 77]], [1, [163, 19, 58]]];
+    const stops = cvd ? STOPS.cvd : STOPS.std;
     for (let i = 1; i < stops.length; i++) {
       if (v <= stops[i][0]) {
         const [a, ca] = stops[i - 1], [b, cb] = stops[i], t = (v - a) / (b - a);
         return `rgb(${ca.map((c, k) => Math.round(c + t * (cb[k] - c))).join(",")})`;
       }
     }
-    return "rgb(163,19,58)";
+    return cvd ? "rgb(128,0,38)" : "rgb(163,19,58)";
   };
   const lowCol = () => (isDark() ? "#4f6680" : "#8d9bb0");
 
@@ -175,7 +180,7 @@
     if (st.wov && gs.length) drawWarnOverlay(by);
   }
   function warnPopup(s, x) {
-    if (!IMG.ok || st.mode !== "live") return "";
+    if (!IMG.ok || !isLive()) return "";
     const v = view(), ws = warnAt(s.pw, v.days[st.day]);
     const names = (s.pw || []).map((c) => pwName[c]).filter(Boolean).join(", ");
     const body = ws.length ? ws.map((w) => `<div>${WICON[WKIND(wname(w))]} ${wname(w)} <b>${wdeg(w)}°</b> <span class="muted small">${wHm(wfrom(w))} – ${wHm(wto(w))}</span></div>`).join("")
@@ -195,7 +200,7 @@
     el.innerHTML = `<b>Ostrzeżenia IMGW dla powiatów, przez które biegnie linia</b>${rows}<div class="wc-src">Źródło: IMGW-PIB, stan z ${warnStamp()}${IMG.cached ? ", z pamięci podręcznej" : ""}.</div>`;
   }
   function warnBrief(day) {
-    if (!IMG.ok || st.mode !== "live") return "";
+    if (!IMG.ok || !isLive()) return "";
     const gs = warnGroups(day);
     if (!gs.length) return `<div class="proc"><b>Ostrzeżenia IMGW na ${fmtDay(day)}:</b> brak ostrzeżeń meteorologicznych.</div>`;
     return `<div class="proc"><b>Ostrzeżenia IMGW na ${fmtDay(day)}:</b> ` +
@@ -226,13 +231,13 @@
   };
   const stale = (v) => isLive() && v && v.meta && ageH(v) > 30;
   const qOf = (r, i) => (r && r.q ? r.q[i] : 0);
-  function confidence(r, i) {
+  function confidence(r, i, day = st.day) {
     if (qOf(r, i) === 2) return { lvl: "brak", txt: "ocena niedostępna – brak danych pogodowych" };
     if (st.mode === "sim") return { lvl: "symulacja", txt: "scenariusz symulacji, nie prognoza" };
     if (st.mode === "y1997" || st.mode === "heat") return { lvl: "test historyczny", txt: "reanaliza – pogoda znana po fakcie" };
     if (stale(view())) return { lvl: "niska", txt: "prognoza nieaktualna – nie opieraj się na niej" };
     const L = ["wysoka", "średnia", "niższa"];
-    let k = Math.min(st.day, 2);
+    let k = Math.min(day, 2);
     let txt = ["prognoza na dziś", "prognoza na jutro", "prognoza na pojutrze"][k];
     if (qOf(r, i) === 1) { k = Math.min(k + 1, 2); txt += "; brak aktualnego stanu wody z wodowskazu"; }
     return { lvl: L[k], txt };
@@ -293,7 +298,7 @@
     const list = idx.filter(([x]) => x >= 0.15).slice(0, 8);
     $("#top").innerHTML = list.length ? list.map(([x, i]) => {
       const s = SEG[i], h = st.hz === "total" ? domHz(r, i) : st.hz;
-      return `<li data-i="${i}"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span>
+      return `<li data-i="${i}" tabindex="0" role="button"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span>
         <span class="t"><b>${segTitle(s)}${dmg.has(s.id) ? " <span class='tag r'>zniszczony</span>" : ""}</b>
         <small>${s.km ? odDo(s) + " · " : ""}${HZS[h]}${detail(h, r, i)}${s.river ? " · dolina " + s.river : ""}</small></span></li>`;
     }).join("") : `<li class="empty">Brak odcinków z podwyższonym ryzykiem w tym dniu. ✓</li>`;
@@ -326,6 +331,7 @@
 
     const n = dmg.filter((i) => v.days.some((d) => v.risk[d].total[i] >= ALARM)).length;
     $("#tlStat").innerHTML = `zniszczone odcinki z alarmem: <b>${n}/${dmg.length}</b>`;
+    renderCaption(v);
   }
 
   const LS = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -340,8 +346,17 @@
   st.line = LS.get("rs_line") || "";
   $("#lineInput").value = st.line;
   function lineOrder(ii) {
-    if (ii.filter((i) => SEG[i].km).length >= ii.length * 0.8)
-      return [...ii].sort((a, b) => (SEG[a].km ? SEG[a].km[0] : 1e9) - (SEG[b].km ? SEG[b].km[0] : 1e9));
+    const kmI = ii.filter((i) => SEG[i].km);
+    if (kmI.length >= ii.length * 0.8) {
+      const key = {};
+      kmI.forEach((i) => { key[i] = SEG[i].km[0]; });
+      ii.filter((i) => !SEG[i].km).forEach((i) => {
+        let best = 1e9, nb = kmI[0];
+        kmI.forEach((j) => { const d = (centers[i][0] - centers[j][0]) ** 2 + (centers[i][1] - centers[j][1]) ** 2; if (d < best) { best = d; nb = j; } });
+        key[i] = key[nb] + 0.001;
+      });
+      return [...ii].sort((a, b) => key[a] - key[b]);
+    }
     const c = ii.map((i) => centers[i]);
     const mx = c.reduce((a, p) => a + p[1], 0) / c.length, my = c.reduce((a, p) => a + p[0], 0) / c.length;
     let sxx = 0, syy = 0, sxy = 0;
@@ -358,7 +373,7 @@
       $("#lineStatus").className = "linestatus";
       $("#lineStatus").innerHTML = st.line ? `Nie znam linii „${st.line}”. Wybierz numer z listy albo użyj 📍.` :
         "Wpisz numer swojej linii albo kliknij <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego jej odcinka na 3 dni.";
-      $("#lineTable").innerHTML = ""; $("#lineWarn").innerHTML = ""; return;
+      $("#lineTable").innerHTML = ""; $("#lineWarn").innerHTML = ""; $("#lineStrip").innerHTML = ""; $("#lineRounds").innerHTML = ""; return;
     }
     const ord = lineOrder(ii);
     let worst = { x: -1 };
@@ -376,6 +391,9 @@
         v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
     $("#lineUpd").textContent = `prognoza z ${fmtDay(v.meta.issued || v.days[0])}`;
     renderLineWarn(ord, v);
+    st.lineOrd = ord;
+    renderStrip(ord, v);
+    renderRounds(ord, v);
     ord.forEach((i) => L.polyline(SEG[i].g, { color: "#3b82f6", weight: 12, opacity: 0.3, interactive: false }).addTo(lineLayer));
     if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { ...pad(), maxZoom: 11 });
     st.lineText = $("#lineStatus").innerText;
@@ -465,7 +483,9 @@
       heat: [v ? v.meta.title.split("–")[0].trim() : "Upał", "Szacowana temperatura szyny. Powyżej ok. 50 °C rośnie ryzyko wyboczenia toru."],
       y1997: ["Powódź 1997 – test na nieznanych danych", "Model nie widział tej powodzi. Fala na Odrze – zobacz, gdzie zapala alarm."],
     }[st.mode];
-    $("#story").innerHTML = `<h2>${T[0]}</h2><p>${T[1]}</p>`;
+    const rr = st.mode === "live" ? cur() : null, quiet = rr && !rr.total.some((x) => x >= WARN);
+    $("#story").innerHTML = `<h2>${T[0]}</h2><p>${T[1]}</p>` + (st.mode === "live" ? wxLine() +
+      (quiet ? `<button class="link demo" data-go="replay">▶ Zobacz, jak wyglądał alarm przed powodzią 2024</button>` : "") : "");
   }
 
   function renderBrief(v, r, alarm, warn) {
@@ -583,6 +603,7 @@
   $("#days").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { st.day = +b.dataset.d; render(); } });
   $("#issue").addEventListener("input", (e) => { st.issue = +e.target.value; render(); });
   $("#top").addEventListener("click", (e) => { const li = e.target.closest("li[data-i]"); if (li) focusSeg(+li.dataset.i); });
+  $("#top").addEventListener("keydown", (e) => { const li = e.target.closest("li[data-i]"); if (li && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); focusSeg(+li.dataset.i); } });
   map.on("click", (e) => { if (st.mode !== "sim") return; st.sim.lat = e.latlng.lat; st.sim.lon = e.latlng.lng; st.sim.scope = "storm"; render(); });
   const bind = (id, key, k = 1) => $(id).addEventListener("input", (e) => { st.sim[key] = +e.target.value / k; render(); });
   bind("#sRain", "rain"); bind("#sRad", "radius"); bind("#sSoil", "soil"); bind("#sRiver", "river", 10); bind("#sClim", "climate");
@@ -667,6 +688,177 @@
   map.on("dragstart", () => { if (mobile() && sheet !== "peek") setSheet("peek"); });
   addEventListener("resize", () => setSheet());
 
+  const csvCell = (v) => {
+    const t = typeof v === "number" ? String(v).replace(".", ",") : v == null ? "" : String(v);
+    return /[;"\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+  };
+  function download(name, text, type) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type }));
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  function segRecord(i, v, d) {
+    const r = v.risk[d], s = SEG[i], h = domHz(r, i), x = r.total[i], k = Math.max(0, v.days.indexOf(d));
+    const iw = isLive() && IMG.ok ? warnAt(s.pw, d).map((w) => `${wname(w)} ${wdeg(w)}°`).join(", ") : "";
+    return {
+      dzien: d, linia: s.line, km_od: s.km ? s.km[0] : "", km_do: s.km ? s.km[1] : "", od: s.od || "", do: s.do || "",
+      miejscowosc: s.place || "", rzeka: s.river || "", powiat: (s.pw || []).map((c) => pwName[c]).filter(Boolean).join(", "),
+      poziom: x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie", ryzyko_proc: Math.round(x * 100), zagrozenie: HZS[h],
+      woda_proc: Math.round(r.flood[i] * 100), upal_proc: Math.round(r.heat[i] * 100), wiatr_proc: Math.round(r.wind[i] * 100),
+      lod_proc: Math.round(r.ice[i] * 100), opad_1d_mm: r.p1[i], opad_3d_mm: r.p3[i], porywy_kmh: r.gust[i], szyna_C: r.trail[i],
+      pewnosc: confidence(r, i, k).lvl, ostrzezenia_imgw: iw, prognoza_wydana: (v.meta && (v.meta.generated || v.meta.issued)) || "", id: s.id,
+    };
+  }
+  function exportRows(scope) {
+    const v = view();
+    if (!v) return [];
+    if (scope === "line") return (st.lineOrd || []).flatMap((i) => v.days.map((d) => ({ i, rec: segRecord(i, v, d) })));
+    const d = v.days[st.day], r = v.risk[d];
+    return r.total.map((x, i) => [x, i]).filter(([x]) => x >= WARN).sort((a, b) => b[0] - a[0])
+      .map(([, i], n) => ({ i, rec: { priorytet: n + 1, ...segRecord(i, v, d) } }));
+  }
+  function exportFile(scope, kind) {
+    const rows = exportRows(scope), v = view();
+    if (!v) return;
+    const day = v.days[scope === "line" ? 0 : st.day];
+    const base = `railsentinel_${scope === "line" ? "linia" + st.line : st.mode}_${day}`;
+    if (kind === "csv") {
+      const keys = Object.keys(rows.length ? rows[0].rec : { priorytet: 1, ...segRecord(0, v, day) });
+      download(base + ".csv", "﻿" + keys.join(";") + "\r\n" + rows.map((x) => keys.map((k) => csvCell(x.rec[k])).join(";")).join("\r\n") + "\r\n", "text/csv;charset=utf-8");
+    } else {
+      const fc = { type: "FeatureCollection", features: rows.map(({ i, rec }) => ({ type: "Feature", properties: rec,
+        geometry: { type: "MultiLineString", coordinates: SEG[i].g.map((l) => l.map(([la, lo]) => [lo, la])) } })) };
+      download(base + ".geojson", JSON.stringify(fc), "application/geo+json");
+    }
+  }
+
+  function mergeRanges(ord, v, d) {
+    const r = v.risk[d], out = [];
+    let run = null;
+    ord.forEach((i) => {
+      if (r.total[i] >= WARN) { if (!run) { run = []; out.push(run); } run.push(i); } else run = null;
+    });
+    return out.map((ii) => {
+      const worst = ii.reduce((a, b) => (r.total[b] > r.total[a] ? b : a), ii[0]);
+      const kms = ii.filter((i) => SEG[i].km);
+      const km = kms.length === ii.length ? [Math.min(...kms.map((i) => SEG[i].km[0])), Math.max(...kms.map((i) => SEG[i].km[1]))] : null;
+      const a = SEG[ii[0]], b = SEG[ii[ii.length - 1]];
+      return { ii, x: r.total[worst], h: domHz(r, worst), len: ii.reduce((t, i) => t + SEG[i].len, 0), km, from: a.od || a.place || "", to: b.do || b.place || "" };
+    });
+  }
+  const rangeTxt = (g) => (g.km ? `km ${kmf(g.km[0])}–${kmf(g.km[1])}` : "rejon") +
+    (g.from || g.to ? ` (${g.from === g.to || !g.to ? g.from : g.from + " – " + g.to})` : "");
+  function renderRounds(ord, v) {
+    let html = "";
+    v.days.forEach((d, k) => {
+      const g = mergeRanges(ord, v, d);
+      if (!g.length) return;
+      html += `<div class="rd-day"><b>${dayLbl(d, k)}</b>` + g.map((x) => `<div class="rd" data-i="${x.ii[0]}" role="button" tabindex="0"><span class="pill" style="background:${color(x.x)}">${Math.round(x.x * 100)}</span>` +
+        `<span class="t"><b>${rangeTxt(x)}</b><small>${kmf(x.len)} km toru · ${HZS[x.h]}</small></span></div>`).join("") + `</div>`;
+    });
+    $("#lineRounds").innerHTML = `<div class="rd-h">Do obchodu: odcinki robocze</div>` +
+      (html || `<div class="muted small">Brak odcinków powyżej progu uwagi w ciągu 72 h.</div>`);
+  }
+  function renderStrip(ord, v) {
+    const W0 = 56, W1 = 336, tot = ord.reduce((t, i) => t + SEG[i].len, 0);
+    let svg = "";
+    v.days.forEach((d, k) => {
+      const y = 6 + k * 26;
+      svg += `<text x="0" y="${y + 12}" font-size="10.5">${dayLbl(d, k)}</text>`;
+      let cum = 0;
+      ord.forEach((i) => {
+        const x = v.risk[d].total[i], w = Math.max(1.4, SEG[i].len / tot * (W1 - W0) - 0.6), px = W0 + cum / tot * (W1 - W0);
+        cum += SEG[i].len;
+        svg += `<rect data-i="${i}" x="${px.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="17" rx="2" fill="${x >= WARN ? color(x) : lowCol()}" opacity="${x >= WARN ? 1 : 0.55}"><title>${odDo(SEG[i]) || "odcinek"} · ${pct(x)}</title></rect>`;
+      });
+    });
+    const f = SEG[ord[0]], l = SEG[ord[ord.length - 1]];
+    svg += `<text x="${W0}" y="94" font-size="10">${f.od || f.place || ""}</text><text x="${W1}" y="94" font-size="10" text-anchor="end">${l.do || l.place || ""}</text>`;
+    $("#lineStrip").innerHTML = `<div class="rd-h">Schemat liniowy na 3 dni</div><svg viewBox="0 0 340 100" role="img" aria-label="Ryzyko wzdłuż linii, trzy dni">${svg}</svg>`;
+  }
+  function printCard() {
+    const v = view(), ord = st.lineOrd;
+    if (!v || !ord || !st.line) return;
+    const now = new Date().toLocaleString("pl-PL", { dateStyle: "long", timeStyle: "short" });
+    const body = v.days.map((d, k) => {
+      const g = mergeRanges(ord, v, d);
+      return `<h3>${dayLbl(d, k)} · ${fmtDay(d)}</h3>` + (g.length ? `<table class="rtab"><tr><th>Odcinek</th><th>Zagrożenie</th><th>Ryzyko</th><th>Wykonano (data, godz., podpis)</th></tr>` +
+        g.map((x) => `<tr><td><b>${rangeTxt(x)}</b><br>${kmf(x.len)} km toru</td><td>${HZ[x.h]}</td><td>${pct(x.x)}</td><td></td></tr>`).join("") + `</table>` : `<p>Brak odcinków powyżej progu uwagi.</p>`);
+    }).join("");
+    $("#printArea").innerHTML = `<header><div><b>RailSentinel</b> · Karta obchodu, linia ${st.line}</div><div>${(st.lineText || "").split("\n")[1] || ""}</div></header>` +
+      `<p class="meta">Prognoza wydana: <b>${fmtDay(v.meta.issued || v.days[0])}</b> · wydruk: ${now}</p><div class="body">${body}</div>` +
+      `<table class="sign"><tr><td>Przyjął (toromistrz / dyżurny)</td><td>Data i godzina</td><td>Uwagi z obchodu</td></tr><tr><td></td><td></td><td></td></tr></table>` +
+      `<footer>${DECIDE} Kilometraż orientacyjny (OpenStreetMap). Prototyp studencki, nie jest systemem PKP PLK. railsentinel.pl</footer>`;
+    window.print();
+  }
+  $("#lineStrip").addEventListener("click", (e) => { const t = e.target.closest("[data-i]"); if (t) focusSeg(+t.dataset.i); });
+  $("#lineRounds").addEventListener("click", (e) => { const t = e.target.closest(".rd"); if (t) focusSeg(+t.dataset.i); });
+  $("#lineRounds").addEventListener("keydown", (e) => { const t = e.target.closest(".rd"); if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); focusSeg(+t.dataset.i); } });
+  $("#cardBtn").addEventListener("click", printCard);
+  $("#csvLine").addEventListener("click", () => exportFile("line", "csv"));
+  $("#csvNet").addEventListener("click", () => exportFile("net", "csv"));
+  $("#geoNet").addEventListener("click", () => exportFile("net", "geo"));
+
+  const CAP = [
+    "Prognozy z tego wieczoru nie dają jeszcze sygnału.",
+    "Wciąż spokojnie. Prognozowany opad na Sudetach rośnie, ale system nie zapala alarmów.",
+    "Pierwsze alarmy na odcinkach, które później zostały zniszczone. Do początku zniszczeń zostają ponad 3 doby.",
+    "Alarm obejmuje już sporą część zniszczonych odcinków. Do początku zniszczeń zostaje 52 godziny: czas na obchód i przygotowanie sprzętu.",
+    "Alarm się utrwala, a do ulewy dołącza fala na rzekach (moduł B).",
+    "Wieczór przed dniem zniszczeń: alarmy pokrywają prawie wszystkie odcinki, które za chwilę zostaną zniszczone.",
+    "Powódź w toku. Przerywana obwódka to odcinki faktycznie zniszczone.",
+  ];
+  function renderCaption(v) {
+    const al = new Set();
+    v.days.forEach((d) => v.risk[d].total.forEach((x, i) => { if (x >= ALARM) al.add(i); }));
+    $("#tlCap").innerHTML = `${CAP[st.issue] || ""} <b>Alarm: ${al.size} odc. (${(al.size / SEG.length * 100).toFixed(1).replace(".", ",")}% sieci)</b>`;
+  }
+  function wxLine() {
+    const r = cur();
+    if (!r || !r.tmin) return "";
+    const mx = (a) => a.reduce((m, x) => (x > m ? x : m), -1e9), mn = (a) => a.reduce((m, x) => (x < m ? x : m), 1e9);
+    return `<div class="wx">Pogoda w prognozie dla sieci: opad do <b>${Math.round(mx(r.p1))}</b> mm/dobę · porywy do <b>${Math.round(mx(r.gust))}</b> km/h · ` +
+      `temp. min. <b>${Math.round(mn(r.tmin))}</b> °C${mx(r.snow) >= 1 ? ` · śnieg do <b>${Math.round(mx(r.snow))}</b> cm` : ""}</div>`;
+  }
+  function go(g) {
+    if (g === "replay") { setMode("replay2024"); setTimeout(() => $("#play").click(), 700); }
+    if (g === "line") setMode("line");
+    if (g === "live") setMode("live");
+  }
+  const tour = $("#tour");
+  function showTour() {
+    const r = D.live && D.live.risk[D.live.days[Math.max(0, D.live.days.indexOf(today()))]];
+    const n = r ? r.total.filter((x) => x >= ALARM).length : 0;
+    $("#tourLive").textContent = n ? `Dziś ${n} ${n === 1 ? "odcinek jest" : "odcinków jest"} w alarmie.` : "Dziś mapa jest spokojna, bez alarmów.";
+    tour.hidden = false;
+    $("#tourPlay").focus({ preventScroll: true });
+  }
+  function closeTour() { tour.hidden = true; LS.set("rs_tour", "1"); }
+  tour.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-go]");
+    if (!b) return;
+    closeTour();
+    if (b.dataset.go !== "close") go(b.dataset.go);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !tour.hidden) closeTour(); });
+  $("#story").addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+  $("#helpBtn").addEventListener("click", showTour);
+
+  function setCvd(on) {
+    cvd = on;
+    document.documentElement.dataset.cvd = on ? "1" : "0";
+    $("#cvdBtn").classList.toggle("on", on);
+    $("#cvdBtn").setAttribute("aria-pressed", String(on));
+    LS.set("rs_cvd", on ? "1" : "0");
+    render();
+  }
+  $("#cvdBtn").addEventListener("click", () => setCvd(!cvd));
+  if (LS.get("rs_cvd") === "1") { cvd = true; document.documentElement.dataset.cvd = "1"; $("#cvdBtn").classList.add("on"); $("#cvdBtn").setAttribute("aria-pressed", "true"); }
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const savedTheme = LS.get("rs_theme");
   if (savedTheme) { document.documentElement.dataset.theme = savedTheme; setTiles(); }
   if (D.replay2024) {
@@ -708,6 +900,7 @@
   }, 400);
 
   $("#warnCard").addEventListener("change", (e) => { if (e.target.id === "wOverlay") { st.wov = e.target.checked; render(); } });
+  if (hp.get("tour") || (!location.hash && !LS.get("rs_tour") && !navigator.webdriver)) setTimeout(showTour, 1200);
   loadWarnings();
   setInterval(loadWarnings, 600000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - IMG.at > 300000) loadWarnings(); });

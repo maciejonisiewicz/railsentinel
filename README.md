@@ -13,6 +13,11 @@ wskazywać – **dla każdego z 4606 odcinków sieci kolejowej w Polsce** – od
 - **powalonych drzew / uszkodzeń sieci** przy wichurze (progi IMGW),
 - **oblodzenia sieci trakcyjnej** (marznący opad).
 
+Dodatkowo aplikacja pobiera **oficjalne ostrzeżenia IMGW** (meteorologiczne i hydrologiczne) i zawęża je do konkretnych odcinków:
+pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem i ile z nich RailSentinel wskazuje do sprawdzenia.
+Każdy przebieg prognozy trafia do **publicznego dziennika** (gałąź `logs`), z którego powstaje weryfikacja prospektywna na stronie
+`status.html`.
+
 Backtest na powodzi z września 2024 r. z użyciem **archiwalnych prognoz ECMWF** (tych, które były dostępne
 przed powodzią) pokazuje, z jakim wyprzedzeniem system wskazałby odcinki, które faktycznie uległy zniszczeniu.
 
@@ -30,6 +35,7 @@ python3 -m venv .venv && .venv/bin/pip install pandas numpy scikit-learn request
 .venv/bin/python src/04_train.py               # trening, walidacja 2024, niezależny test 1997 -> metrics.json
 .venv/bin/python src/05_predict.py             # backtest 2024, upał, 1997, prognoza na żywo -> web/data
 .venv/bin/python src/10_validate_modules.py    # walidacja modułów upału/wiatru (Eunice 2022, upał 2025)
+.venv/bin/python -I src/16_powiaty.py          # granice powiatów (TERYT) i przypisanie odcinków – ostrzeżenia IMGW
 .venv/bin/python src/11_export_model.py        # model ML do przeglądarki (symulator)
 .venv/bin/python src/06_figures.py && .venv/bin/python src/07_build_doc.py "Imię Nazwisko"   # wykresy + PDF
 open web/index.html                            # aplikacja (działa też bez serwera)
@@ -38,12 +44,18 @@ open web/index.html                            # aplikacja (działa też bez ser
 ```
 
 Odświeżenie prognozy na żywo: `.venv/bin/python src/05_predict.py live`
+(z dziennikiem: `RS_LOG_DIR=data/log`, potem `src/18_verify.py data/log/status.json` i `src/19_api.py <katalog>`).
+
+Testy: `python -m unittest discover -s tests` (potok, dziennik, API, dokumenty) oraz
+`python -m http.server 8765 &` i `python tests/e2e.py` (aplikacja w przeglądarce, 50 sprawdzeń). Oba zestawy działają w GitHub Actions
+(`.github/workflows/ci.yml`). Szczegóły API: `docs/API.md`.
 
 ## Aplikacja (PWA) i strona
 
 `web/` to jednocześnie strona internetowa i aplikacja instalowana na telefonie (manifest + Service Worker):
-tryb **„Moja linia”** dla kolejarzy (status linii, każdy odcinek na 3 dni, „Gdzie jestem”, udostępnianie komunikatu),
-praca bez zasięgu (ostatnia prognoza), mapa całej Polski, backtest 2024, test 1997, symulator, opis modelu.
+tryb **„Moja linia”** dla kolejarzy (status linii, schemat liniowy, odcinki robocze do obchodu, karta obchodu do druku, „Gdzie jestem”, udostępnianie komunikatu, eksport CSV/GeoJSON),
+praca bez zasięgu (ostatnia prognoza), mapa całej Polski, ostrzeżenia IMGW, backtest 2024, test 1997, symulator, opis modelu, przewodnik dla nowych użytkowników, paleta dla daltonistów.
+`web/status.html` – stan systemu i weryfikacja prospektywna; `railsentinel.pl/api/v1/` – statyczne API (JSON, GeoJSON, CSV).
 `web/about.html` – strona projektu z filmem. Hosting: GitHub Pages (gałąź `gh-pages`), domena railsentinel.pl.
 
 ## Struktura
@@ -55,7 +67,9 @@ praca bez zasięgu (ostatnia prognoza), mapa całej Polski, backtest 2024, test 
 | `data/labels_flood_1997.json` | etykiety zniszczeń 07.1997 ze źródłami (niezależny test) |
 | `data/processed/metrics.json` | wyniki walidacji |
 | `web/` | dashboard (Leaflet, statyczny) + `sim.js` – model ML w przeglądarce (symulator) |
-| `docs/` | praca konkursowa |
+| `docs/` | praca konkursowa, załącznik techniczny, opis API |
+| `tests/` | testy jednostkowe i testy aplikacji w przeglądarce |
+| gałąź `logs` | dziennik przebiegów prognozy (JSON), źródło weryfikacji prospektywnej |
 
 ## Źródła danych i licencje (§10 ust. 9 Regulaminu)
 
@@ -67,6 +81,9 @@ praca bez zasięgu (ostatnia prognoza), mapa całej Polski, backtest 2024, test 
 | Open-Meteo Previous Runs API (ECMWF IFS 0.25°) | archiwalne prognozy do backtestu | CC BY 4.0 |
 | Open-Meteo Forecast API | prognoza bieżąca | CC BY 4.0 |
 | AWS Terrain Tiles (Mapzen; SRTM, EU-DEM i in.) | model wysokościowy | licencje otwarte źródeł, wymagana atrybucja |
+| IMGW-PIB – API ostrzeżeń (`warningsmeteo`, `warningshydro`) | oficjalne ostrzeżenia w aplikacji i w dzienniku | dane publiczne IMGW-PIB, wymagane wskazanie źródła |
+| polska-geojson (ppatrzyk) | granice 380 powiatów (przypisanie ostrzeżeń do odcinków) | MIT |
+| Wikidata | kody TERYT powiatów | CC0 |
 | Natural Earth | granica Polski | domena publiczna |
 | Esri World Gray Canvas | podkład mapy w dashboardzie | atrybucja Esri/OSM |
 | PAP, PLK, gov.pl, „Z Biegiem Szyn” nr 133 | komunikaty o zniszczeniach 2024 i 1997 (etykiety) | cytowane jako źródła faktów |

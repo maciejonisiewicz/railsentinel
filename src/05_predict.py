@@ -147,7 +147,7 @@ def quality(sub):
     return q
 
 
-def pack(df, days, meta):
+def pack(df, days, meta, extra=False):
     out = {"meta": meta, "days": [], "risk": {}}
     ids = ST["id"].tolist()
     for d in days:
@@ -169,6 +169,10 @@ def pack(df, days, meta):
             "why": [w if isinstance(w, list) else [] for w in sub["why"].tolist()],
             "q": quality(sub).tolist(),
         }
+        if extra:
+            out["risk"][str(d)[:10]]["tmin"] = sub["tmin"].round(1).fillna(0).tolist()
+            out["risk"][str(d)[:10]]["snow"] = (sub["snowfall_sum"].round(1).fillna(0).tolist() if "snowfall_sum" in sub
+                                                else [0] * len(sub))
     return out
 
 
@@ -265,7 +269,7 @@ def live():
     status = {"cells_ok": ok_cells, "cells": len(CELLS), "gauges": n_gauges}
     write_js("live", pack(df, days, {"title": "Prognoza bieżąca – cała Polska", "issued": str(today), "generated": generated,
                                       "status": status,
-                                      "source": "Open-Meteo Forecast API (ECMWF/ICON/GFS) + IMGW hydro API + prognoza rzek ML"}))
+                                      "source": "Open-Meteo Forecast API (ECMWF/ICON/GFS) + IMGW hydro API + prognoza rzek ML"}, extra=True))
     try:
         thr = river_fc.RF["thr_model"]
     except NameError:

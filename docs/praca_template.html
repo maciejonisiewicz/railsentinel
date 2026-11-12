@@ -81,7 +81,7 @@
   </div>
   <p><b>Odbiorcy.</b> Dyżurni i dyspozytorzy (Centra Zarządzania Ruchem), zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
   <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ograniczenia prędkości na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
-  <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) wyłącznie otwarte dane i kod.</div>
+  <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) <b>oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków</b> oraz publiczny dziennik prognoz z weryfikacją na żywo; (5) wyłącznie otwarte dane i kod.</div>
 </section>
 
 <section class="page">
@@ -145,7 +145,7 @@
     <li>Etykiety 2024 to bufory korytarzy zniszczeń opisanych w komunikatach, a etykiety 1997 to odcinki przy trzech zniszczonych mostach. Każdy korytarz ma w repozytorium źródło (<code>data/labels_flood_*.json</code>). Linii zlikwidowanych po 1997 r. (Kędzierzyn – Baborów, Kamieniec Ząbk. – Złoty Stok) nie uwzględniam, bo nie istnieją w dzisiejszej sieci.</li>
     <li>Model uczę na wszystkich odcinko-dniach kwiecień–październik. Zwykłe lata uczą go, kiedy deszcz <i>nie</i> niszczy toru. Rok 1997 nie bierze udziału w treningu ani w doborze parametrów.</li>
   </ol>
-  <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 15 i w pliku README.</div>
+  <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Aplikacja nie wymaga konta, a lokalizacja z przycisku „Gdzie jestem” jest używana tylko w przeglądarce i nie trafia na serwer. System wyłącznie odczytuje dane publiczne i niczym nie steruje. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 15 i w pliku README.</div>
 </section>
 
 <section class="page">
@@ -182,7 +182,7 @@
   </table>
   <p><b>Czego nauczył mnie ten test.</b> Sam model ML, uczony na podgórskiej powodzi z 2024 r., zawiódł: zniszczenia z 1997 r. spowodowała fala na nizinnej Odrze, a nie lokalny deszcz. Dodanie stanu wód <i>jako cechy</i> ML nie pomogło, bo z jednego zdarzenia nie da się nauczyć drugiego mechanizmu. Dlatego RailSentinel ma <b>osobny moduł hydrologiczny</b> z progiem ustalonym z góry, a system wykrywa wszystkie trzy miejsca. Pięć niewykrytych odcinków leży w 9-kilometrowym korytarzu, którym oznaczyłem <i>jeden</i> most.</p>
   <h3>Moduły wyboczenia i wiatru na udokumentowanych zdarzeniach</h3>
-  <figure><img src="fig/module_validation.png" style="max-height:50mm"><figcaption>Rys. 5. Ranking dni według odsetka sieci w alarmie. <b>Orkan Eunice (19.02.2022; PLK: 400 zdarzeń pogodowych)</b> to 3. najgorszy dzień z {{w_n}} w danych, z {{w_pct}}% sieci w alarmie (typowy dzień: 0%). <b>Upał 3.07.2025 (PLK: 133 pociągi opóźnione przez ograniczenia prędkości)</b> to {{h_rank}}. dzień z {{h_n}} dni letnich, z szyną do {{h_t}} °C.</figcaption></figure>
+  <figure><img src="fig/module_validation.png" style="max-height:50mm"><figcaption>Rys. 5. Ranking dni według odsetka sieci w alarmie. <b>Orkan Eunice (19.02.2022; PLK: 400 zdarzeń pogodowych)</b> to {{w_rank}}. najgorszy dzień z {{w_n}} w danych, z {{w_pct}}% sieci w alarmie (typowy dzień: 0%). <b>Upał 3.07.2025 (PLK: 133 pociągi opóźnione przez ograniczenia prędkości)</b> to {{h_rank}}. dzień z {{h_n}} dni letnich, z szyną do {{h_t}} °C.</figcaption></figure>
   <div class="two">
     <figure><img src="fig/screen_1997.png" style="max-height:50mm"><figcaption>Rys. 6. Lipiec 1997: alarmy systemu.</figcaption></figure>
     <figure><img src="fig/importance.png" style="max-height:50mm"><figcaption>Rys. 7. Co decyduje o ryzyku w module A (permutation importance).</figcaption></figure>
@@ -240,6 +240,7 @@
     <tr><td>Orkany 2007–2022, upał 2025</td><td>reanaliza porywów i temperatury</td><td>nie</td></tr>
     <tr><td>Symulator, test klimatyczny</td><td>scenariusz „co jeśli”</td><td>nie dotyczy</td></tr>
   </table>
+  <p class="small"><b>Obciążenie alarmami w zwykłe dni.</b> Poza powodziami (kwiecień–październik 2021–2023, region treningowy, {{normal_n}} odcinków) system zapalał ALARM średnio na {{normal_rate}} odcinka na 1000 odcinko-dni, czyli na jednym odcinku co {{normal_every}} dnia w całym regionie. Od 12.11.2026 liczę to samo na żywo dla całej Polski w dzienniku prognoz.</p>
   <p class="small">Szczegóły metod, prognozy rzek i symulatora: <b>Załącznik techniczny</b> (osobny plik PDF).</p>
 </section>
 
@@ -255,9 +256,11 @@
     <li><b>„Moja linia”</b>: dyżurny, toromistrz czy kierownik sekcji wpisuje numer linii albo klika <b>📍 Gdzie jestem</b> i od razu widzi status linii (bez zagrożeń / uwaga / alarm), każdy odcinek z ryzykiem na 3 dni i zalecane działanie. Przycisk „Udostępnij komunikat” wysyła go do zespołu.</li>
     <li><b>Praca w terenie:</b> aplikacja zapamiętuje ostatnią prognozę i mapę (Service Worker), więc działa także bez zasięgu na szlaku. Duże przyciski są wygodne w rękawicach.</li>
     <li><b>Dla sztabu i analityków:</b> mapa całej Polski, backtest 2024, test 1997 i symulator; opis modelu i metryki na stronie „O projekcie”.</li>
+    <li><b>Ostrzeżenia IMGW na żywo:</b> aplikacja pobiera oficjalne ostrzeżenia meteorologiczne i hydrologiczne i pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem oraz ile z nich RailSentinel wskazuje do sprawdzenia. Przykład z 12.11.2026: ostrzeżenie 1° przed intensywnym deszczem obejmowało 9 powiatów, czyli 71 odcinków (256 km toru), a RailSentinel wskazał z nich do sprawdzenia 0. Ostrzeżenia o śniegu, mrozie i zawiejach, których system sam nie prognozuje, są pokazane przy odcinkach jako informacja oficjalna.</li>
+    <li><b>Od prognozy do działania:</b> „Moja linia” rysuje schemat liniowy (ryzyko wzdłuż kilometrażu na 3 dni), zlepia sąsiednie zagrożone odcinki w <b>odcinki robocze do obchodu</b> (np. „km 85,9–96,2”) i drukuje <b>kartę obchodu</b> z polem na podpis i godzinę. Wyniki można pobrać jako CSV (Excel) lub GeoJSON (GIS) albo odczytać ze statycznego API JSON (<code>railsentinel.pl/api/v1/alarms.json</code>), więc PLK może zasilić własne narzędzia bez integracji z systemami.</li>
   </ul>
   <p><b>Film prezentacyjny</b> (ok. 3,5 min, lektor, muzyka) pokazuje działanie aplikacji na tle historycznych powodzi. Jest dostępny na stronie <b>railsentinel.pl/about.html</b>, a link do niego jest w mailu zgłoszeniowym.</p>
-  <div class="box">Koszt uruchomienia: hosting strony i aplikacji 0 zł (GitHub Pages, HTTPS); jedyny wydatek to domena railsentinel.pl. Odświeżanie prognozy to jedno polecenie (<code>src/05_predict.py live</code>). W pilotażu uruchamiałby je co kilka godzin harmonogram po stronie PLK.</div>
+  <div class="box">Koszt uruchomienia: hosting strony i aplikacji 0 zł (GitHub Pages, HTTPS); jedyny wydatek to domena railsentinel.pl. Prognoza odświeża się automatycznie dwa razy na dobę (<code>src/05_predict.py live</code>), a w pilotażu uruchamiałby ją co kilka godzin harmonogram po stronie PLK.</div>
 </section>
 
 <section class="page">
@@ -304,7 +307,7 @@
     <tr><th style="width:32%">Ryzyko</th><th>Mitygacja</th></tr>
     <tr><td>„Zmęczenie alarmami”</td><td>Progi kalibrowane z zespołami utrzymania, dwa poziomy (uwaga/alarm), fala jako osobna kategoria, pomiar trafności w pilotażu</td></tr>
     <tr><td>Fałszywe poczucie bezpieczeństwa</td><td>System <b>uzupełnia</b> ostrzeżenia IMGW i procedury; brak alarmu nie oznacza braku zagrożenia</td></tr>
-    <tr><td>Niedokładność prognoz (burze lokalne)</td><td>Modele wysokiej rozdzielczości, nowcasting radarowy, aktualizacja co kilka godzin</td></tr>
+    <tr><td>Niedokładność prognoz (burze lokalne)</td><td>Modele wysokiej rozdzielczości, nowcasting radarowy; aktualizacja dwa razy na dobę (działa), docelowo co kilka godzin</td></tr>
     <tr><td>Mechanizm nieobecny w danych uczących</td><td>Architektura modułowa (A + B + fizyka), testy na zdarzeniach historycznych przed każdym wdrożeniem</td></tr>
     <tr><td>Cyberbezpieczeństwo</td><td>System tylko odczytuje dane i niczym nie steruje; osobna strefa sieciowa, uwierzytelnianie, dziennik zdarzeń</td></tr>
   </table>
@@ -314,7 +317,7 @@
     <li><b>Wyjaśnialność i fizyka.</b> Każdy alarm ma listę przyczyn. Model ma wymuszoną monotoniczność, a moduły hydrologiczny i fizyczne są w pełni przejrzyste.</li>
     <li><b>Uczciwa walidacja.</b> Test na niezależnym zdarzeniu, porównanie z regułą bazową i jawne opisanie ograniczeń.</li>
     <li><b>Brak danych osobowych</b> i <b>deterministyczne komunikaty</b> bez generatywnego modelu językowego.</li>
-    <li><b>Monitorowanie.</b> Trafność śledzona co sezon, wersjonowanie modeli i danych, możliwość audytu każdej decyzji.</li>
+    <li><b>Monitorowanie.</b> Każdy przebieg prognozy trafia do publicznego dziennika (od 12.11.2026), a trafność prognozy rzek jest sprawdzana na bieżąco: <b>railsentinel.pl/status.html</b>. Wersjonowanie kodu i danych pozwala na audyt każdej decyzji.</li>
   </ul>
 </section>
 
@@ -346,14 +349,17 @@
 </section>
 
 <section class="page">
-  <h2><span class="n">15</span>Kolejne testy na prawdziwych zdarzeniach i funkcje dla praktyków</h2>
+  <h2><span class="n">15</span>Kolejne testy na prawdziwych zdarzeniach i weryfikacja na żywo</h2>
   <h3>Powodzie 2010 – nowe zdarzenia, model bez douczania</h3>
   <table class="small"><tr><th>Udokumentowane zdarzenie (źródło w rozdz. 16)</th><th>Najwyższe ryzyko odcinka</th><th>Część sieci z ryzykiem ≥ tego odcinka</th></tr>{{ev_flood_rows}}</table>
-  <p class="small">Reanaliza ERA5 i archiwalne stany wód IMGW, jak w teście 1997. Ostatnia kolumna: im mniejsza, tym wyżej odcinek na liście. Linia 273 pod Głogowem dostała tylko poziom UWAGA: fala na Odrze nie przekroczyła w danych progu alarmu. Maj 2010 to powódź o zasięgu krajowym, więc w ciągu czterech tygodni alarm objął łącznie znaczną część sieci. Tym bardziej liczy się ranking, a dokładność poprawi radar IMGW i rejestr usterek PLK.</p>
+  <p class="small">Reanaliza ERA5 i archiwalne stany wód IMGW, jak w teście 1997; ostatnia kolumna: im mniejsza, tym wyżej odcinek na liście. Linia 273 pod Głogowem dostała tylko UWAGĘ: fala na Odrze nie przekroczyła w danych progu alarmu. Maj 2010 był powodzią o zasięgu krajowym, więc w ciągu czterech tygodni alarm objął łącznie znaczną część sieci; tym ważniejszy jest ranking.</p>
   <h3>Orkany 2007–2022 – czy dzień orkanu wyróżnia się w systemie</h3>
   <table class="small"><tr><th>Orkan</th><th>Dzień</th><th>Sieć ≥ UWAGA</th><th>Zwykłe dni ±10: mediana / maks.</th><th>Miejsce</th><th>Porywy</th></tr>{{ev_wind_rows}}</table>
-  <p class="small">W {{ev_wind_hit}} z {{ev_wind_n}} orkanów dzień uderzenia był najgorszym dniem w 21-dniowym oknie (w zwykłe dni mediana: 0% sieci). Moduł wiatru to reguła oparta na progach IMGW, bez uczenia. Test sprawdza, czy dobrze wskazuje dni zagrożenia dla całej sieci. Porywy pochodzą z ERA5 w siatce 0,5°, wystarczającej dla zjawisk o zasięgu setek kilometrów.</p>
-  <p class="small"><b>Funkcje dla praktyków:</b> kilometraż linii i miejscowości przy każdym odcinku, np. „Linia 276 · km 85,9–93,3 · Bardo – Kłodzko” ({{km_pct}}% odcinków, ze słupków kilometrowych OSM); priorytet weryfikacji, pewność oceny i aktualność danych przy każdym alarmie; komunikat „prognoza nieaktualna” i szary kolor dla odcinków bez danych (nigdy jako niskie ryzyko); wydruk A4 dla dyżurnego z polami „przyjął / godzina / działania”; <b>codzienna automatyczna aktualizacja prognozy</b> (ok. 4:15), działająca bez udziału autora.</p>
+  <p class="small">W {{ev_wind_hit}} z {{ev_wind_n}} orkanów dzień uderzenia był najgorszym dniem w 21-dniowym oknie (w zwykłe dni mediana: 0% sieci). Moduł wiatru to reguła oparta na progach IMGW, bez uczenia; porywy pochodzą z ERA5 w siatce 0,5°, wystarczającej dla zjawisk o zasięgu setek kilometrów.</p>
+  <h3>Weryfikacja prospektywna: dziennik prognoz od 12.11.2026</h3>
+  <p class="small">Backtesty pokazują, jak system zadziałałby w przeszłości. Żeby pokazać, że działa też na żywo, od 12.11.2026 każdy przebieg prognozy zapisuje się w publicznym dzienniku: prognozy stanów wód {{prosp_gauges}} wodowskazów, alarmy RailSentinel i ostrzeżenia IMGW. Po kilku dniach porównuję prognozę z pomiarem, który faktycznie nadszedł (stan na {{prosp_date}}, {{prosp_days}} dni dziennika). Dziennik i skrypt weryfikacji (<code>src/18_verify.py</code>) są jawne, a bieżący wynik jest na <b>railsentinel.pl/status.html</b>. Prognoza rzek na żywo ma na razie krótką historię stanów wód: bez trendu jej zysk wynosi {{skew_gain_flat}} zamiast {{skew_gain_full}} (Załącznik A3), a dziennik tę historię uzupełnia.</p>
+  <table class="small"><tr><th>Horyzont</th><th>Par prognoza–pomiar</th><th>Błąd model / „bez zmian”</th><th>Zysk modelu</th><th>Przekroczenia progu</th></tr>{{prosp_rows}}</table>
+  <p class="small">{{prosp_note}}</p>
 </section>
 
 <section class="page">

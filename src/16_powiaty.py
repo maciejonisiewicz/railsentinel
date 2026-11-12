@@ -193,7 +193,8 @@ def main():
         gs = []
         for poly in it["polys"]:
             ring = dp(poly[0][:, ::-1], 0.005)
-            gs.append([[round(float(a), 3), round(float(b), 3)] for a, b in ring])
+            if len(ring) >= 4:
+                gs.append([[round(float(a), 3), round(float(b), 3)] for a, b in ring])
         out["g"].append(gs)
     WEB.mkdir(parents=True, exist_ok=True)
     (WEB / "powiaty.js").write_text("window.RS_DATA=window.RS_DATA||{};window.RS_DATA[\"powiaty\"]=" +

@@ -25,9 +25,8 @@ RailSentinel codziennie prognozuje zagrożenia pogodowe (podmycie toru, fala wez
 oblodzenie sieci) dla każdego z ok. 4,6 tys. odcinków sieci kolejowej w Polsce. Łączy dwa modele uczenia maszynowego,
 prognozy pogody i stany wód z wodowskazów IMGW. W backteście na powodzi z września 2024 r. – na archiwalnych prognozach
 ECMWF, czyli tylko na danych dostępnych w tamtym momencie – prognoza z wieczora 11 września objęła alarmem 3,3% sieci
-krajowej, a wśród nich 31 z 37 odcinków zniszczonych 14–16 września (52 godziny wcześniej); pozostałe 6 dostało alarm
-wieczorem przed zniszczeniem. Praca pokazuje też cenę tej skuteczności (alarmy bez potwierdzonego zniszczenia), testy
-historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponowany pilotaż na jednej linii.
+krajowej, a wśród nich 31 z 37 odcinków zniszczonych 14–16 września (52 godziny wcześniej); pozostałe 6 dostało alarm w kolejnych prognozach (z 12 i 13 września). Praca pokazuje też cenę tej skuteczności (alarmy bez potwierdzonego zniszczenia), testy
+historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponowany pilotaż na jednej linii. Aplikacja działa na żywo (aktualizacja dwa razy na dobę), pokazuje oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków, a publiczny dziennik prognoz pozwala sprawdzić trafność prognoz rzek na bieżąco.
 
 **Materiały uzupełniające (§5 ust. 4 Regulaminu):**
 - Działający prototyp – aplikacja i strona: https://railsentinel.pl
@@ -35,6 +34,8 @@ historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponow
 - Film prezentacyjny (MP4, poniżej 5 min): https://railsentinel.pl/about.html
   (bezpośredni plik: https://railsentinel.pl/video/railsentinel.mp4)
 - Kod źródłowy: https://github.com/maciejonisiewicz/railsentinel
+- Status systemu i weryfikacja na żywo: https://railsentinel.pl/status.html
+- Dane wyjściowe do integracji (JSON, GeoJSON, CSV): https://railsentinel.pl/api/v1/alarms.json
 
 - Załącznik techniczny (metodologia testów) – w załączniku do wiadomości
 
