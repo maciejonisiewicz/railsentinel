@@ -812,8 +812,8 @@
     const lineMode = st.mode === "line";
     const anchor = lineMode ? [$("#dayTiles"), $("#lineStatus"), $("#lineCtrl"), $("#story")].find((x) => x.offsetHeight) || $("#grab") :
       !$("#statusCard").hidden && $("#statusCard").offsetHeight ? $("#statusCard") : $("#story");
-    const peek = Math.max(110, Math.min(H * (lineMode ? 0.58 : 0.4), anchor.offsetTop + anchor.offsetHeight + sa));
-    return { peek, half: Math.max(peek, H * (lineMode ? 0.6 : 0.52)), full: H - 66 };
+    const peek = Math.max(110, Math.min(H * (lineMode ? (H < 700 ? 0.66 : 0.58) : 0.4), anchor.offsetTop + anchor.offsetHeight + sa));
+    return { peek, half: Math.max(peek, H * (lineMode ? (H < 700 ? 0.68 : 0.6) : 0.52)), full: H - 66 };
   }
   function setSheet(s = sheet) {
     sheet = s;

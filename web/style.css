@@ -433,3 +433,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, .rd:focus-visible, #
   .leaflet-popup-close-button { width: 44px !important; height: 44px !important; font-size: 28px !important; line-height: 44px !important; padding: 0 !important; text-align: center; }
   .leaflet-popup-content-wrapper { border-radius: 16px; }
 }
+@media (max-width: 400px) {
+  .brand { display: none; }
+  .topbar { padding-left: 6px; }
+  .tabs { flex: 1 1 auto; justify-content: space-between; }
+  .tabs button { padding: 8px 10px; }
+}
+@media (max-width: 340px) {
+  .tabs button { padding: 8px 6px; font-size: 13px; }
+  .tabs { padding: 2px; gap: 2px; }
+}
