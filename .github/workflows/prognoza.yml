@@ -67,7 +67,7 @@ jobs:
             git worktree add --detach site FETCH_HEAD
             cp web/data/live.js site/data/live.js
             cp data/log/status.json site/data/status.json
-            python src/19_api.py site/api/v1
+            python src/19_api.py site/api/v1 || echo "API nie zostało wygenerowane"
             cd site
             git config user.name "RailSentinel"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
