@@ -872,6 +872,7 @@
   if (hp.get("line")) { st.line = hp.get("line"); $("#lineInput").value = st.line; }
   if (hp.get("hz")) { st.hz = hp.get("hz"); document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x.dataset.h === st.hz)); }
   if (hp.get("rain")) { st.rain = true; $("#rainBtn").classList.add("on"); }
+  if (hp.get("wov")) st.wov = true;
   if (hp.get("preset")) { const { view: vw, ...x } = PRESETS[hp.get("preset")]; Object.assign(st.sim, x); if (hp.get("clim")) st.sim.climate = +hp.get("clim"); syncSliders(); }
   const startMode = hp.get("mode") || (D.live ? "live" : "replay2024");
   if (hp.get("issue")) { st.issue = +hp.get("issue"); $("#issue").value = st.issue; }

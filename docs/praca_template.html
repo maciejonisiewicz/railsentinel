@@ -63,7 +63,7 @@
   <div class="meta">
     <div><b>Autor</b>{{author}}</div>
     <div><b>Uczelnia / kierunek</b>Politechnika Wrocławska · Informatyczne Systemy Automatyki</div>
-    <div><b>Forma pracy</b>Działający prototyp (model ML + aplikacja webowa z symulatorem) i koncepcja wdrożenia</div>
+    <div><b>Forma pracy</b>Działający prototyp (modele ML, aplikacja webowa na żywo z ostrzeżeniami IMGW, symulator, dziennik prognoz) i koncepcja wdrożenia</div>
     <div><b>Aplikacja i strona</b>railsentinel.pl · film · kod: github.com/maciejonisiewicz/railsentinel</div>
   </div>
 </section>
@@ -79,7 +79,7 @@
     <div class="kpi"><b>{{event_auc_model}}</b><small>AUC w strefie ulewy: trafność wskazania <i>właściwych</i> odcinków (reguła opadowa: {{event_auc_baseline}})</small></div>
     <div class="kpi"><b>+{{rgain}}%</b><small>więcej przekroczeń stanu rzek wykrytych z 2-dniowym wyprzedzeniem (test historyczny przy znanym opadzie – górna granica)</small></div>
   </div>
-  <p><b>Odbiorcy.</b> Dyżurni i dyspozytorzy (Centra Zarządzania Ruchem), zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
+  <p><b>Odbiorcy.</b> Dyżurni ruchu i dyspozytorzy, zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
   <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ograniczenia prędkości na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
   <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) <b>oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków</b> oraz publiczny dziennik prognoz z weryfikacją na żywo; (5) wyłącznie otwarte dane i kod.</div>
 </section>
@@ -209,7 +209,7 @@
   <table class="small">
     <tr><th style="width:18%"></th><th>Ostrzeżenie meteorologiczne IMGW</th><th>RailSentinel</th></tr>
     <tr><td>Wydane</td><td>11.09.2024 (środa), 3. stopień, ważne do 16.09, 7:00</td><td>11.09.2024, ok. 20:00</td></tr>
-    <tr><td>Obszar</td><td>całe województwo dolnośląskie i północ opolskiego; sumy opadu do ok. 380 mm</td><td>{{rk_alarm}} odcinków w alarmie, czyli <b>{{rk_alarm_pct}}% sieci krajowej</b></td></tr>
+    <tr><td>Obszar</td><td>całe województwo dolnośląskie i północ opolskiego (górne oszacowanie: {{rg_km}} km toru); sumy opadu do ok. 380 mm</td><td>{{rk_alarm}} odcinków w alarmie, czyli <b>{{rk_alarm_pct}}% sieci krajowej</b>; w tych województwach <b>{{rg_alarm_km}} km do obchodu</b> ({{rg_pct}}% ich sieci)</td></tr>
     <tr><td>Co mówi</td><td>gdzie i ile spadnie</td><td>który odcinek (linia, kilometr), dlaczego i w jakiej kolejności go sprawdzić</td></tr>
     <tr><td>Wynik</td><td>ostrzeżenie obszarowe, bez wskazania odcinków toru</td><td>wśród {{rk_alarm}} alarmów było <b>{{rk_dmg}} z {{rk_nd}}</b> późniejszych zniszczeń ({{rk_lift}}× lepiej niż losowo)</td></tr>
   </table>
@@ -256,7 +256,7 @@
     <li><b>„Moja linia”</b>: dyżurny, toromistrz czy kierownik sekcji wpisuje numer linii albo klika <b>📍 Gdzie jestem</b> i od razu widzi status linii (bez zagrożeń / uwaga / alarm), każdy odcinek z ryzykiem na 3 dni i zalecane działanie. Przycisk „Udostępnij komunikat” wysyła go do zespołu.</li>
     <li><b>Praca w terenie:</b> aplikacja zapamiętuje ostatnią prognozę i mapę (Service Worker), więc działa także bez zasięgu na szlaku. Duże przyciski są wygodne w rękawicach.</li>
     <li><b>Dla sztabu i analityków:</b> mapa całej Polski, backtest 2024, test 1997 i symulator; opis modelu i metryki na stronie „O projekcie”.</li>
-    <li><b>Ostrzeżenia IMGW na żywo:</b> aplikacja pobiera oficjalne ostrzeżenia meteorologiczne i hydrologiczne i pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem oraz ile z nich RailSentinel wskazuje do sprawdzenia. Przykład z 12.11.2026: ostrzeżenie 1° przed intensywnym deszczem obejmowało 9 powiatów, czyli 71 odcinków (256 km toru), a RailSentinel wskazał z nich do sprawdzenia 0. Ostrzeżenia o śniegu, mrozie i zawiejach, których system sam nie prognozuje, są pokazane przy odcinkach jako informacja oficjalna.</li>
+    <li><b>Ostrzeżenia IMGW na żywo:</b> aplikacja pobiera oficjalne ostrzeżenia meteorologiczne i hydrologiczne i pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem oraz ile z nich RailSentinel wskazuje do sprawdzenia. {{imgw_example}}. Ostrzeżenia o śniegu, mrozie i zawiejach, których system sam nie prognozuje, są pokazane przy odcinkach jako informacja oficjalna.</li>
     <li><b>Od prognozy do działania:</b> „Moja linia” rysuje schemat liniowy (ryzyko wzdłuż kilometrażu na 3 dni), zlepia sąsiednie zagrożone odcinki w <b>odcinki robocze do obchodu</b> (np. „km 85,9–96,2”) i drukuje <b>kartę obchodu</b> z polem na podpis i godzinę. Wyniki można pobrać jako CSV (Excel) lub GeoJSON (GIS) albo odczytać ze statycznego API JSON (<code>railsentinel.pl/api/v1/alarms.json</code>), więc PLK może zasilić własne narzędzia bez integracji z systemami.</li>
   </ul>
   <p><b>Film prezentacyjny</b> (ok. 3,5 min, lektor, muzyka) pokazuje działanie aplikacji na tle historycznych powodzi. Jest dostępny na stronie <b>railsentinel.pl/about.html</b>, a link do niego jest w mailu zgłoszeniowym.</p>

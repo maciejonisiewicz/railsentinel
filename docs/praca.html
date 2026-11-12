@@ -63,7 +63,7 @@
   <div class="meta">
     <div><b>Autor</b>Maciej Onisiewicz</div>
     <div><b>Uczelnia / kierunek</b>Politechnika Wrocławska · Informatyczne Systemy Automatyki</div>
-    <div><b>Forma pracy</b>Działający prototyp (model ML + aplikacja webowa z symulatorem) i koncepcja wdrożenia</div>
+    <div><b>Forma pracy</b>Działający prototyp (modele ML, aplikacja webowa na żywo z ostrzeżeniami IMGW, symulator, dziennik prognoz) i koncepcja wdrożenia</div>
     <div><b>Aplikacja i strona</b>railsentinel.pl · film · kod: github.com/maciejonisiewicz/railsentinel</div>
   </div>
 </section>
@@ -79,7 +79,7 @@
     <div class="kpi"><b>0,948</b><small>AUC w strefie ulewy: trafność wskazania <i>właściwych</i> odcinków (reguła opadowa: 0,864)</small></div>
     <div class="kpi"><b>+46%</b><small>więcej przekroczeń stanu rzek wykrytych z 2-dniowym wyprzedzeniem (test historyczny przy znanym opadzie – górna granica)</small></div>
   </div>
-  <p><b>Odbiorcy.</b> Dyżurni i dyspozytorzy (Centra Zarządzania Ruchem), zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
+  <p><b>Odbiorcy.</b> Dyżurni ruchu i dyspozytorzy, zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
   <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ograniczenia prędkości na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
   <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) <b>oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków</b> oraz publiczny dziennik prognoz z weryfikacją na żywo; (5) wyłącznie otwarte dane i kod.</div>
 </section>
@@ -209,7 +209,7 @@
   <table class="small">
     <tr><th style="width:18%"></th><th>Ostrzeżenie meteorologiczne IMGW</th><th>RailSentinel</th></tr>
     <tr><td>Wydane</td><td>11.09.2024 (środa), 3. stopień, ważne do 16.09, 7:00</td><td>11.09.2024, ok. 20:00</td></tr>
-    <tr><td>Obszar</td><td>całe województwo dolnośląskie i północ opolskiego; sumy opadu do ok. 380 mm</td><td>150 odcinków w alarmie, czyli <b>3,3% sieci krajowej</b></td></tr>
+    <tr><td>Obszar</td><td>całe województwo dolnośląskie i północ opolskiego (górne oszacowanie: 3,9 tys. km toru); sumy opadu do ok. 380 mm</td><td>150 odcinków w alarmie, czyli <b>3,3% sieci krajowej</b>; w tych województwach <b>640 km do obchodu</b> (16% ich sieci)</td></tr>
     <tr><td>Co mówi</td><td>gdzie i ile spadnie</td><td>który odcinek (linia, kilometr), dlaczego i w jakiej kolejności go sprawdzić</td></tr>
     <tr><td>Wynik</td><td>ostrzeżenie obszarowe, bez wskazania odcinków toru</td><td>wśród 150 alarmów było <b>31 z 37</b> późniejszych zniszczeń (26× lepiej niż losowo)</td></tr>
   </table>

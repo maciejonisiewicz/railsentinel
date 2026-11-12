@@ -198,6 +198,16 @@ def extra_vals(m):
         rows.append("<tr><td colspan='5'>Dziennik zbiera dane od 12.11.2026, pierwsze wyniki pojawią się po kilku dniach.</td></tr>")
         out.update({"prosp_date": "dzień złożenia pracy", "prosp_days": 0, "prosp_gauges": 780})
     out["prosp_rows"], out["prosp_note"] = "".join(rows), note
+    cand = [d for d in (st or {}).get("daily", []) if d.get("imgw_segments")]
+    if cand:
+        e = max(cand, key=lambda d: d["imgw_segments"])
+        d = e["date"]
+        out["imgw_example"] = (f"Przykład z {d[8:10]}.{d[5:7]}.{d[:4]}: ostrzeżenia IMGW obejmowały {e['imgw_powiats']} powiatów, czyli "
+                               f"{e['imgw_segments']} odcinków, a RailSentinel wskazał z nich do sprawdzenia {e['rs_in']}"
+                               + (f", a dodatkowo {e['rs_out']} poza obszarem ostrzeżeń" if e["rs_out"] else ""))
+    else:
+        out["imgw_example"] = ("Przykład z 12.11.2026: ostrzeżenie 1° przed intensywnym deszczem obejmowało 9 powiatów, czyli 71 odcinków "
+                               "(256 km toru), a RailSentinel wskazał z nich do sprawdzenia 0")
     return out
 
 
@@ -216,6 +226,12 @@ def new_tests(rp, segs):
     al = W >= 0.5
     out.update({"rk_alarm": int(al.sum()), "rk_alarm_pct": f"{al.mean() * 100:.1f}".replace(".", ","),
                 "rk_dmg": int(dam[al].sum()), "rk_lift": f"{(dam[al].mean()) / (nd / len(ids)):.0f}"})
+    S = load_js("segments")
+    Ln = np.array([x["len"] for x in S])
+    reg = np.array([any(c[:2] in ("02", "16") for c in x.get("pw", [])) for x in S])
+    out["rg_km"] = f"{Ln[reg].sum() / 1000:.1f}".replace(".", ",") + " tys."
+    out["rg_alarm_km"] = f"{Ln[al & reg].sum():.0f}"
+    out["rg_pct"] = f"{Ln[al & reg].sum() / Ln[reg].sum() * 100:.0f}"
     for k in (10, 50, 100):
         out[f"rk_m{k}"] = f"{top(FL, k):.0f}"
         out[f"rk_b{k}"] = f"{top(P3, k):.0f}"
