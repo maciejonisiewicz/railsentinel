@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RailSentinel</title>
+<meta name="description" content="RailSentinel – prognoza zagrożeń pogodowych dla każdego odcinka sieci kolejowej w Polsce na 72 h. Model ML + wodowskazy IMGW + prognoza pogody.">
+<meta name="theme-color" content="#070b11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RailSentinel">
+<meta property="og:title" content="RailSentinel – zanim pogoda uszkodzi tor">
+<meta property="og:description" content="Prognoza zagrożeń infrastruktury kolejowej na 72 h dla całej Polski.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap"></noscript>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<noscript><p style="padding:24px;font:16px/1.5 sans-serif">RailSentinel wymaga włączonego JavaScriptu. Opis projektu: <a href="about.html">O projekcie</a>.</p></noscript>
+<div id="app">
+  <div id="map"></div>
+
+  <header class="topbar glass">
+    <a class="brand" href="about.html" title="O projekcie">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="8" fill="#ffb020"/><path d="M9 25 L14 7 M23 25 L18 7 M10.5 20h11 M12 14.5h8" stroke="#0b0f14" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="8" r="3.2" fill="#ff4d4f" stroke="#0b0f14" stroke-width="1.5"/></svg>
+      <span><b>RailSentinel</b><small>Prognoza zagrożeń sieci kolejowej</small></span>
+    </a>
+    <nav class="tabs" id="modes" aria-label="Widok">
+      <button data-mode="live"><i class="dot live"></i>Na żywo</button>
+      <button data-mode="line">Moja linia</button>
+      <button data-mode="replay2024" class="m-hide">Powódź 2024</button>
+      <button data-mode="sim" class="m-hide">Symulator</button>
+      <button data-mode="heat" class="m-hide">Upał</button>
+      <button data-mode="y1997" class="m-hide">Powódź 1997</button>
+      <button type="button" id="moreBtn" class="more" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">Więcej ▾</button>
+    </nav>
+    <div class="actions">
+      <button id="installBtn" class="btn primary" hidden>Zainstaluj</button>
+      <a class="btn" href="about.html" aria-label="O projekcie"><span class="ab-i" aria-hidden="true">ⓘ</span><span class="ab-t">O projekcie</span></a>
+    </div>
+  </header>
+  <div id="moreMenu" class="moremenu glass" hidden></div>
+
+  <aside id="side" class="glass">
+    <div class="grab" id="grab" role="button" aria-label="Rozwiń lub zwiń panel"></div>
+    <div id="story" class="story"><h2>Ładowanie prognozy…</h2><p>Pobieram dane sieci kolejowej.</p></div>
+
+    <div class="status" id="statusCard" aria-live="polite">
+      <div class="st-main"><span id="kAlarm" class="st-num">–</span><span class="st-lbl" id="kAlarmLbl">odcinków w alarmie</span></div>
+      <div class="st-side">
+        <div><b id="kWarn">–</b><small>uwaga</small></div>
+        <div><b id="kKm">–</b><small>km toru w alarmie</small></div>
+      </div>
+    </div>
+
+    <div class="warncard" id="warnCard" hidden></div>
+
+    <div class="ctrl" id="daysCtrl"><div class="seg" id="days"></div></div>
+
+    <div class="ctrl" id="hzCtrl">
+      <div class="seg hz" id="hazards">
+        <button data-h="total" class="on">Wszystko</button>
+        <button data-h="flood">💧 Woda</button>
+        <button data-h="heat">🌡 Upał</button>
+        <button data-h="wind">💨 Wiatr</button>
+        <button data-h="ice">❄ Lód</button>
+      </div>
+    </div>
+
+    <div id="lineCtrl" class="linebox" data-has="0" hidden>
+      <div class="srch">
+        <input id="lineInput" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Linia, stacja lub miejscowość" aria-label="Linia, stacja lub miejscowość" aria-controls="sugg">
+        <button id="geoBtn" class="btn big" aria-label="Znajdź linię w mojej okolicy"><span aria-hidden="true">📍</span><span class="gtxt"> Gdzie jestem</span></button>
+      </div>
+      <div id="sugg" class="sugg" role="listbox" hidden></div>
+      <div id="near" class="near" hidden></div>
+      <div id="recent" class="recent"></div>
+      <div id="lineStatus" class="linestatus" aria-live="polite"></div>
+      <div id="dayTiles" class="daytiles"></div>
+      <div id="lineRounds" class="linerounds"></div>
+      <details id="lineMore" class="linemore">
+        <summary>Szczegóły: odcinki, schemat, ostrzeżenia IMGW</summary>
+        <div id="lineAct" class="lineact"></div>
+        <div id="lineWarn" class="linewarn"></div>
+        <div id="lineStrip" class="linestrip"></div>
+        <div id="lineTable"></div>
+      </details>
+      <div class="row acts"><button id="shareBtn" class="btn big">Udostępnij</button><button id="cardBtn" class="btn big">🖨 Karta obchodu</button><button id="csvLine" class="btn big">⬇ CSV</button></div>
+      <div class="row"><span id="lineUpd" class="muted small"></span></div>
+    </div>
+
+    <div id="simCtrl" class="simbox" hidden>
+      <div class="seg" id="presets">
+        <button data-p="2024">Powódź 2024</button><button data-p="storm">Ulewa w Karkonoszach</button><button data-p="odra">Fala na Odrze</button><button data-p="clear">Wyczyść</button>
+      </div>
+      <p class="hint" id="simHint"></p>
+      <label for="sRain">Opad w centrum (3 doby) <b id="vRain"></b></label><input type="range" id="sRain" min="20" max="320" value="180">
+      <label for="sRad">Promień ulewy <b id="vRad"></b></label><input type="range" id="sRad" min="8" max="90" value="35">
+      <label for="sSoil">Wilgotność gruntu (opad 30 dni) <b id="vSoil"></b></label><input type="range" id="sSoil" min="0" max="220" value="80">
+      <label for="sRiver">Stan rzek <b id="vRiver"></b></label><input type="range" id="sRiver" min="0" max="40" value="5">
+      <label for="sClim">Klimat: opady mocniejsze o <b id="vClim"></b></label><input type="range" id="sClim" min="0" max="40" value="0">
+      <div class="climdelta" id="climDelta"></div>
+    </div>
+
+    <div class="list" id="topBox">
+      <div class="list-h"><span id="topH">Do sprawdzenia</span><button id="briefBtn" class="link">📋 Raport dla dyżurnego</button></div>
+      <ol id="top" class="top"></ol>
+    </div>
+
+    <footer class="foot">Dane: IMGW-PIB · © OpenStreetMap (ODbL) · Open-Meteo (ECMWF, ERA5) · <a href="status.html">Status i weryfikacja</a> · Prototyp studencki, nie jest systemem PKP PLK.</footer>
+  </aside>
+
+  <div id="issueCtrl" class="timeline glass" hidden>
+    <button id="play" class="playbtn" aria-label="Odtwórz powódź">▶</button>
+    <div class="tl-body">
+      <div class="tl-top"><span>Prognoza wydana <b id="issueLbl"></b></span><span id="tlStat" class="tl-stat"></span></div>
+      <div class="tl-cap" id="tlCap" aria-live="polite"></div>
+      <input type="range" id="issue" min="0" max="6" value="3" aria-label="Moment wydania prognozy">
+      <div class="tl-ticks" id="tlTicks"></div>
+    </div>
+  </div>
+
+  <div class="legend glass" id="legend">
+    <div class="lg-bar"></div>
+    <div class="lg-lbl"><span>niskie</span><span>uwaga</span><span>alarm</span></div>
+    <div class="lg-dmg" id="lgDmg"><i></i> faktycznie zniszczony</div>
+  </div>
+  <div class="mapbtns">
+    <button id="rainBtn" class="btn icon" title="Warstwa opadu" aria-label="Warstwa opadu">☂</button>
+    <button id="theme" class="btn icon" title="Jasny / ciemny" aria-label="Przełącz motyw">◐</button>
+    <button id="helpBtn" class="btn icon" title="Szybki start" aria-label="Szybki start">?</button>
+    <button id="cvdBtn" class="btn icon" title="Paleta przyjazna dla daltonistów" aria-label="Paleta przyjazna dla daltonistów" aria-pressed="false">◍</button>
+  </div>
+  <div id="updChip" class="updchip glass"></div>
+
+  <div id="tour" class="tour glass" role="dialog" aria-labelledby="tourH" hidden>
+    <button class="tour-x" data-go="close" aria-label="Zamknij">✕</button>
+    <h3 id="tourH">Zobacz to w 30 sekund</h3>
+    <p>RailSentinel codziennie wskazuje odcinki toru, które warto sprawdzić, zanim pogoda je uszkodzi. <span id="tourLive"></span> Zobacz, co system pokazałby przed powodzią z września 2024.</p>
+    <div class="tour-b"><button id="tourPlay" class="btn primary big" data-go="replay">▶ Powódź 2024: odtwórz</button><button class="btn big" data-go="line">Moja linia</button></div>
+    <button class="link" data-go="close">Pomiń</button>
+  </div>
+
+  <dialog id="briefDlg">
+    <div class="dlg-h"><h2>Raport dla dyżurnego</h2><div><button id="print" class="btn">🖨 Drukuj A4</button> <button id="csvNet" class="btn">⬇ CSV</button> <button id="geoNet" class="btn">⬇ GeoJSON</button> <button id="copy" class="btn">Kopiuj</button> <button id="closeDlg" class="btn" aria-label="Zamknij">✕</button></div></div>
+    <div id="brief" class="brief"></div>
+  </dialog>
+</div>
+<div id="printArea" aria-hidden="true"></div>
+
+<script defer src="vendor/leaflet/leaflet.min.js"></script>
+<script defer src="data/segments.js"></script>
+<script defer src="data/live.js"></script>
+<script defer src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    addEventListener("load", () => setTimeout(() => navigator.serviceWorker.register("sw.js").catch(() => {}), 1500));
+  }
+</script>
+</body>
+</html>

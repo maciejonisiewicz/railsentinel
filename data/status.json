@@ -1,0 +1,38 @@
+{
+ "updated": "2026-11-12 19:12",
+ "runs": 2,
+ "days": 1,
+ "first": "2026-11-12",
+ "last": "2026-11-12 19:12",
+ "runs_per_day": {
+  "2026-11-12": 2
+ },
+ "river": {
+  "1": null,
+  "2": null,
+  "3": null
+ },
+ "daily": [
+  {
+   "date": "2026-11-12",
+   "generated": "2026-11-12 19:05",
+   "alarm": 0,
+   "warn": 0,
+   "km_alarm": 0.0,
+   "imgw_powiats": 9,
+   "imgw_segments": 71,
+   "rs_in": 0,
+   "rs_out": 0,
+   "p1_max": 8.5,
+   "gust_max": 72.0,
+   "tmin_min": -1.5,
+   "snow_max": 0.0,
+   "gauges": 780,
+   "cells_ok": 562
+  }
+ ],
+ "imgw_overlap": {
+  "rs_in": 0,
+  "rs_out": 0
+ }
+}

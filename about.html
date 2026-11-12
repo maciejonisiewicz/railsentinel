@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RailSentinel – o projekcie</title>
+<meta name="description" content="RailSentinel: prognoza zagrożeń pogodowych dla każdego odcinka sieci kolejowej w Polsce na 72 h. Projekt na konkurs PKP PLK „Kolej na bezpieczeństwo”.">
+<meta name="theme-color" content="#0b0f14">
+<meta property="og:title" content="RailSentinel – zanim pogoda uszkodzi tor">
+<meta property="og:description" content="Model ML + wodowskazy IMGW + prognoza pogody: które odcinki toru sprawdzić, zanim stanie się wypadek.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0f14; --panel:#111821; --ink:#e8edf3; --muted:#9fb0c3; --line:#1f2a37; --accent:#ffb020; --blue:#3b82f6; --red:#e5484d; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg:#f5f6f8; --panel:#fff; --ink:#121821; --muted:#5b6676; --line:#e3e7ee; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+  a { color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 28px 0 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo { display: flex; gap: 12px; align-items: center; font-weight: 800; font-size: 20px; text-decoration: none; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 12px; padding: 12px 18px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); background: var(--panel); }
+  .btn.p { background: var(--accent); color: #0b0f14; border-color: var(--accent); }
+  .hero { padding: 40px 0 24px; }
+  .hero h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1.04; letter-spacing: -.03em; margin: 0 0 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 19px; color: var(--muted); max-width: 760px; margin: 0 0 24px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  video { width: 100%; border-radius: 16px; border: 1px solid var(--line); background: #000; margin: 24px 0; display: block; }
+  section { padding: 28px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 28px; letter-spacing: -.02em; margin: 0 0 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .kpi b { display: block; font-size: 36px; letter-spacing: -.02em; line-height: 1.1; color: var(--accent); }
+  .kpi span { color: var(--muted); font-size: 14px; }
+  .tl { border-left: 3px solid var(--accent); padding-left: 16px; margin: 0; list-style: none; }
+  .tl li { margin-bottom: 14px; }
+  .tl b { color: var(--accent); }
+  .step { text-decoration: none; display: block; }
+  .step span { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #0b0f14; font-weight: 800; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .step:hover { border-color: var(--accent); }
+  footer { padding: 28px 0 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  td, th { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="./"><svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="8" fill="#ffb020"/><path d="M9 25 L14 7 M23 25 L18 7 M10.5 20h11 M12 14.5h8" stroke="#0b0f14" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="8" r="3.2" fill="#ff4d4f" stroke="#0b0f14" stroke-width="1.5"/></svg>RailSentinel</a>
+    <div class="row"><a class="btn p" href="./">Otwórz aplikację →</a></div>
+  </header>
+
+  <div class="hero">
+    <h1>Wiesz, który tor sprawdzić,<br><span>zanim pogoda go uszkodzi.</span></h1>
+    <p>RailSentinel codziennie prognozuje zagrożenia pogodowe dla każdego z ok. 4,6 tys. odcinków sieci kolejowej w Polsce na 72 godziny: podmycie toru, falę wezbraniową na rzece, wyboczenie w upale, wichurę i oblodzenie sieci. Łączy model uczenia maszynowego, prognozy pogody i stany wód z wodowskazów IMGW.</p>
+    <div class="row">
+      <a class="btn p" href="./">🚆 Otwórz aplikację</a>
+      <a class="btn" href="./#mode=line">Moja linia</a>
+      <a class="btn" href="RailSentinel_praca_konkursowa.pdf">📄 Praca konkursowa (PDF)</a>
+      <a class="btn" href="https://github.com/maciejonisiewicz/railsentinel">💻 Kod źródłowy</a>
+    </div>
+    <video controls preload="metadata" poster="video/poster.jpg" src="video/railsentinel.mp4"></video>
+  </div>
+
+  <section>
+    <h2>Jak to ocenić w 3 minuty</h2>
+    <div class="grid steps">
+      <a class="card step" href="./#mode=replay2024"><span>1</span><h3>Powódź 2024</h3><p>Naciśnij ▶ i zobacz, kiedy zapalają się alarmy. Pierwsze wyraźne wskazania przychodzą 52 godziny przed zniszczeniami.</p></a>
+      <a class="card step" href="./#mode=line&line=276"><span>2</span><h3>Moja linia</h3><p>Schemat liniowy, odcinki robocze do obchodu, karta obchodu do druku, eksport do Excela i GIS.</p></a>
+      <a class="card step" href="./"><span>3</span><h3>Ostrzeżenia IMGW → odcinki</h3><p>Na żywo: ile odcinków leży w powiatach z ostrzeżeniem i ile z nich RailSentinel wskazuje do sprawdzenia.</p></a>
+      <a class="card step" href="status.html"><span>4</span><h3>Status i weryfikacja</h3><p>Publiczny dziennik prognoz od 12.11.2026 i porównanie prognoz rzek z tym, co naprawdę się stało.</p></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dowód na dwóch powodziach</h2>
+    <div class="grid">
+      <div class="card kpi"><b id="k1">37/37</b><span>odcinków zniszczonych we wrześniu 2024 miało alarm wcześniej (backtest na archiwalnych prognozach ECMWF); w teście na powodzi 1997 – wszystkie miejsca zniszczeń</span></div>
+      <div class="card kpi"><b>52 h</b><span>mediana wyprzedzenia: tyle czasu przed zniszczeniem toru byłoby na weryfikację odcinka (backtest na archiwalnych prognozach 2024)</span></div>
+      <div class="card kpi"><b>+46%</b><span>więcej przekroczeń stanu rzeki wykrytych z 2-dniowym wyprzedzeniem – test historyczny przy znanym opadzie (górna granica)</span></div>
+      <div class="card kpi"><b>4×</b><span>mniej zbędnych alarmów niż reguła „dużo deszczu” w dniach powodzi (6,5% vs 27% sieci)</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dla kogo</h2>
+    <div class="grid">
+      <div class="card"><h3>Dyżurny ruchu i dyspozytor</h3><p>Rano dostaje listę: linia i kilometr, przyczyna, priorytet weryfikacji i aktualność danych. Decyzję podejmuje on, zgodnie z procedurami.</p></div>
+      <div class="card"><h3>Zakład linii kolejowych</h3><p>Planuje obchody i sprzęt przed ulewą zamiast po niej. „Moja linia” na telefonie działa także bez zasięgu.</p></div>
+      <div class="card"><h3>Sztab kryzysowy PLK</h3><p>Widzi całą Polskę na 72 h i ćwiczy scenariusze w symulatorze: ulewa, fala na Odrze, klimat +20%.</p></div>
+      <div class="card"><h3>Planowanie inwestycji</h3><p>Mapa gorących punktów pokazuje, gdzie przepust, umocnienie skarpy czy most dadzą największy efekt.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Historia, która nie musi się powtórzyć</h2>
+    <ul class="tl">
+      <li><b>Lipiec 1997</b> – powódź tysiąclecia. Fala na Odrze niszczy mosty kolejowe w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym. Część zniszczeń ogranicza przepustowość magistral do dziś.</li>
+      <li><b>Luty 2022</b> – orkan Eunice: PKP PLK odnotowują 400 zdarzeń pogodowych na sieci jednego dnia.</li>
+      <li><b>Wrzesień 2024</b> – ulewa w Sudetach: zniszczony węzeł Kłodzko, 300 m nasypu na linii do Kudowy, odcinki Nysa – Prudnik, Głuchołazy. Wstępne straty PLK: 880 mln zł. Prognozy pokazywały ulewę 3 dni wcześniej – zabrakło przełożenia ich na konkretne tory.</li>
+      <li><b>Teraz</b> – RailSentinel robi to przełożenie automatycznie, dla każdego odcinka w Polsce.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Jak to działa</h2>
+    <div class="grid">
+      <div class="card"><h3>A · Ulewa (ML)</h3><p>Gradient boosting z ograniczeniami monotoniczności: opad, uwilgotnienie gruntu, położenie toru w dolinie, rzeki, mosty i nasypy.</p></div>
+      <div class="card"><h3>B · Fala wezbraniowa (ML)</h3><p>Prognoza stanów ok. 800 wodowskazów IMGW na 1–3 dni: model sam znajduje „zwiastuny” w górnym biegu rzeki.</p></div>
+      <div class="card"><h3>Upał · wiatr · lód</h3><p>Modele fizyczne: temperatura szyny, progi IMGW, marznący opad – zweryfikowane na orkanie Eunice i upale 2025.</p></div>
+      <div class="card"><h3>Wyjaśnialność</h3><p>Każdy alarm mówi „dlaczego”. Komunikaty z szablonów – bez halucynacji AI. Decyzję podejmuje człowiek.</p></div>
+      <div class="card"><h3>Ostrzeżenia IMGW</h3><p>Oficjalne ostrzeżenia zawężone do odcinków: obszar ostrzeżenia to setki odcinków, do sprawdzenia zwykle garstka.</p></div>
+      <div class="card"><h3>Prywatność i bezpieczeństwo</h3><p>Bez kont i śledzących cookies. Lokalizacja „Gdzie jestem” działa tylko w przeglądarce. System tylko odczytuje dane publiczne i niczym nie steruje.</p></div>
+      <div class="card"><h3>Dla integratorów</h3><p>Statyczne API: <a href="api/v1/alarms.json">alarms.json</a>, <a href="api/v1/alarms.geojson">GeoJSON</a>, <a href="api/v1/alarms.csv">CSV</a>. Bez logowania i bez serwera po stronie PLK.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Zainstaluj na telefonie</h2>
+    <table>
+      <tr><th>Android (Chrome)</th><td>Otwórz aplikację → menu ⋮ → <b>Zainstaluj aplikację</b> / „Dodaj do ekranu głównego”.</td></tr>
+      <tr><th>iPhone (Safari)</th><td>Otwórz aplikację → przycisk Udostępnij □↑ → <b>Do ekranu początkowego</b>.</td></tr>
+      <tr><th>Komputer (Chrome/Edge)</th><td>Ikona instalacji w pasku adresu albo przycisk „⬇ Zainstaluj aplikację”.</td></tr>
+    </table>
+    <p style="color:var(--muted)">Aplikacja zapamiętuje ostatnią prognozę i działa bez zasięgu – np. w terenie na szlaku.</p>
+  </section>
+
+  <footer>
+    <a href="status.html">Status i weryfikacja na żywo</a> · <a href="https://github.com/maciejonisiewicz/railsentinel/blob/main/docs/API.md">Opis API</a><br>
+    Autor: Maciej Onisiewicz, Politechnika Wrocławska (Informatyczne Systemy Automatyki) · Konkurs PKP PLK „Kolej na bezpieczeństwo”, II edycja, wyzwanie 2.<br>
+    Dane: IMGW-PIB (dane publiczne), © OpenStreetMap contributors (ODbL), Open-Meteo (CC BY 4.0: ERA5, ECMWF), AWS Terrain Tiles, Natural Earth. Prototyp studencki – nie jest systemem operacyjnym PKP PLK S.A.
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RailSentinel – status i weryfikacja</title>
+<meta name="description" content="Publiczny dziennik prognoz RailSentinel: stan systemu, weryfikacja prospektywna prognozy rzek i porównanie z ostrzeżeniami IMGW.">
+<meta name="theme-color" content="#0b0f14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0f14; --panel:#111821; --ink:#e8edf3; --muted:#9fb0c3; --line:#1f2a37; --accent:#ffb020; --blue:#3b82f6; --red:#e5484d; --ok:#22c55e; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f5f6f8; --panel:#fff; --ink:#121821; --muted:#5b6676; --line:#e3e7ee; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+  a { color: inherit; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 48px; }
+  header { padding: 24px 0 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo { display: flex; gap: 10px; align-items: center; font-weight: 800; font-size: 19px; text-decoration: none; }
+  .btn { display: inline-flex; border-radius: 12px; padding: 10px 16px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); background: var(--panel); font-size: 14px; }
+  h1 { font-size: clamp(26px, 5vw, 38px); letter-spacing: -.03em; margin: 22px 0 6px; line-height: 1.1; }
+  h2 { font-size: 21px; letter-spacing: -.02em; margin: 34px 0 10px; }
+  p.lead { color: var(--muted); margin: 0 0 14px; max-width: 760px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .card b { display: block; font-size: 28px; letter-spacing: -.02em; line-height: 1.15; }
+  .card span { color: var(--muted); font-size: 13px; }
+  .ok b { color: var(--ok); } .bad b { color: var(--red); }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  th, td { padding: 9px 11px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  tr:last-child td { border-bottom: 0; }
+  .note { color: var(--muted); font-size: 13.5px; margin: 10px 2px 0; }
+  .pos { color: var(--ok); font-weight: 700; } .neg { color: var(--red); font-weight: 700; }
+  .empty { padding: 26px 18px; color: var(--muted); }
+  footer { color: var(--muted); font-size: 13px; padding-top: 26px; border-top: 1px solid var(--line); margin-top: 36px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="./"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="8" fill="#ffb020"/><path d="M9 25 L14 7 M23 25 L18 7 M10.5 20h11 M12 14.5h8" stroke="#0b0f14" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="8" r="3.2" fill="#ff4d4f" stroke="#0b0f14" stroke-width="1.5"/></svg>RailSentinel</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="./">← Aplikacja</a><a class="btn" href="about.html">O projekcie</a></div>
+  </header>
+
+  <h1>Status systemu i weryfikacja na żywo</h1>
+  <p class="lead">Każdy przebieg prognozy jest archiwizowany w publicznym dzienniku (gałąź <code>logs</code> repozytorium). Po kilku dniach można porównać prognozy z tym, co się naprawdę stało. To dowód, że system działa na żywo, a nie tylko w teście historycznym.</p>
+
+  <div id="out"><div class="empty">Ładowanie…</div></div>
+
+  <footer>
+    Dane: IMGW-PIB (stany wód i ostrzeżenia), Open-Meteo (prognoza pogody). Dziennik: <a href="https://github.com/maciejonisiewicz/railsentinel/tree/logs">github.com/maciejonisiewicz/railsentinel/tree/logs</a>.
+    Weryfikacja: <code>src/18_verify.py</code>. Prototyp studencki, nie jest systemem PKP PLK S.A.
+  </footer>
+</div>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const nf = (x, d = 0) => (x == null ? "–" : Number(x).toLocaleString("pl-PL", { minimumFractionDigits: d, maximumFractionDigits: d }));
+  const pc = (x) => (x == null ? "–" : Math.round(x * 100) + "%");
+  const age = (g) => (Date.now() - new Date(g.replace(" ", "T")).getTime()) / 36e5;
+  fetch("data/status.json", { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(render).catch(() => {
+    $("#out").innerHTML = '<div class="empty">Dziennik zacznie się wypełniać po pierwszym automatycznym przebiegu prognozy. Odśwież stronę za kilka godzin.</div>';
+  });
+  function render(s) {
+    const fresh = s.last && age(s.last) <= 30;
+    const rows = Object.entries(s.river).map(([k, x]) => x ? `<tr><td>${k} ${k === "1" ? "dzień" : "dni"}</td><td>${nf(x.n)}</td><td>${x.days}</td>` +
+      `<td>${nf(x.mae_model, 3)}</td><td>${nf(x.mae_persist, 3)}</td>` +
+      `<td class="${x.gain_pct > 0 ? "pos" : "neg"}">${x.gain_pct == null ? "–" : (x.gain_pct > 0 ? "+" : "") + nf(x.gain_pct, 1) + "%"}</td>` +
+      `<td>${x.events}</td><td>${pc(x.pod_system)} / ${pc(x.pod_persist)}</td></tr>` : `<tr><td>${k} ${k === "1" ? "dzień" : "dni"}</td><td colspan="7" style="text-align:left;color:var(--muted)">za mało danych – wynik pojawi się po ${k === "1" ? "drugim" : k === "2" ? "trzecim" : "czwartym"} dniu dziennika</td></tr>`).join("");
+    const daily = s.daily.slice().reverse().map((d) => `<tr><td>${d.date}</td><td>${d.alarm}</td><td>${d.warn}</td><td>${nf(d.km_alarm, 0)}</td>` +
+      `<td>${d.imgw_powiats ?? "–"}</td><td>${d.imgw_segments ?? "–"}</td><td>${d.rs_in ?? "–"}</td><td>${d.rs_out ?? "–"}</td>` +
+      `<td>${nf(d.p1_max, 0)}</td><td>${nf(d.gust_max, 0)}</td><td>${nf(d.tmin_min, 0)}</td></tr>`).join("");
+    const rd = Object.values(s.runs_per_day);
+    $("#out").innerHTML = `
+      <div class="grid">
+        <div class="card ${fresh ? "ok" : "bad"}"><b>${fresh ? "aktualny" : "nieaktualny"}</b><span>ostatni przebieg: ${s.last || "brak"}</span></div>
+        <div class="card"><b>${s.runs}</b><span>przebiegów w dzienniku (${s.days} dni od ${s.first || "–"})</span></div>
+        <div class="card"><b>${s.daily.length ? nf(s.daily[s.daily.length - 1].gauges) : "–"}</b><span>wodowskazów IMGW w ostatnim przebiegu</span></div>
+        <div class="card"><b>${s.daily.length ? s.daily[s.daily.length - 1].cells_ok + " / 562" : "–"}</b><span>punktów prognozy pogody pobranych poprawnie</span></div>
+      </div>
+
+      <h2>Weryfikacja prospektywna: prognoza stanów rzek</h2>
+      <p class="lead">Dla każdego dnia dziennika porównuję prognozę stanu wody sprzed 1, 2 i 3 dni z odczytem, który faktycznie nadszedł. Wskaźnik stanu wody: 0 to stan mediany, 1 to poziom 1% najwyższych dni z lat 2021–2024, 2 to próg alarmu modułu fali. Błąd średni (MAE) modelu porównuję z założeniem „rzeka się nie zmieni” (persystencja).</p>
+      <div class="scroll"><table>
+        <tr><th>Horyzont</th><th>Par prognoza–pomiar</th><th>Dni</th><th>MAE model</th><th>MAE „bez zmian”</th><th>Zysk modelu</th><th>Przekroczenia progu</th><th>Wykrycie: system / bez zmian</th></tr>
+        ${rows}
+      </table></div>
+      <p class="note">Przy spokojnej hydrologii przekroczeń progu prawie nie ma, więc wykrywalność pojawi się dopiero przy pierwszym wezbraniu. Wyniki są pokazane bez selekcji: każdy przebieg trafia do dziennika automatycznie. Pierwsze dni mają niepełną historię stanów wód, więc zysk modelu rośnie wraz z długością dziennika.</p>
+
+      <h2>Dziennik dni: alarmy RailSentinel i ostrzeżenia IMGW</h2>
+      <div class="scroll"><table>
+        <tr><th>Dzień</th><th>Alarm</th><th>Uwaga</th><th>Km w alarmie</th><th>Powiaty z ostrz. IMGW</th><th>Odcinki w tych powiatach</th><th>Z nich: wskaz. RS</th><th>Poza nimi: wskaz. RS</th><th>Opad maks. mm</th><th>Porywy km/h</th><th>Tmin °C</th></tr>
+        ${daily || '<tr><td colspan="11" class="empty">brak przebiegów</td></tr>'}
+      </table></div>
+      <p class="note">Wskazanie RS: odcinek z ryzykiem co najmniej na poziomie UWAGA (≥ 0,3). Kolumny „w powiatach z ostrzeżeniem” pokazują, jak system zawęża obszarowe ostrzeżenie IMGW do konkretnych odcinków. Narastająco: ${s.imgw_overlap.rs_in} wskazań wewnątrz obszarów ostrzeżeń i ${s.imgw_overlap.rs_out} poza nimi.</p>`;
+  }
+})();
+</script>
+</body>
+</html>
