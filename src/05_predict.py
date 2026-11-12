@@ -1,3 +1,4 @@
+import importlib
 import json
 import pickle
 import sys
@@ -199,7 +200,7 @@ def write_js(name, obj):
     print("zapisano", name)
 
 
-DAILY = "precipitation_sum,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,shortwave_radiation_sum,weather_code"
+DAILY = "precipitation_sum,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,shortwave_radiation_sum,weather_code,snowfall_sum"
 
 
 def live():
@@ -213,6 +214,9 @@ def live():
     today = date.today()
     hyd = pd.DataFrame(columns=["id", "date", "h3"])
     n_gauges = 0
+    fcst, cur = None, {}
+    t = pd.Timestamp(today) - pd.Timedelta(days=1)
+    lg = importlib.import_module("17_log")
     try:
         import river_fc
         api = {x["id_stacji"]: x for x in requests.get("https://danepubliczne.imgw.pl/api/data/hydro/",
@@ -234,7 +238,7 @@ def live():
             cur[code] = h
         if suspect:
             print("kontrola jakości – odczyty ograniczone:", ", ".join(sorted(set(suspect))[:12]))
-        W = pd.DataFrame([cur] * 3, index=pd.date_range(t - pd.Timedelta(days=2), t))
+        W = lg.history(lg.logdir(), t, cur)
         cellp = {c: pd.DataFrame(x["daily"]).set_index("time")["precipitation_sum"] for c, x in raw.items()}
         rh, rf = {}, {1: {}, 2: {}, 3: {}}
         for code, m in STM.items():
@@ -257,10 +261,17 @@ def live():
     days = [today + timedelta(days=k) for k in range(3)]
     from datetime import datetime
     ok_cells = sum(1 for x in raw.values() if x.get("daily", {}).get("precipitation_sum"))
-    write_js("live", pack(df, days, {"title": "Prognoza bieżąca – cała Polska", "issued": str(today),
-                                      "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                                      "status": {"cells_ok": ok_cells, "cells": len(CELLS), "gauges": n_gauges},
+    generated = datetime.now().strftime("%Y-%m-%d %H:%M")
+    status = {"cells_ok": ok_cells, "cells": len(CELLS), "gauges": n_gauges}
+    write_js("live", pack(df, days, {"title": "Prognoza bieżąca – cała Polska", "issued": str(today), "generated": generated,
+                                      "status": status,
                                       "source": "Open-Meteo Forecast API (ECMWF/ICON/GFS) + IMGW hydro API + prognoza rzek ML"}))
+    try:
+        thr = river_fc.RF["thr_model"]
+    except NameError:
+        thr = {}
+    lg.record(lg.logdir(), {"ST": ST, "df": df, "days": days, "fcst": fcst, "cur": cur, "thr": thr, "issued": str(today),
+                            "generated": generated, "t_obs": str(t.date()), "status": status})
 
 
 def replay():
@@ -404,6 +415,8 @@ if __name__ == "__main__":
         live()
     kmf = P / "kilometraz.json"
     KM = json.load(open(kmf)) if kmf.exists() else {}
+    pwf = P / "seg_powiaty.json"
+    PW = json.load(open(pwf)) if pwf.exists() else {}
     geo = []
     for s in segs:
         g = {"id": s["id"], "line": s["line"], "g": [simplify(l) for l in s["geometry"]], "river": s["river_name"],
@@ -416,6 +429,8 @@ if __name__ == "__main__":
             g["od"], g["do"] = k["od"], k.get("do") or k["od"]
         if s.get("maxspeed") and s["maxspeed"] == s["maxspeed"]:
             g["v"] = int(s["maxspeed"])
+        if PW.get(s["id"]):
+            g["pw"] = PW[s["id"]]
         geo.append(g)
     write_js("segments", geo)
     json.dump(json.load(open(P / "metrics.json")), open(WEB / "metrics.json", "w"), indent=1)

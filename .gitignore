@@ -12,3 +12,4 @@ video/build/
 video/*.mp4
 video/poster.jpg
 .env
+data/log/

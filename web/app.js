@@ -79,6 +79,130 @@
   const lineLayer = L.layerGroup().addTo(map);
   const centers = SEG.map((s) => { const b = L.polyline(s.g).getBounds().getCenter(); return [b.lat, b.lng]; });
 
+  const PWN = D.powiaty || { c: [], n: [], g: [] };
+  const pwIdx = {}, pwName = {};
+  PWN.c.forEach((c, i) => { pwIdx[c] = i; pwName[c] = PWN.n[i]; });
+  const WKIND = (n) => {
+    const t = String(n).toLowerCase();
+    return /upał/.test(t) ? "heat" : /śnieg|mróz|marz|gołoled|oblodz|zamiec|zawiej/.test(t) ? "ice" : /wiatr/.test(t) ? "wind"
+      : /burz|deszcz|ulew|roztop|grad|opad|powód|wezbr|wzrost/.test(t) ? "flood" : "other";
+  };
+  const WICON = { flood: "💧", heat: "🌡", wind: "💨", ice: "❄", other: "⚠" };
+  const WCOL = { 1: "#ffd23f", 2: "#ff8a00", 3: "#e5484d" };
+  const WAPI = "https://danepubliczne.imgw.pl/api/data/";
+  let IMG = { m: [], h: [], at: 0, cached: false, ok: false };
+  map.createPane("warnPane").style.zIndex = 340;
+  const warnLayer = L.layerGroup().addTo(map);
+  const wdeg = (w) => +(w.stopien || w["stopień"]) || 0;
+  const wfrom = (w) => w.obowiazuje_od || w.data_od || "";
+  const wto = (w) => w.obowiazuje_do || w.data_do || "";
+  const wname = (w) => w.nazwa_zdarzenia || w.zdarzenie || "";
+  const wHm = (t) => (t ? `${t.slice(8, 10)}.${t.slice(5, 7)} ${t.slice(11, 16)}` : "");
+  function wActive(w, day) {
+    const a = wfrom(w), b = wto(w);
+    if (!a || !b || a.slice(0, 10) > day || b.slice(0, 10) < day) return false;
+    return !(b.slice(0, 10) === day && b.slice(11, 19) === "00:00:00");
+  }
+  function warnMap(day) {
+    const by = {};
+    IMG.m.forEach((w) => { if (wActive(w, day)) (w.teryt || []).forEach((c) => { (by[c] = by[c] || []).push(w); }); });
+    return by;
+  }
+  function warnAt(codes, day) {
+    const by = warnMap(day), out = [];
+    (codes || []).forEach((c) => (by[c] || []).forEach((w) => { if (!out.includes(w)) out.push(w); }));
+    return out.sort((a, b) => wdeg(b) - wdeg(a));
+  }
+  function warnGroups(day) {
+    const g = {};
+    IMG.m.forEach((w) => {
+      if (!wActive(w, day)) return;
+      const k = wname(w) + "|" + wdeg(w);
+      const x = g[k] = g[k] || { name: wname(w), deg: wdeg(w), kind: WKIND(wname(w)), codes: new Set(), from: wfrom(w), to: wto(w) };
+      (w.teryt || []).forEach((c) => x.codes.add(c));
+      if (wfrom(w) < x.from) x.from = wfrom(w);
+      if (wto(w) > x.to) x.to = wto(w);
+    });
+    return Object.values(g).sort((a, b) => b.deg - a.deg || b.codes.size - a.codes.size);
+  }
+  const warnStamp = () => new Date(IMG.at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+  async function loadWarnings() {
+    try {
+      const get = (n) => fetch(WAPI + n, { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const [m, h] = await Promise.all([get("warningsmeteo"), get("warningshydro")]);
+      IMG = { m: Array.isArray(m) ? m : [], h: (Array.isArray(h) ? h : []).filter((w) => wdeg(w) >= 1), at: Date.now(), cached: false, ok: true };
+      LS.set("rs_warn", JSON.stringify(IMG));
+    } catch (e) {
+      try { const c = JSON.parse(LS.get("rs_warn") || "null"); if (c && c.m) IMG = { ...c, cached: true, ok: true }; } catch (e2) {  }
+    }
+    if (isLive()) render();
+  }
+  function drawWarnOverlay(by) {
+    Object.entries(by).forEach(([c, ws]) => {
+      const i = pwIdx[c];
+      if (i === undefined) return;
+      const col = WCOL[Math.max(...ws.map(wdeg))] || WCOL[1];
+      PWN.g[i].forEach((ring) => L.polygon(ring, { pane: "warnPane", color: col, weight: 1.2, opacity: 0.9, fillColor: col, fillOpacity: 0.2, interactive: false }).addTo(warnLayer));
+    });
+  }
+  function renderWarn(v, r) {
+    const el = $("#warnCard");
+    warnLayer.clearLayers();
+    const show = st.mode === "live" && IMG.ok && v && v.days;
+    el.hidden = !show;
+    if (!show) return;
+    const day = v.days[st.day], gs = warnGroups(day), by = warnMap(day);
+    const hyd = IMG.h.filter((w) => wActive(w, day));
+    let html = `<div class="wc-h"><b>Ostrzeżenia IMGW</b><span>${dayLbl(day, st.day)}</span></div>`;
+    if (!gs.length && !hyd.length) html += `<div class="wc-none">Brak ostrzeżeń meteorologicznych i hydrologicznych IMGW na ten dzień.</div>`;
+    html += gs.map((g) => `<div class="wc-row"><span class="wdeg d${g.deg}">${g.deg}°</span><span class="wt"><b>${WICON[g.kind]} ${g.name}</b>` +
+      `<small>${g.codes.size} pow. · ${wHm(g.from)} – ${wHm(g.to)}</small></span></div>`).join("");
+    html += hyd.map((w) => `<div class="wc-row"><span class="wdeg d${wdeg(w)}">${wdeg(w)}°</span><span class="wt"><b>💧 ${wname(w)} (hydro)</b>` +
+      `<small>${[...new Set((w.obszary || []).map((o) => o.wojewodztwo))].join(", ")} · do ${wHm(wto(w))}</small></span></div>`).join("");
+    if (gs.length) {
+      const warned = new Set(Object.keys(by));
+      let n = 0, km = 0, hit = 0, out = 0;
+      SEG.forEach((s, i) => {
+        const inW = (s.pw || []).some((c) => warned.has(c)), flag = r.total[i] >= WARN;
+        if (inW) { n++; km += s.len; if (flag) hit++; } else if (flag) out++;
+      });
+      html += `<div class="wc-cmp">W powiatach objętych ostrzeżeniem leży <b>${n.toLocaleString("pl-PL")}</b> odcinków (${Math.round(km).toLocaleString("pl-PL")} km toru). ` +
+        `RailSentinel wskazuje z nich do sprawdzenia: <b>${hit}</b>.${out ? ` Poza obszarem ostrzeżeń: <b>${out}</b> odc. z podwyższonym ryzykiem.` : ""}</div>` +
+        `<label class="wc-ov"><input type="checkbox" id="wOverlay"${st.wov ? " checked" : ""}> Pokaż powiaty z ostrzeżeniami na mapie</label>`;
+    }
+    html += `<div class="wc-src">Źródło: IMGW-PIB (danepubliczne.imgw.pl), stan z ${warnStamp()}${IMG.cached ? ", z pamięci podręcznej" : ""}. Powiązanie z odcinkami: RailSentinel.</div>`;
+    el.innerHTML = html;
+    if (st.wov && gs.length) drawWarnOverlay(by);
+  }
+  function warnPopup(s, x) {
+    if (!IMG.ok || st.mode !== "live") return "";
+    const v = view(), ws = warnAt(s.pw, v.days[st.day]);
+    const names = (s.pw || []).map((c) => pwName[c]).filter(Boolean).join(", ");
+    const body = ws.length ? ws.map((w) => `<div>${WICON[WKIND(wname(w))]} ${wname(w)} <b>${wdeg(w)}°</b> <span class="muted small">${wHm(wfrom(w))} – ${wHm(wto(w))}</span></div>`).join("")
+      : `<div class="muted">brak ostrzeżeń IMGW dla tego powiatu</div>`;
+    const extra = x >= WARN && !ws.length ? `<div class="muted small">RailSentinel wskazuje zagrożenie, którego IMGW nie ogłosiło dla tego powiatu (np. fala z górnego biegu rzeki albo cechy toru).</div>` : "";
+    return `<div class="why imgw"><b>IMGW · powiat ${names || "?"}</b>${body}${extra}</div>`;
+  }
+  function renderLineWarn(ord, v) {
+    const el = $("#lineWarn");
+    if (!IMG.ok || !v) { el.innerHTML = ""; return; }
+    const codes = [...new Set(ord.flatMap((i) => SEG[i].pw || []))];
+    const rows = v.days.map((d, k) => {
+      const ws = warnAt(codes, d);
+      const txt = ws.length ? [...new Set(ws.map((w) => `${WICON[WKIND(wname(w))]} ${wname(w)} ${wdeg(w)}°`))].join(", ") : "brak ostrzeżeń";
+      return `<div><span class="muted">${dayLbl(d, k)}:</span> ${txt}</div>`;
+    }).join("");
+    el.innerHTML = `<b>Ostrzeżenia IMGW dla powiatów, przez które biegnie linia</b>${rows}<div class="wc-src">Źródło: IMGW-PIB, stan z ${warnStamp()}${IMG.cached ? ", z pamięci podręcznej" : ""}.</div>`;
+  }
+  function warnBrief(day) {
+    if (!IMG.ok || st.mode !== "live") return "";
+    const gs = warnGroups(day);
+    if (!gs.length) return `<div class="proc"><b>Ostrzeżenia IMGW na ${fmtDay(day)}:</b> brak ostrzeżeń meteorologicznych.</div>`;
+    return `<div class="proc"><b>Ostrzeżenia IMGW na ${fmtDay(day)}:</b> ` +
+      gs.map((g) => `${g.name} ${g.deg}° (${g.codes.size} pow., ${wHm(g.from)} – ${wHm(g.to)})`).join("; ") +
+      `. Źródło: IMGW-PIB, stan z ${warnStamp()}.</div>`;
+  }
+
   function view() {
     if (st.mode === "sim") return simRisk ? { days: ["sim"], risk: { sim: simRisk }, meta: { title: "Symulator" } } : null;
     const m = st.mode === "line" ? D.live : D[st.mode];
@@ -120,6 +244,7 @@
   const domHz = (r, i) => ["flood", "heat", "wind", "ice"].reduce((a, h) => (r[h][i] > r[a][i] ? h : a), "flood");
 
   function render() {
+    if (st.mode !== "live") { $("#warnCard").hidden = true; warnLayer.clearLayers(); }
     $("#simCtrl").hidden = st.mode !== "sim";
     $("#lineCtrl").hidden = st.mode !== "line";
     $("#daysCtrl").hidden = st.mode === "sim";
@@ -175,6 +300,7 @@
 
     renderBrief(v, r, alarm.map(([, i]) => i), warn.map(([, i]) => i));
     renderRain(r);
+    renderWarn(v, r);
     if (st.mode === "line") renderLine();
     const stt = v.meta && v.meta.status;
     const nq2 = r.q ? r.q.filter((q) => q === 2).length : 0;
@@ -232,7 +358,7 @@
       $("#lineStatus").className = "linestatus";
       $("#lineStatus").innerHTML = st.line ? `Nie znam linii „${st.line}”. Wybierz numer z listy albo użyj 📍.` :
         "Wpisz numer swojej linii albo kliknij <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego jej odcinka na 3 dni.";
-      $("#lineTable").innerHTML = ""; return;
+      $("#lineTable").innerHTML = ""; $("#lineWarn").innerHTML = ""; return;
     }
     const ord = lineOrder(ii);
     let worst = { x: -1 };
@@ -249,6 +375,7 @@
       ord.map((i) => `<tr data-i="${i}"><td>${odDo(SEG[i]) || "–"}${SEG[i].km ? ` <span class="muted small">· ${kmTxt(SEG[i])}</span>` : ""}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
         v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
     $("#lineUpd").textContent = `prognoza z ${fmtDay(v.meta.issued || v.days[0])}`;
+    renderLineWarn(ord, v);
     ord.forEach((i) => L.polyline(SEG[i].g, { color: "#3b82f6", weight: 12, opacity: 0.3, interactive: false }).addTo(lineLayer));
     if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { ...pad(), maxZoom: 11 });
     st.lineText = $("#lineStatus").innerText;
@@ -344,13 +471,13 @@
   function renderBrief(v, r, alarm, warn) {
     const day = v.days[st.day];
     if (!alarm.length && !warn.length) {
-      $("#brief").innerHTML = `<p><b>${fmtDay(day)}:</b> brak odcinków powyżej progu uwagi. Standardowy tryb utrzymania.</p>`;
+      $("#brief").innerHTML = warnBrief(day) + `<p><b>${fmtDay(day)}:</b> brak odcinków powyżej progu uwagi. Standardowy tryb utrzymania.</p>`;
       return;
     }
     const byHz = {};
     alarm.forEach((i) => { const h = st.hz === "total" ? domHz(r, i) : st.hz; (byHz[h] = byHz[h] || []).push(i); });
     const stt = v.meta && v.meta.status;
-    let html = `<div class="proc"><b>Stan danych:</b> ${v.meta && v.meta.issued ? "prognoza wydana " + fmtDay(v.meta.issued) + (v.meta.generated ? ", " + v.meta.generated.slice(11) : "") : (v.meta && v.meta.title) || ""}` +
+    let html = warnBrief(day) + `<div class="proc"><b>Stan danych:</b> ${v.meta && v.meta.issued ? "prognoza wydana " + fmtDay(v.meta.issued) + (v.meta.generated ? ", " + v.meta.generated.slice(11) : "") : (v.meta && v.meta.title) || ""}` +
       `${stt ? `; IMGW: ${stt.gauges ? stt.gauges + " wodowskazów" : "brak danych – moduł fali nieaktywny"}; prognoza pogody: ${stt.cells_ok}/${stt.cells} punktów` : ""}.` +
       `${stale(v) ? `<br><b class="warnTxt">⚠ ${STALE_TXT}</b>` : ""}` +
       `<br><b>Jak czytać:</b> pozycje uszeregowane według priorytetu weryfikacji (1 = najpierw). Pewność oceny maleje z wyprzedzeniem prognozy.` +
@@ -408,6 +535,7 @@
         <div><small>Wiatr · porywy</small><b>${pct(r.wind[i])}</b> <span class="muted small">${r.gust[i]} km/h</span></div>
       </div>
       ${why ? `<div class="why"><b>Dlaczego? Wkład czynników do ryzyka</b>${why}</div>` : ""}
+      ${warnPopup(s, x)}
       ${x >= WARN ? `<div class="act"><b>Do rozważenia:</b> ${ACTION[h]}.<div class="dec">${DECIDE}</div></div>` : ""}
       ${stale(v) ? `<div class="act warnbox">⚠ ${STALE_TXT}</div>` : ""}
       ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed zniszczeniem` : ""}</div>` : ""}
@@ -578,4 +706,9 @@
       openPopup(i, c);
     }
   }, 400);
+
+  $("#warnCard").addEventListener("change", (e) => { if (e.target.id === "wOverlay") { st.wov = e.target.checked; render(); } });
+  loadWarnings();
+  setInterval(loadWarnings, 600000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - IMG.at > 300000) loadWarnings(); });
 })();

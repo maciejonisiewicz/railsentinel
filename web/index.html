@@ -55,6 +55,8 @@
       </div>
     </div>
 
+    <div class="warncard" id="warnCard" hidden></div>
+
     <div class="ctrl" id="daysCtrl"><div class="seg" id="days"></div></div>
 
     <div class="ctrl" id="hzCtrl">
@@ -74,6 +76,7 @@
         <button id="geoBtn" class="btn big" aria-label="Znajdź linię w mojej okolicy">📍 Gdzie jestem</button>
       </div>
       <div id="lineStatus" class="linestatus"></div>
+      <div id="lineWarn" class="linewarn"></div>
       <div id="lineTable"></div>
       <div class="row"><button id="shareBtn" class="btn big">Udostępnij komunikat</button><span id="lineUpd" class="muted small"></span></div>
     </div>
@@ -133,6 +136,7 @@
 <script src="data/live.js"></script>
 <script src="data/heat.js"></script>
 <script src="data/y1997.js" onerror="void 0"></script>
+<script src="data/powiaty.js"></script>
 <script src="data/model.js"></script>
 <script src="sim.js"></script>
 <script src="app.js"></script>

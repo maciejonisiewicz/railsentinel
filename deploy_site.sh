@@ -5,6 +5,12 @@ curl -sf "https://raw.githubusercontent.com/maciejonisiewicz/railsentinel/gh-pag
   && grep -q '"issued"' /tmp/rs_live.js && cp /tmp/rs_live.js web/data/live.js || true
 SITE=$(mktemp -d)
 cp -R web/. "$SITE/"
+OLD=$(mktemp -d)
+if git clone -q --depth 1 -b gh-pages "https://github.com/maciejonisiewicz/railsentinel.git" "$OLD" 2>/dev/null; then
+  [ -f "$OLD/data/status.json" ] && cp "$OLD/data/status.json" "$SITE/data/status.json"
+  [ -d "$OLD/api" ] && cp -R "$OLD/api" "$SITE/api"
+fi
+rm -rf "$OLD"
 cp docs/RailSentinel_praca_konkursowa.pdf "$SITE/" 2>/dev/null || true
 mkdir -p "$SITE/video"
 [ -f video/RailSentinel_film.mp4 ] && cp video/RailSentinel_film.mp4 "$SITE/video/railsentinel.mp4"
