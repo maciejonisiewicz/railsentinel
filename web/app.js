@@ -84,9 +84,14 @@
   const lineLayer = L.layerGroup().addTo(map);
   const centers = SEG.map((s) => { const b = L.polyline(s.g).getBounds().getCenter(); return [b.lat, b.lng]; });
 
-  const PWN = D.powiaty || { c: [], n: [], g: [] };
+  let PWN = { c: [], n: [], g: [] };
   const pwIdx = {}, pwName = {};
-  PWN.c.forEach((c, i) => { pwIdx[c] = i; pwName[c] = PWN.n[i]; });
+  function initPowiaty() {
+    if (!D.powiaty || PWN === D.powiaty) return;
+    PWN = D.powiaty;
+    PWN.c.forEach((c, i) => { pwIdx[c] = i; pwName[c] = PWN.n[i]; });
+  }
+  initPowiaty();
   const WKIND = (n) => {
     const t = String(n).toLowerCase();
     return /upał/.test(t) ? "heat" : /śnieg|mróz|marz|gołoled|oblodz|zamiec|zawiej/.test(t) ? "ice" : /wiatr/.test(t) ? "wind"
@@ -252,7 +257,8 @@
     if (st.mode !== "live") { $("#warnCard").hidden = true; warnLayer.clearLayers(); }
     $("#simCtrl").hidden = st.mode !== "sim";
     $("#lineCtrl").hidden = st.mode !== "line";
-    $("#daysCtrl").hidden = st.mode === "sim";
+    $("#daysCtrl").hidden = st.mode === "sim" || st.mode === "line";
+    app.dataset.mode = st.mode;
     $("#statusCard").hidden = st.mode === "line";
     $("#hzCtrl").hidden = st.mode === "sim" || st.mode === "line";
     $("#topBox").hidden = st.mode === "line";
@@ -340,10 +346,17 @@
   const byLine = {};
   SEG.forEach((s, i) => { (byLine[s.line] = byLine[s.line] || []).push(i); });
   const lineNames = Object.keys(byLine).filter((l) => l !== "bn").sort((a, b) => (+a || 9999) - (+b || 9999));
-  $("#lineList").innerHTML = lineNames.map((l) => {
-    const pl = [...new Set(byLine[l].map((i) => SEG[i].place).filter(Boolean))];
-    return `<option value="${l}">${pl.slice(0, 1).join("")}${pl.length > 1 ? " – " + pl[pl.length - 1] : ""}</option>`;
-  }).join("");
+  const fold = (t) => String(t).toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+  const PLACES = new Map();
+  SEG.forEach((s) => {
+    if (s.line === "bn") return;
+    new Set([s.place, s.od, s.do].filter(Boolean)).forEach((n) => {
+      const k = fold(n);
+      if (!PLACES.has(k)) PLACES.set(k, { name: n, lines: {} });
+      const e = PLACES.get(k);
+      e.lines[s.line] = (e.lines[s.line] || 0) + 1;
+    });
+  });
   st.line = LS.get("rs_line") || "";
   $("#lineInput").value = st.line;
   function lineOrder(ii) {
@@ -365,16 +378,104 @@
     const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy);
     return ii.map((i, k) => [i, (c[k][1] - mx) * Math.cos(ang) + (c[k][0] - my) * Math.sin(ang)]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
   }
+  const labelCache = {};
+  function lineLabel(l) {
+    if (labelCache[l] === undefined) {
+      const ord = lineOrder(byLine[l]), f = SEG[ord[0]], e = SEG[ord[ord.length - 1]];
+      const a = f.od || f.place || "", b = e.do || e.place || "";
+      labelCache[l] = a && b && a !== b ? `${a} – ${b}` : a || b;
+    }
+    return labelCache[l];
+  }
+  const recents = () => { try { return JSON.parse(LS.get("rs_recent") || "[]").filter((l) => byLine[l]); } catch (e) { return []; } };
+  const pushRecent = (l) => LS.set("rs_recent", JSON.stringify([l, ...recents().filter((x) => x !== l)].slice(0, 5)));
+  function lineLevel(l, v) {
+    let w = 0;
+    byLine[l].forEach((i) => v.days.forEach((d) => { const x = v.risk[d].total[i]; if (x > w) w = x; }));
+    return w;
+  }
+  const lvlIcon = (x) => (x >= ALARM ? "⛔" : x >= WARN ? "⚠" : "✓");
+  function renderRecent(v) {
+    const r = recents();
+    $("#recent").innerHTML = r.length && v ? `<span class="rc-h">Ostatnio:</span>` + r.map((l) => {
+      const w = lineLevel(l, v);
+      return `<button type="button" class="rc ${w >= ALARM ? "alarm" : w >= WARN ? "warn" : "ok"}${l === st.line ? " on" : ""}" data-l="${l}">${lvlIcon(w)} ${l}</button>`;
+    }).join("") : "";
+  }
+  function renderTiles(ord, v) {
+    $("#dayTiles").innerHTML = v.days.map((d, k) => {
+      let w = { x: -1, i: ord[0] };
+      ord.forEach((i) => { const x = v.risk[d].total[i]; if (x > w.x) w = { x, i }; });
+      const lvl = w.x >= ALARM ? "alarm" : w.x >= WARN ? "warn" : "ok";
+      return `<button type="button" class="dt ${lvl}${k === st.day ? " sel" : ""}" data-k="${k}" data-i="${w.i}"><span class="dd">${dayLbl(d, k)}</span>` +
+        `<b>${lvlIcon(w.x)} ${lvl === "ok" ? "OK" : pct(w.x)}</b><small>${lvl === "ok" ? "spokojnie" : HZS[domHz(v.risk[d], w.i)]}</small></button>`;
+    }).join("");
+  }
+  function showChips(label, items) {
+    $("#near").innerHTML = `<span class="rc-h">${label}</span>` + items.map((x) => `<button type="button" class="rc" data-l="${x.line}">${x.line}${x.km != null ? ` <small>${x.km < 1 ? "<1" : Math.round(x.km)} km</small>` : ""}</button>`).join("");
+    $("#near").hidden = !items.length;
+  }
+  function clearLineBox() {
+    ["#lineTable", "#lineWarn", "#lineStrip", "#lineRounds", "#dayTiles", "#lineAct"].forEach((q) => { $(q).innerHTML = ""; });
+  }
+  function say(msg) {
+    $("#lineStatus").className = "linestatus";
+    $("#lineStatus").innerHTML = msg;
+    clearLineBox();
+    if (mobile()) setSheet();
+  }
+  function suggest(q) {
+    const t = fold(q);
+    if (!t) return [];
+    if (/^\d+$/.test(t)) return lineNames.filter((l) => l.startsWith(t)).slice(0, 6).map((l) => ({ kind: "line", line: l, title: `Linia ${l}`, sub: lineLabel(l) }));
+    const hits = [];
+    PLACES.forEach((e, k) => {
+      const at = k.indexOf(t);
+      if (at < 0) return;
+      const ls = Object.keys(e.lines).sort((a, b) => e.lines[b] - e.lines[a]);
+      hits.push({ rank: at === 0 ? 0 : k.split(" ").some((w) => w.startsWith(t)) ? 1 : 2, e, ls });
+    });
+    hits.sort((a, b) => a.rank - b.rank || b.ls.length - a.ls.length || a.e.name.length - b.e.name.length);
+    return hits.slice(0, 6).map((h) => ({ kind: "place", line: h.ls[0], alts: h.ls, title: h.e.name, sub: "linie: " + h.ls.slice(0, 5).join(", ") }));
+  }
+  function renderSugg() {
+    const q = $("#lineInput").value, items = q.trim() ? suggest(q) : [];
+    st.sugg = items;
+    $("#sugg").hidden = !items.length;
+    $("#sugg").innerHTML = items.map((x, k) => `<button type="button" role="option" data-k="${k}"><b>${x.title}</b><small>${x.sub}</small></button>`).join("");
+  }
+  function pick(x) {
+    if (!x) return;
+    $("#lineInput").value = x.kind === "line" ? x.line : x.title;
+    $("#lineInput").blur();
+    $("#sugg").hidden = true;
+    st.me = null;
+    setLine(x.line, true);
+    if (x.kind === "place" && x.alts.length > 1) showChips(`Linie przez ${x.title}:`, x.alts.slice(0, 6).map((l) => ({ line: l })));
+    else $("#near").hidden = true;
+    if (mobile()) setSheet("half");
+  }
+  function commit() {
+    const val = $("#lineInput").value.trim();
+    if (val && val !== "bn" && byLine[val]) { pick({ kind: "line", line: val }); return; }
+    const s = suggest(val);
+    if (s.length) { pick(s[0]); return; }
+    say(`Nie znam „${val}”. Wpisz numer linii (np. 276) albo nazwę stacji lub miejscowości.`);
+  }
   function renderLine(fit) {
     const v = view();
     lineLayer.clearLayers();
+    renderRecent(v);
     if (!v) { $("#lineStatus").innerHTML = "Brak prognozy."; return; }
     const ii = byLine[st.line];
+    $("#lineCtrl").dataset.has = ii ? "1" : "0";
     if (!ii) {
       $("#lineStatus").className = "linestatus";
-      $("#lineStatus").innerHTML = st.line ? `Nie znam linii „${st.line}”. Wybierz numer z listy albo użyj 📍.` :
-        "Wpisz numer swojej linii albo kliknij <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego jej odcinka na 3 dni.";
-      $("#lineTable").innerHTML = ""; $("#lineWarn").innerHTML = ""; $("#lineStrip").innerHTML = ""; $("#lineRounds").innerHTML = ""; return;
+      $("#lineStatus").innerHTML = st.line ? `Nie znam linii „${st.line}”. Wpisz numer linii, nazwę stacji albo użyj 📍.` :
+        "Wpisz numer linii, nazwę stacji lub miejscowość albo użyj <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego odcinka na 3 dni.";
+      clearLineBox();
+      if (mobile()) setSheet();
+      return;
     }
     const ord = lineOrder(ii);
     let worst = { x: -1 };
@@ -382,37 +483,89 @@
     const lvl = worst.x >= ALARM ? "alarm" : worst.x >= WARN ? "warn" : "ok";
     const km = Math.round(ord.reduce((a, i) => a + SEG[i].len, 0));
     const places = [...new Set(ord.map((i) => SEG[i].place).filter(Boolean))];
+    const wk = Math.max(0, v.days.indexOf(worst.d));
     $("#lineStatus").className = "linestatus " + lvl;
-    $("#lineStatus").innerHTML = `<b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>
-      <span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span><br>
-      ${lvl === "ok" ? "W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi." :
-        `Najwyższe ryzyko <b>${pct(worst.x)}</b>: ${HZ[worst.h].toLowerCase()}, ${fmtDay(worst.d)}, ${kmTxt(SEG[worst.i]) ? kmTxt(SEG[worst.i]) + " (" + odDo(SEG[worst.i]) + ")" : "rejon " + (SEG[worst.i].place || "?")}.<br><i>Do rozważenia (decyzja: uprawniony pracownik):</i> ${ACTION[worst.h]}.`}`;
+    $("#lineStatus").innerHTML = `<div class="ls"><span class="ls-ic" aria-hidden="true">${lvlIcon(worst.x)}</span><div><b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>` +
+      `<span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span></div></div>` +
+      (lvl === "ok" ? `<p>W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi.</p>` :
+        `<p><b>${dayLbl(worst.d, wk)}</b>: ${HZ[worst.h].toLowerCase()}, ryzyko <b>${pct(worst.x)}</b><br>${kmTxt(SEG[worst.i]) ? kmTxt(SEG[worst.i]) + " (" + odDo(SEG[worst.i]) + ")" : "rejon " + (SEG[worst.i].place || "?")}</p>`);
+    const actTxt = lvl === "ok" ? "" : `Do rozważenia (decyzja: uprawniony pracownik): ${ACTION[worst.h]}.`;
+    $("#lineAct").innerHTML = actTxt ? `<b>Co zrobić?</b> <i>${actTxt}</i>` : "";
     $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d, k) => `<th class="c">${dayLbl(d, k)}</th>`).join("")}</tr>` +
       ord.map((i) => `<tr data-i="${i}"><td>${odDo(SEG[i]) || "–"}${SEG[i].km ? ` <span class="muted small">· ${kmTxt(SEG[i])}</span>` : ""}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
         v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
     $("#lineUpd").textContent = `prognoza z ${fmtDay(v.meta.issued || v.days[0])}`;
+    renderTiles(ord, v);
     renderLineWarn(ord, v);
     st.lineOrd = ord;
     renderStrip(ord, v);
     renderRounds(ord, v);
     ord.forEach((i) => L.polyline(SEG[i].g, { color: "#3b82f6", weight: 12, opacity: 0.3, interactive: false }).addTo(lineLayer));
+    if (st.me) L.circleMarker(st.me, { radius: 8, color: "#fff", weight: 3, fillColor: "#3b82f6", fillOpacity: 1, interactive: false }).addTo(lineLayer);
     if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { ...pad(), maxZoom: 11 });
-    st.lineText = $("#lineStatus").innerText;
+    st.lineText = $("#lineStatus").innerText + (actTxt ? "\n" + actTxt : "");
+    if (mobile()) setSheet();
   }
-  function setLine(l, fit = true) { st.line = String(l).trim(); LS.set("rs_line", st.line); $("#lineInput").value = st.line; render(); renderLine(fit); }
-  $("#lineInput").addEventListener("change", (e) => setLine(e.target.value));
+  function setLine(l, fit = true) {
+    st.line = String(l).trim();
+    LS.set("rs_line", st.line);
+    if (byLine[st.line]) pushRecent(st.line);
+    $("#lineInput").value = st.line;
+    $("#sugg").hidden = true;
+    render();
+    renderLine(fit);
+  }
+  const inp = $("#lineInput");
+  inp.addEventListener("input", renderSugg);
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); commit(); }
+    else if (e.key === "Escape") $("#sugg").hidden = true;
+  });
+  inp.addEventListener("change", () => { if (byLine[inp.value.trim()]) commit(); });
+  inp.addEventListener("focus", () => { if (mobile() && st.mode === "line") setSheet("full"); renderSugg(); });
+  inp.addEventListener("blur", () => setTimeout(() => { $("#sugg").hidden = true; }, 200));
+  $("#sugg").addEventListener("pointerdown", (e) => e.preventDefault());
+  $("#sugg").addEventListener("click", (e) => { const b = e.target.closest("button[data-k]"); if (b) pick(st.sugg[+b.dataset.k]); });
+  const chipClick = (e) => { const b = e.target.closest("button[data-l]"); if (b) { st.me = e.currentTarget.id === "near" ? st.me : null; setLine(b.dataset.l); if (mobile()) setSheet("half"); } };
+  $("#recent").addEventListener("click", chipClick);
+  $("#near").addEventListener("click", chipClick);
+  $("#dayTiles").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-k]");
+    if (!b) return;
+    st.day = +b.dataset.k;
+    render();
+    focusSeg(+b.dataset.i);
+  });
   $("#lineTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-i]"); if (tr) focusSeg(+tr.dataset.i); });
+  function nearLines(la, lo, max = 4, maxKm = 8) {
+    const kx = Math.cos(la * Math.PI / 180) * 111.32, ky = 110.57, best = {};
+    SEG.forEach((s) => {
+      if (s.line === "bn") return;
+      let d2 = 1e12;
+      for (const poly of s.g) for (const p of poly) { const d = ((p[0] - la) * ky) ** 2 + ((p[1] - lo) * kx) ** 2; if (d < d2) d2 = d; }
+      if (!best[s.line] || d2 < best[s.line].d2) best[s.line] = { line: s.line, d2 };
+    });
+    return Object.values(best).map((b) => ({ line: b.line, km: Math.sqrt(b.d2) })).filter((b) => b.km <= maxKm).sort((a, b) => a.km - b.km).slice(0, max);
+  }
   $("#geoBtn").addEventListener("click", () => {
-    if (!navigator.geolocation) { alert("Ta przeglądarka nie udostępnia lokalizacji."); return; }
-    $("#geoBtn").textContent = "⏳ Szukam…";
+    const btn = $("#geoBtn"), IDLE = btn.innerHTML;
+    if (!navigator.geolocation) { say("Ta przeglądarka nie udostępnia lokalizacji. Wpisz numer linii albo nazwę stacji."); return; }
+    btn.innerHTML = `<span aria-hidden="true">⏳</span><span class="gtxt"> Szukam…</span>`;
+    btn.disabled = true;
+    const done = () => { btn.innerHTML = IDLE; btn.disabled = false; };
     navigator.geolocation.getCurrentPosition((pos) => {
-      $("#geoBtn").textContent = "📍 Gdzie jestem";
-      const { latitude: la, longitude: lo } = pos.coords;
-      let best = [1e9, 0];
-      centers.forEach((c, i) => { const d = (c[0] - la) ** 2 + ((c[1] - lo) * Math.cos(la * Math.PI / 180)) ** 2; if (d < best[0]) best = [d, i]; });
-      setLine(SEG[best[1]].line);
-      L.circleMarker([la, lo], { radius: 7, color: "#fff", weight: 2, fillColor: "#3b82f6", fillOpacity: 1 }).addTo(lineLayer);
-    }, () => { $("#geoBtn").textContent = "📍 Gdzie jestem"; alert("Brak dostępu do lokalizacji – wpisz numer linii."); }, { enableHighAccuracy: true, timeout: 10000 });
+      done();
+      const { latitude: la, longitude: lo } = pos.coords, nl = nearLines(la, lo);
+      if (!nl.length) { say("W promieniu 8 km od Ciebie nie ma linii kolejowej z prognozą. Wpisz numer linii albo nazwę stacji."); return; }
+      st.me = [la, lo];
+      setLine(nl[0].line, true);
+      showChips("Najbliżej Ciebie:", nl);
+      if (mobile()) setSheet("half");
+    }, (err) => {
+      done();
+      say(err.code === 1 ? "Brak zgody na lokalizację. Włącz ją w ustawieniach przeglądarki albo wpisz numer linii lub nazwę stacji." :
+        "Nie udało się ustalić lokalizacji. Spróbuj na zewnątrz albo wpisz numer linii lub nazwę stacji.");
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   });
   $("#shareBtn").addEventListener("click", async () => {
     const txt = `RailSentinel – ${st.lineText || ""}\n${location.origin + location.pathname}#mode=line&line=${st.line}`;
@@ -486,7 +639,8 @@
     }[st.mode];
     const rr = st.mode === "live" ? cur() : null, quiet = rr && !rr.total.some((x) => x >= WARN);
     $("#story").innerHTML = `<h2>${T[0]}</h2><p>${T[1]}</p>` + (st.mode === "live" ? wxLine() +
-      (quiet ? `<button class="link demo" data-go="replay">▶ Zobacz, jak wyglądał alarm przed powodzią 2024</button>` : "") : "");
+      (quiet ? `<button class="link demo" data-go="replay">▶ Zobacz, jak wyglądał alarm przed powodzią 2024</button>` : "") +
+      (mobile() ? `<button class="btn primary big cta" data-go="line">🔎 Sprawdź moją linię lub stację</button>` : "") : "");
   }
 
   function renderBrief(v, r, alarm, warn) {
@@ -584,8 +738,14 @@
   }
 
   function setMode(m, fly = true) {
+    if (need(m).length) {
+      $("#story").innerHTML = `<h2>Ładowanie danych…</h2><p>Pobieram dane tego widoku.</p>`;
+      ensure(m).then(() => setMode(m, fly), () => { $("#story").innerHTML = `<h2>Nie udało się pobrać danych</h2><p>Sprawdź połączenie z internetem i spróbuj ponownie.</p>`; });
+      return;
+    }
     st.mode = m;
-    document.querySelectorAll("#modes button").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
+    document.querySelectorAll("#modes button[data-mode]").forEach((x) => x.classList.toggle("on", x.dataset.mode === m));
+    updateMore(m);
     st.day = m === "replay2024" || m === "heat" || m === "y1997" ? 1 : 0;
     if ((m === "live" || m === "line") && D.live) st.day = Math.max(0, D.live.days.indexOf(today()));
     lineLayer.clearLayers(); simLayer.clearLayers();
@@ -595,7 +755,7 @@
     if (m === "line") setTimeout(() => renderLine(fly), 0);
     setSheet();
   }
-  $("#modes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setMode(b.dataset.mode); });
+  $("#modes").addEventListener("click", (e) => { const b = e.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
   $("#hazards").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x === b));
@@ -649,9 +809,11 @@
   });
   function sheetHeights() {
     const H = innerHeight, sa = parseFloat(getComputedStyle(side).paddingBottom) || 14;
-    const anchor = !$("#statusCard").hidden && $("#statusCard").offsetHeight ? $("#statusCard") : $("#story");
-    const peek = Math.max(110, Math.min(H * 0.4, anchor.offsetTop + anchor.offsetHeight + sa));
-    return { peek, half: Math.max(peek, H * 0.52), full: H - 66 };
+    const lineMode = st.mode === "line";
+    const anchor = lineMode ? [$("#dayTiles"), $("#lineStatus"), $("#lineCtrl"), $("#story")].find((x) => x.offsetHeight) || $("#grab") :
+      !$("#statusCard").hidden && $("#statusCard").offsetHeight ? $("#statusCard") : $("#story");
+    const peek = Math.max(110, Math.min(H * (lineMode ? 0.58 : 0.4), anchor.offsetTop + anchor.offsetHeight + sa));
+    return { peek, half: Math.max(peek, H * (lineMode ? 0.6 : 0.52)), full: H - 66 };
   }
   function setSheet(s = sheet) {
     sheet = s;
@@ -761,7 +923,7 @@
       html += `<div class="rd-day"><b>${dayLbl(d, k)}</b>` + g.map((x) => `<div class="rd" data-i="${x.ii[0]}" role="button" tabindex="0"><span class="pill" style="background:${color(x.x)}">${Math.round(x.x * 100)}</span>` +
         `<span class="t"><b>${rangeTxt(x)}</b><small>${kmf(x.len)} km toru · ${HZS[x.h]}</small></span></div>`).join("") + `</div>`;
     });
-    $("#lineRounds").innerHTML = `<div class="rd-h">Do obchodu: odcinki robocze</div>` +
+    $("#lineRounds").innerHTML = `<div class="rd-h">Odcinki do sprawdzenia</div>` +
       (html || `<div class="muted small">Brak odcinków powyżej progu uwagi w ciągu 72 h.</div>`);
   }
   function renderStrip(ord, v) {
@@ -860,13 +1022,67 @@
   $("#cvdBtn").addEventListener("click", () => setCvd(!cvd));
   if (LS.get("rs_cvd") === "1") { cvd = true; document.documentElement.dataset.cvd = "1"; $("#cvdBtn").classList.add("on"); $("#cvdBtn").setAttribute("aria-pressed", "true"); }
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const DATA_NEED = { replay2024: ["data/replay2024.js"], heat: ["data/heat.js"], y1997: ["data/y1997.js"], sim: ["data/model.js", "sim.js"] };
+  const loadingJs = {};
+  const loaded = (src) => (src === "sim.js" ? !!window.RS_SIM : !!D[src.replace(/^data\//, "").replace(/\.js$/, "")]);
+  const need = (m) => (DATA_NEED[m] || []).filter((src) => !loaded(src));
+  function loadScript(src) {
+    if (!loadingJs[src]) {
+      loadingJs[src] = new Promise((resolve, reject) => {
+        const el = document.createElement("script");
+        el.src = src;
+        el.onload = resolve;
+        el.onerror = () => { delete loadingJs[src]; el.remove(); reject(new Error(src)); };
+        document.head.appendChild(el);
+      });
+    }
+    return loadingJs[src];
+  }
+  async function ensure(m) {
+    for (const src of need(m)) await loadScript(src);
+    if (m === "replay2024") initReplay();
+  }
+  const MORE = [["replay2024", "Powódź 2024: czy system by ostrzegł?", "Powódź 2024"], ["sim", "Symulator „co jeśli?”", "Symulator"],
+    ["heat", "Upał w całej Polsce", "Upał"], ["y1997", "Powódź 1997: test na nieznanych danych", "Powódź 1997"]];
+  $("#moreMenu").innerHTML = MORE.map(([m, t]) => `<button type="button" data-mode="${m}">${t}</button>`).join("") +
+    `<button type="button" id="moreTour">Szybki start</button><button type="button" id="moreTheme">Jasny / ciemny motyw</button>` +
+    `<button type="button" id="moreCvd">Paleta dla daltonistów</button><a href="status.html">Status i weryfikacja</a><a href="about.html">O projekcie</a>`;
+  function toggleMore(force) {
+    const m = $("#moreMenu");
+    m.hidden = force === undefined ? !m.hidden : !force;
+    $("#moreBtn").setAttribute("aria-expanded", String(!m.hidden));
+  }
+  function updateMore(m) {
+    const hit = MORE.find((x) => x[0] === m);
+    $("#moreBtn").classList.toggle("on", !!hit);
+    $("#moreBtn").textContent = (hit ? hit[2] : "Więcej") + " ▾";
+  }
+  $("#moreBtn").addEventListener("click", (e) => { e.stopPropagation(); toggleMore(); });
+  $("#moreMenu").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    toggleMore(false);
+    if (b.dataset.mode) setMode(b.dataset.mode);
+    if (b.id === "moreTour") showTour();
+    if (b.id === "moreTheme") $("#theme").click();
+    if (b.id === "moreCvd") $("#cvdBtn").click();
+  });
+  document.addEventListener("click", (e) => { if (!e.target.closest("#moreMenu, #moreBtn")) toggleMore(false); });
   const savedTheme = LS.get("rs_theme");
   if (savedTheme) { document.documentElement.dataset.theme = savedTheme; setTiles(); }
-  if (D.replay2024) {
-    const n = D.replay2024.issues.length;
-    $("#issue").max = n - 1; st.issue = Math.min(4, n - 1); $("#issue").value = st.issue;
+  else if (matchMedia("(prefers-color-scheme: light)").matches) { document.documentElement.dataset.theme = "light"; setTiles(); }
+  if (st.line && byLine[st.line] && !recents().length) pushRecent(st.line);
+  $("#lineMore").open = !mobile();
+  function initReplay() {
+    if (!D.replay2024 || st.replayInit) return;
+    st.replayInit = true;
+    const n = D.replay2024.issues.length, hi = new URLSearchParams(location.hash.slice(1)).get("issue");
+    $("#issue").max = n - 1;
+    st.issue = Math.min(hi !== null ? +hi : 4, n - 1);
+    $("#issue").value = st.issue;
     $("#tlTicks").innerHTML = D.replay2024.issues.map((x) => `<span>${new Date(x.issued + "T12:00:00").getDate() - 1}.09</span>`).join("");
   }
+  initReplay();
 
   const hp = new URLSearchParams(location.hash.slice(1));
   if (hp.get("theme")) { document.documentElement.dataset.theme = hp.get("theme"); setTiles(); }
@@ -875,35 +1091,38 @@
   if (hp.get("rain")) { st.rain = true; $("#rainBtn").classList.add("on"); }
   if (hp.get("wov")) st.wov = true;
   if (hp.get("preset")) { const { view: vw, ...x } = PRESETS[hp.get("preset")]; Object.assign(st.sim, x); if (hp.get("clim")) st.sim.climate = +hp.get("clim"); syncSliders(); }
-  const startMode = hp.get("mode") || (D.live ? "live" : "replay2024");
+  const startMode = hp.get("mode") || (mobile() && st.line && byLine[st.line] && D.live ? "line" : D.live ? "live" : "replay2024");
   if (hp.get("issue")) { st.issue = +hp.get("issue"); $("#issue").value = st.issue; }
-  setMode(startMode, false);
-  if (hp.get("day")) { st.day = +hp.get("day"); render(); }
-  if (hp.get("lat")) map.setView([+hp.get("lat"), +hp.get("lon")], +(hp.get("z") || 9));
-  else if (hp.get("preset")) presetView(PRESETS[hp.get("preset")].view);
-  else if (startMode === "line" && byLine[st.line]) setTimeout(() => renderLine(true), 0);
-  else if (NATIONAL.includes(startMode)) map.fitBounds(PL, pad());
-  else { const v = VIEWS[startMode]; presetView([v[0][0], v[0][1], v[1]]); }
   window.addEventListener("load", () => map.invalidateSize());
-  if (hp.get("popup")) setSheet("peek");
-  if (hp.get("popup")) setTimeout(() => {
-    map.invalidateSize();
-    const r = cur();
-    if (r) {
-      const want = hp.get("seg") ? SEG.findIndex((x) => x.id === hp.get("seg")) : -1;
-      const i = want >= 0 ? want : r[st.hz].reduce((b, x, k, a) => (x > a[b] ? k : b), 0);
-      const c = layers[i].getBounds().getCenter();
-      const z = +(hp.get("z") || 11);
-      map.setView(c, z, { animate: false });
-      const H = map.getSize().y, p = map.latLngToContainerPoint(c);
-      map.panBy([mobile() ? 0 : -150, -(0.9 * H - p.y)], { animate: false });
-      openPopup(i, c);
-    }
-  }, 400);
-
+  const boot = () => {
+    setMode(startMode, false);
+    if (hp.get("day")) { st.day = +hp.get("day"); render(); }
+    if (hp.get("lat")) map.setView([+hp.get("lat"), +hp.get("lon")], +(hp.get("z") || 9));
+    else if (hp.get("preset")) presetView(PRESETS[hp.get("preset")].view);
+    else if (startMode === "line" && byLine[st.line]) setTimeout(() => renderLine(true), 0);
+    else if (NATIONAL.includes(startMode)) map.fitBounds(PL, pad());
+    else { const v = VIEWS[startMode]; presetView([v[0][0], v[0][1], v[1]]); }
+    if (hp.get("popup")) setSheet("peek");
+    if (hp.get("popup")) setTimeout(() => {
+      map.invalidateSize();
+      const r = cur();
+      if (r) {
+        const want = hp.get("seg") ? SEG.findIndex((x) => x.id === hp.get("seg")) : -1;
+        const i = want >= 0 ? want : r[st.hz].reduce((b, x, k, a) => (x > a[b] ? k : b), 0);
+        const c = layers[i].getBounds().getCenter();
+        const z = +(hp.get("z") || 11);
+        map.setView(c, z, { animate: false });
+        const H = map.getSize().y, p = map.latLngToContainerPoint(c);
+        map.panBy([mobile() ? 0 : -150, -(0.9 * H - p.y)], { animate: false });
+        openPopup(i, c);
+      }
+    }, 400);
+    if (hp.get("tour") || (!location.hash && !mobile() && !LS.get("rs_tour") && !navigator.webdriver)) setTimeout(showTour, 1200);
+    loadWarnings();
+    setInterval(loadWarnings, 600000);
+  };
+  ensure(startMode).then(boot, boot);
+  setTimeout(() => loadScript("data/powiaty.js").then(() => { initPowiaty(); if (isLive()) render(); }, () => {}), 700);
   $("#warnCard").addEventListener("change", (e) => { if (e.target.id === "wOverlay") { st.wov = e.target.checked; render(); } });
-  if (hp.get("tour") || (!location.hash && !LS.get("rs_tour") && !navigator.webdriver)) setTimeout(showTour, 1200);
-  loadWarnings();
-  setInterval(loadWarnings, 600000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - IMG.at > 300000) loadWarnings(); });
 })();

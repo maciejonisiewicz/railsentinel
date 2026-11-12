@@ -423,7 +423,7 @@ if __name__ == "__main__":
     PW = json.load(open(pwf)) if pwf.exists() else {}
     geo = []
     for s in segs:
-        g = {"id": s["id"], "line": s["line"], "g": [simplify(l) for l in s["geometry"]], "river": s["river_name"],
+        g = {"id": s["id"], "line": s["line"], "g": [[[round(x, 4), round(y, 4)] for x, y in simplify(l)] for l in s["geometry"]], "river": s["river_name"],
              "place": s.get("place", ""), "cell": f"{round(s['lat'] * 4) / 4},{round(s['lon'] * 4) / 4}",
              "elev": round(s["elev"]), "len": s["length_km"]}
         k = KM.get(s["id"], {})

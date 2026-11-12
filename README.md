@@ -54,7 +54,7 @@ Testy: `python -m unittest discover -s tests` (potok, dziennik, API, dokumenty) 
 
 `web/` to jednocześnie strona internetowa i aplikacja instalowana na telefonie (manifest + Service Worker):
 tryb **„Moja linia”** dla kolejarzy (status linii, schemat liniowy, odcinki robocze do obchodu, karta obchodu do druku, „Gdzie jestem”, udostępnianie komunikatu, eksport CSV/GeoJSON),
-praca bez zasięgu (ostatnia prognoza), mapa całej Polski, ostrzeżenia IMGW, backtest 2024, test 1997, symulator, opis modelu, przewodnik dla nowych użytkowników, paleta dla daltonistów.
+praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka linii, stacji i miejscowości, zapisane linie, kafelki 3 dni, „Gdzie jestem”), mapa całej Polski, ostrzeżenia IMGW, backtest 2024, test 1997, symulator, opis modelu, przewodnik dla nowych użytkowników, paleta dla daltonistów.
 `web/status.html` – stan systemu i weryfikacja prospektywna; `railsentinel.pl/api/v1/` – statyczne API (JSON, GeoJSON, CSV).
 `web/about.html` – strona projektu z filmem. Hosting: GitHub Pages (gałąź `gh-pages`), domena railsentinel.pl.
 
@@ -69,6 +69,8 @@ praca bez zasięgu (ostatnia prognoza), mapa całej Polski, ostrzeżenia IMGW, b
 | `web/` | dashboard (Leaflet, statyczny) + `sim.js` – model ML w przeglądarce (symulator) |
 | `docs/` | praca konkursowa, załącznik techniczny, opis API |
 | `tests/` | testy jednostkowe i testy aplikacji w przeglądarce |
+| `web/vendor/leaflet/` | biblioteka mapy Leaflet 1.9.4 (BSD-2, kopia lokalna, suma SHA-512 zgodna z cdnjs) |
+| `mirror/` | zestaw do kopii lustrzanej strony na github.io (workflow, skrypt `setup_mirror.sh`) |
 | gałąź `logs` | dziennik przebiegów prognozy (JSON), źródło weryfikacji prospektywnej |
 
 ## Źródła danych i licencje (§10 ust. 9 Regulaminu)

@@ -6,7 +6,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 
 | Co | Gdzie | Na co patrzeć |
 |---|---|---|
-| **Strona i aplikacja** | https://railsentinel.pl (zapasowo: https://maciejonisiewicz.github.io/railsentinel/) | Zakładki: Na żywo (karta ostrzeżeń IMGW), Moja linia (schemat liniowy, odcinki do obchodu, karta obchodu), Powódź 2024 (przycisk ▶ i komentarz do każdej daty), Symulator, Upał, Powódź 1997; przycisk **?** pokazuje przewodnik, ◍ paletę dla daltonistów |
+| **Strona i aplikacja** | https://railsentinel.pl | Zakładki: Na żywo (karta ostrzeżeń IMGW), Moja linia (schemat liniowy, odcinki do obchodu, karta obchodu), Powódź 2024 (przycisk ▶ i komentarz do każdej daty), Symulator, Upał, Powódź 1997; przycisk **?** pokazuje przewodnik, ◍ paletę dla daltonistów |
 | **Status i weryfikacja na żywo** | https://railsentinel.pl/status.html | Publiczny dziennik prognoz od 12.11.2026: czy prognoza rzek jest lepsza niż „bez zmian”, ile alarmów dziennie, zgodność z ostrzeżeniami IMGW |
 | **API do integracji** | https://railsentinel.pl/api/v1/alarms.json (też `.geojson`, `.csv`, `lines.json`) | Opis: `docs/API.md` |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
@@ -18,7 +18,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 > **Ważne:** sprawdziłem, że strona działa w internecie (HTTPS, certyfikat wystawiony), ale **sieć, z której korzysta Twój
 > komputer (prawdopodobnie akademik), blokuje świeżo zarejestrowane domeny** – na tym komputerze railsentinel.pl może
 > się nie otwierać („Web Page Blocked” / zerwane połączenie). **Sprawdź na telefonie przez dane komórkowe (wyłącz Wi-Fi).**
-> Jury otworzy stronę normalnie. Kopia lokalna: `web/index.html` (otwiera się z dysku).
+> **Jury może mieć ten sam problem** (filtry firmowe blokują nowe domeny jako „high-risk”), więc film i praca nie mogą zależeć od tej domeny. Szczegóły i co zrobić: `docs/DOSTEPNOSC_I_BLOKADY.md`. Kopia lokalna: `web/index.html` (otwiera się z dysku).
 
 ## 2. Co musisz zrobić Ty (ok. 20 minut)
 
@@ -56,6 +56,14 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 - **Pierwsze wrażenie**: przewodnik przy pierwszej wizycie, komentarz przy odtwarzaniu powodzi 2024, „pogoda w liczbach”.
 - **Jakość**: testy (jednostkowe i w przeglądarce) w repozytorium i w GitHub Actions, paleta dla daltonistów, obsługa klawiatury, `prefers-reduced-motion`.
 - **Błąd w pracy**: podpis pod Rys. 5 mówił „3. najgorszy dzień”, a dane dawały miejsce 2. Poprawione i zabezpieczone testem.
+
+### Wygoda na telefonie (uwagi maszynisty)
+
+- **Szybka droga do swojej linii:** wyszukiwarka przyjmuje numer linii, nazwę stacji lub miejscowości (z podpowiedziami), przycisk 📍 wskazuje najbliższe linie z odległością, a ostatnio używane linie są przyciskami ze statusem (✓ ⚠ ⛔). Po zapisaniu linii aplikacja przy następnym wejściu od razu otwiera „Moja linia”.
+- **Jedno spojrzenie zamiast tabeli:** duża karta statusu i trzy kafelki (Dziś, Jutro, Pojutrze) widoczne bez przewijania; szczegóły (tabela, schemat, IMGW) są pod „Szczegóły”.
+- **Prostsza nawigacja:** w pasku trzy duże przyciski (Moja linia, Na żywo, Więcej), reszta widoków w menu „Więcej”; większe pola dotyku (≥ 44 px), większe napisy, motyw jasny lub ciemny zgodny z telefonem.
+- **Szybszy start na słabym zasięgu:** pierwsza treść po ok. 4,5 s zamiast 8,4 s na łączu 4G (ciężkie dane widoków historycznych ładują się dopiero po wejściu w widok).
+- **Naprawiony błąd po kliknięciu „O projekcie”** (Safari: „Returned response is null”) i dodane zapasowe strony offline. Dostępność strony w sieciach firmowych: `docs/DOSTEPNOSC_I_BLOKADY.md`.
 
 ## 4. Najważniejsze wyniki (do zapamiętania na ewentualną prezentację)
 

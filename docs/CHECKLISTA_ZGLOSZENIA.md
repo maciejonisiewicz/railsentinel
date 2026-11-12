@@ -7,6 +7,9 @@
 - [x] Film: `video/RailSentinel_film.mp4` (też na railsentinel.pl/about.html)
 - [x] Kod: https://github.com/maciejonisiewicz/railsentinel
 - [x] Praca: 15 stron (limit regulaminu: 15 stron dokumentu); załącznik techniczny jako materiał uzupełniający
+- [ ] **Film i pliki na Google Drive lub OneDrive** (link „każdy, kto ma link”, z możliwością pobrania, bez logowania; § 5 ust. 5 Regulaminu). Wstaw link do maila w miejsce `[WSTAW LINK…]`. Film z railsentinel.pl może być zablokowany w sieci PLK.
+- [ ] **Zgłoś domenę do rekategoryzacji** u dostawców filtrów (gotowe teksty: `docs/DOSTEPNOSC_I_BLOKADY.md`). Opcjonalnie poproś PWr o odblokowanie.
+- [ ] **Sprawdź railsentinel.pl z telefonu na danych komórkowych** (Wi-Fi wyłączone).
 - [ ] **Film ≤ 5 minut** – sprawdź długość po wmontowaniu wywiadów
 - [ ] **Załączniki w mailu ≤ 50 MB** (PDF ok. 5 MB + załącznik ok. 2 MB + podpisane dokumenty) – film tylko jako link
 - [ ] **Zgody osób z wywiadów** – zdjęcia podpisanych kartek zachowaj u siebie; w filmie tylko wariant, na który się zgodzili

@@ -1,0 +1,44 @@
+name: Synchronizacja kopii
+
+on:
+  schedule:
+    - cron: "40 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Pobranie strony źródłowej
+        run: |
+          git clone --depth 1 --branch gh-pages "https://github.com/maciejonisiewicz/railsentinel.git" src
+          rm -rf src/.git src/CNAME
+
+      - name: Aktualizacja kopii
+        run: |
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" gh-pages > /dev/null 2>&1; then
+            git clone --depth 1 --branch gh-pages "$REMOTE" dst
+          else
+            mkdir dst
+            git -C dst init -q -b gh-pages
+            git -C dst remote add origin "$REMOTE"
+          fi
+          rsync -a --checksum --delete --exclude .git src/ dst/
+          touch dst/.nojekyll
+          cd dst
+          git config user.name "RailSentinel"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "bez zmian"; exit 0; fi
+          git commit -q -m "Synchronizacja $(date '+%F %H:%M')"
+          git push origin HEAD:gh-pages

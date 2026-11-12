@@ -30,9 +30,8 @@ historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponow
 
 **Materiały uzupełniające (§5 ust. 4 Regulaminu):**
 - Działający prototyp – aplikacja i strona: https://railsentinel.pl
-  (adres zapasowy: https://maciejonisiewicz.github.io/railsentinel/)
-- Film prezentacyjny (MP4, poniżej 5 min): https://railsentinel.pl/about.html
-  (bezpośredni plik: https://railsentinel.pl/video/railsentinel.mp4)
+- Film prezentacyjny (MP4, poniżej 5 min), link bez logowania, z możliwością pobrania: [WSTAW LINK DO GOOGLE DRIVE LUB ONEDRIVE]
+  (film jest też na stronie https://railsentinel.pl/about.html)
 - Kod źródłowy: https://github.com/maciejonisiewicz/railsentinel
 - Status systemu i weryfikacja na żywo: https://railsentinel.pl/status.html
 - Dane wyjściowe do integracji (JSON, GeoJSON, CSV): https://railsentinel.pl/api/v1/alarms.json

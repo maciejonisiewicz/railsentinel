@@ -15,9 +15,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap"></noscript>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -33,20 +34,22 @@
     <nav class="tabs" id="modes" aria-label="Widok">
       <button data-mode="live"><i class="dot live"></i>Na żywo</button>
       <button data-mode="line">Moja linia</button>
-      <button data-mode="replay2024">Powódź 2024</button>
-      <button data-mode="sim">Symulator</button>
-      <button data-mode="heat">Upał</button>
-      <button data-mode="y1997">Powódź 1997</button>
+      <button data-mode="replay2024" class="m-hide">Powódź 2024</button>
+      <button data-mode="sim" class="m-hide">Symulator</button>
+      <button data-mode="heat" class="m-hide">Upał</button>
+      <button data-mode="y1997" class="m-hide">Powódź 1997</button>
+      <button type="button" id="moreBtn" class="more" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu">Więcej ▾</button>
     </nav>
     <div class="actions">
       <button id="installBtn" class="btn primary" hidden>Zainstaluj</button>
       <a class="btn" href="about.html" aria-label="O projekcie"><span class="ab-i" aria-hidden="true">ⓘ</span><span class="ab-t">O projekcie</span></a>
     </div>
   </header>
+  <div id="moreMenu" class="moremenu glass" hidden></div>
 
   <aside id="side" class="glass">
     <div class="grab" id="grab" role="button" aria-label="Rozwiń lub zwiń panel"></div>
-    <div id="story" class="story"></div>
+    <div id="story" class="story"><h2>Ładowanie prognozy…</h2><p>Pobieram dane sieci kolejowej.</p></div>
 
     <div class="status" id="statusCard" aria-live="polite">
       <div class="st-main"><span id="kAlarm" class="st-num">–</span><span class="st-lbl" id="kAlarmLbl">odcinków w alarmie</span></div>
@@ -70,18 +73,25 @@
       </div>
     </div>
 
-    <div id="lineCtrl" class="linebox" hidden>
-      <div class="row">
-        <input id="lineInput" list="lineList" inputmode="numeric" placeholder="Numer linii, np. 276" aria-label="Numer linii">
-        <datalist id="lineList"></datalist>
-        <button id="geoBtn" class="btn big" aria-label="Znajdź linię w mojej okolicy">📍 Gdzie jestem</button>
+    <div id="lineCtrl" class="linebox" data-has="0" hidden>
+      <div class="srch">
+        <input id="lineInput" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Linia, stacja lub miejscowość" aria-label="Linia, stacja lub miejscowość" aria-controls="sugg">
+        <button id="geoBtn" class="btn big" aria-label="Znajdź linię w mojej okolicy"><span aria-hidden="true">📍</span><span class="gtxt"> Gdzie jestem</span></button>
       </div>
-      <div id="lineStatus" class="linestatus"></div>
-      <div id="lineWarn" class="linewarn"></div>
+      <div id="sugg" class="sugg" role="listbox" hidden></div>
+      <div id="near" class="near" hidden></div>
+      <div id="recent" class="recent"></div>
+      <div id="lineStatus" class="linestatus" aria-live="polite"></div>
+      <div id="dayTiles" class="daytiles"></div>
       <div id="lineRounds" class="linerounds"></div>
-      <div id="lineStrip" class="linestrip"></div>
-      <div id="lineTable"></div>
-      <div class="row"><button id="shareBtn" class="btn big">Udostępnij komunikat</button><button id="cardBtn" class="btn big">🖨 Karta obchodu</button><button id="csvLine" class="btn big">⬇ CSV</button></div>
+      <details id="lineMore" class="linemore">
+        <summary>Szczegóły: odcinki, schemat, ostrzeżenia IMGW</summary>
+        <div id="lineAct" class="lineact"></div>
+        <div id="lineWarn" class="linewarn"></div>
+        <div id="lineStrip" class="linestrip"></div>
+        <div id="lineTable"></div>
+      </details>
+      <div class="row acts"><button id="shareBtn" class="btn big">Udostępnij</button><button id="cardBtn" class="btn big">🖨 Karta obchodu</button><button id="csvLine" class="btn big">⬇ CSV</button></div>
       <div class="row"><span id="lineUpd" class="muted small"></span></div>
     </div>
 
@@ -144,20 +154,13 @@
 </div>
 <div id="printArea" aria-hidden="true"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="data/segments.js"></script>
-<script src="data/metrics.js"></script>
-<script src="data/replay2024.js"></script>
-<script src="data/live.js"></script>
-<script src="data/heat.js"></script>
-<script src="data/y1997.js" onerror="void 0"></script>
-<script src="data/powiaty.js"></script>
-<script src="data/model.js"></script>
-<script src="sim.js"></script>
-<script src="app.js"></script>
+<script defer src="vendor/leaflet/leaflet.min.js"></script>
+<script defer src="data/segments.js"></script>
+<script defer src="data/live.js"></script>
+<script defer src="app.js"></script>
 <script>
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    addEventListener("load", () => setTimeout(() => navigator.serviceWorker.register("sw.js").catch(() => {}), 1500));
   }
 </script>
 </body>
