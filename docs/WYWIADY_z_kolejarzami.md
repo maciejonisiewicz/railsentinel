@@ -32,8 +32,13 @@ Dzięki!
 
 ## 2. Zgoda i zasady (2 minuty)
 
-1. **Zgoda na piśmie** (wzór w punkcie 8): rozmówca czyta, wybiera wariant (z twarzą lub anonimowo) i podpisuje.
-   Zrób zdjęcie podpisanej kartki i wyślij mi razem z nagraniem.
+1. **Zgoda jest potrzebna zawsze**, także bez imienia i nazwiska, bo twarz i głos to też dane osobowe. Wystarczy
+   jeden z dwóch sposobów:
+   - **na piśmie** (wzór w punkcie 8): rozmówca wybiera wariant i podpisuje, a Ty robisz zdjęcie kartki;
+   - **ustnie na nagraniu**, na samym początku, zanim padnie pierwsze pytanie. Rozmówca mówi do kamery:
+     *„Zgadzam się na nagranie i wykorzystanie mojej wypowiedzi w projekcie konkursowym RailSentinel Macieja
+     Onisiewicza: w filmie i pracy dla PKP PLK, na stronie railsentinel.pl i w serwisie YouTube. Mówię we własnym
+     imieniu, nie w imieniu pracodawcy.”* Jeśli wybiera wersję bez twarzy, dodaje: *„Proszę o pokazanie tylko głosu.”*
 2. Powiedz jasno, że rozmówca **mówi we własnym imieniu, jako praktyk, a nie w imieniu PKP PLK** ani swojego
    pracodawcy. Jeśli ktoś nie jest pewien, czy może wystąpić z twarzą, wybieramy wersję anonimową. To w zupełności
    wystarczy.
@@ -62,6 +67,7 @@ Zapisz też: **co sprawiło trudność** albo było niezrozumiałe (np. słowa, 
 - Telefon **poziomo**, oparty o coś stabilnego albo na statywie, na wysokości oczu rozmówcy, z odległości 1–1,5 m.
 - **Światło z przodu** (twarzą do okna), nie za plecami.
 - **Tory w tle**: stańcie w miejscu publicznym, z którego widać tory, co najmniej 20 m od nich. Nigdy na peronie, przejeździe ani terenie zamkniętym.
+- Nagrywaj tak, żeby w kadrze nie było nazwiska, plakietki ani numeru służbowego.
 - **Pociąg nie może zagłuszać odpowiedzi**: gdy jedzie pociąg, przerwijcie i powtórzcie zdanie. Osobno nagraj 10–20 s przejeżdżającego pociągu (sam pociąg, bez rozmowy). Wstawię to jako przerywnik.
 - **Cisza poza tym**: bez wiatru i ruchliwej ulicy. Na zewnątrz telefon trzyma się bliżej, mniej więcej 50 cm od rozmówcy.
 - Ty stoisz obok kamery, rozmówca **patrzy na Ciebie, nie w obiektyw**.
@@ -112,7 +118,7 @@ Ocena 1–10: .....   Czego brakuje: .........................   Obawy: ........
 Konkretny przypadek z pamięci (gdzie, kiedy): ...........................................
 ```
 
-## 8. Zgoda na nagranie (wydrukuj 2 sztuki albo przepisz na kartkę)
+## 8. Zgoda na nagranie (wydrukuj 2 sztuki albo przepisz na kartkę; zamiast kartki może być zgoda ustna z punktu 2)
 
 > **Zgoda na nagranie i wykorzystanie wypowiedzi**
 >

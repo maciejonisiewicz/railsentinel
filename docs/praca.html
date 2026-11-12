@@ -51,7 +51,6 @@
 </head>
 <body>
 
-<!-- OKŁADKA -->
 <section class="page cover">
   <div class="band">
     <span class="chip">Wyzwanie 2 · Czy AI może przewidzieć zagrożenie?</span>
@@ -69,7 +68,6 @@
   </div>
 </section>
 
-<!-- 01 STRESZCZENIE -->
 <section class="page">
   <h2><span class="n">01</span>Streszczenie</h2>
   <p><b>Problem.</b> Ulewy, powodzie, upały i wichury są coraz częstsze, a kolej jest na nie szczególnie wrażliwa. Powódź z września 2024 r. spowodowała straty w infrastrukturze PLK wstępnie szacowane na <b>880 mln zł</b>. Podczas orkanu Eunice (19.02.2022) PLK odnotowały <b>400 zdarzeń pogodowych jednego dnia</b>. Ostrzeżenia meteorologiczne i hydrologiczne wydaje się dziś dla powiatów i rzek, a nie dla kilometrów toru. Nikt nie mówi dyżurnemu, <i>który konkretnie odcinek</i> jest zagrożony.</p>
@@ -86,7 +84,6 @@
   <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) wyłącznie otwarte dane i kod.</div>
 </section>
 
-<!-- 02 PROBLEM -->
 <section class="page">
   <h2><span class="n">02</span>Problem i jego znaczenie dla bezpieczeństwa</h2>
   <p>Sieć PLK to ok. 18,8 tys. km eksploatowanych linii w bardzo różnym terenie: od dolin górskich rzek Sudetów po niziny zalewowe Odry. Ta sama ulewa może być nieszkodliwa dla nasypu na równinie i katastrofalna dla toru biegnącego dnem doliny tuż przy rzece. Most nad dużą rzeką może z kolei zostać zniszczony przez falę, choć w jego okolicy nie spadła ani kropla deszczu.</p>
@@ -103,7 +100,6 @@
   <div class="box warn"><b>Luka, którą wypełnia RailSentinel:</b> prognozy pogody i pomiary hydrologiczne są dziś bardzo dobre, a PLK ma wiedzę o swojej infrastrukturze. Brakuje warstwy, która połączy jedno z drugim i powie: <i>„jutro wieczorem linia X w rejonie Y jest zagrożona, z prawdopodobieństwem P, bo …”</i>.</div>
 </section>
 
-<!-- 03 ROZWIĄZANIE -->
 <section class="page">
   <h2><span class="n">03</span>Rozwiązanie i mechanizm działania</h2>
   <div class="arch">
@@ -130,7 +126,6 @@
   <figure><img src="fig/popup_crop.png" style="max-height:58mm"><figcaption>Rys. 2. Szczegóły odcinka: ryzyko w podziale na mechanizmy, parametry i wyjaśnienie, które czynniki spowodowały alarm.</figcaption></figure>
 </section>
 
-<!-- 04 DANE -->
 <section class="page">
   <h2><span class="n">04</span>Dane: co wykorzystałem i czego potrzeba docelowo</h2>
   <p>Prototyp zbudowałem <b>wyłącznie na danych publicznych</b>, więc każdy może go odtworzyć. Docelowa wersja dla PLK w tej samej architekturze przyjmie dane wewnętrzne, które znacząco poprawią trafność.</p>
@@ -153,7 +148,6 @@
   <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 15 i w pliku README.</div>
 </section>
 
-<!-- 05 WYNIKI -->
 <section class="page">
   <h2><span class="n">05</span>Wyniki 2024: backtest na prawdziwych prognozach</h2>
   <p>Dla każdego dnia 9–15 września odtworzyłem stan wiedzy z wieczora poprzedniego dnia: obserwacje do tego momentu, <b>archiwalną prognozę ECMWF IFS</b> na 3 dni (opad w przyszłości pochodzi wyłącznie z prognozy) oraz ostatni pomiar wodowskazów. Każdy odcinek ocenia model, który nie widział jego linii w treningu.</p>
@@ -177,7 +171,6 @@
   <p class="small muted">Wybór cech nie zawyżył wyniku: na niezależnym teście 1997 oba zestawy cech wypadają podobnie. Gęstsze dane z posterunków poprawiają samą regułę opadową (AUC w strefie ulewy 0,880 wobec 0,863), ale nie model, bo interpolacja z 2–3 posterunków jest zaszumiona. Prawdziwy zysk przyniosła hydrologia (rozdz. 06).</p>
 </section>
 
-<!-- 06 TEST 1997 + MODUŁY -->
 <section class="page">
   <h2><span class="n">06</span>Niezależny test: powódź 1997 i walidacja modułów</h2>
   <p>System, <b>bez żadnych zmian</b>, uruchomiłem na danych z lipca 1997 r. (reanaliza ERA5 i wodowskazy IMGW). Zadanie: czy wskaże trzy udokumentowane miejsca zniszczeń, czyli mosty w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym?</p>
@@ -197,7 +190,6 @@
   <div class="box warn"><b>Granice obecnej wersji (plan w rozdz. 14).</b> (1) Model ML zna tylko mechanizm podgórski. Ulewa na nizinie (np. nad Wrocławiem) daje w nim niskie ryzyko podmycia, a tam zagrożenie pokrywa moduł B. (2) Przy pełnej informacji hydrologicznej system w szczycie powodzi obejmuje alarmem więcej sieci (28%). To cena wykrycia fali, dlatego raport pokazuje falę jako osobną kategorię z innymi działaniami. (3) Moduł upału jest ostrożny: w dniu 3.07.2025 alarmował tylko 1,5% odcinków regionu. Wszystkie trzy punkty poprawi podłączenie rejestru zdarzeń PLK.</div>
 </section>
 
-<!-- 07 PRZYPADEK -->
 <section class="page">
   <h2><span class="n">07</span>Jeden przypadek od początku do końca: linia 309 pod Kłodzkiem</h2>
   <p>Odcinek <b>linii 309, km 0,2–3,2 (Kłodzko – Szalejów Dolny)</b> w dolinie Bystrzycy Dusznickiej. Każdy wiersz pokazuje, co system wiedział <b>w chwili wydania prognozy</b>, czyli tylko z danych dostępnych wieczorem dnia poprzedniego (archiwalne prognozy ECMWF i stany wód IMGW).</p>
@@ -224,7 +216,6 @@
   <p class="small"><b>RailSentinel nie prognozuje tylko złej pogody. Wskazuje, które odcinki infrastruktury kolejowej wymagają uwagi i w jakiej kolejności.</b> Nie zastępuje ostrzeżeń IMGW: korzysta z tych samych prognoz i przekłada je na konkretne odcinki toru. Źródła ostrzeżeń: TVN24 i RMF24 (11–12.09.2024). Etykieta zniszczenia pochodzi z korytarza zniszczeń opisanego w źródłach (bufor 2 km), a nie z pomiaru punktowego.</p>
 </section>
 
-<!-- 08 CENA SKUTECZNOŚCI -->
 <section class="page">
   <h2><span class="n">08</span>Cena skuteczności: alarmy, przeoczenia i rodzaje testów</h2>
   <p>Wynik „37/37” trzeba czytać razem z jego ceną, czyli liczbą odcinków do sprawdzenia. Poniżej pełny system (moduł ulewy i moduł fali), cała sieć krajowa (4606 odcinków), powódź 2024, dwie prognozy i trzy progi.</p>
@@ -252,7 +243,6 @@
   <p class="small">Szczegóły metod, prognozy rzek i symulatora: <b>Załącznik techniczny</b> (osobny plik PDF).</p>
 </section>
 
-<!-- 09 CAŁA POLSKA I APLIKACJA -->
 <section class="page">
   <h2><span class="n">09</span>Cała Polska i aplikacja dla kolejarzy</h2>
   <p><b>Zasięg krajowy.</b> Sieć 4606 odcinków (27 293 km torów, 647 linii) zbudowałem z OpenStreetMap dla całej Polski. Cechy terenu liczę z modelu wysokościowego, a stany wód pochodzą z 814 wodowskazów IMGW (2153 odcinków ma wodowskaz na pobliskiej rzece). Prognoza pogody obejmuje 562 komórek siatki. Dla komórek spoza obszaru treningu klimatologię opadu (poziom 1% najwyższych sum 3-dniowych) szacuję regresją względem wysokości terenu.</p>
@@ -270,7 +260,6 @@
   <div class="box">Koszt uruchomienia: hosting strony i aplikacji 0 zł (GitHub Pages, HTTPS); jedyny wydatek to domena railsentinel.pl. Odświeżanie prognozy to jedno polecenie (<code>src/05_predict.py live</code>). W pilotażu uruchamiałby je co kilka godzin harmonogram po stronie PLK.</div>
 </section>
 
-<!-- 08 UŻYTKOWNICY, ZMIANA, WPŁYW -->
 <section class="page">
   <h2><span class="n">10</span>Użytkownicy, oczekiwana zmiana i wpływ</h2>
   <table>
@@ -298,7 +287,6 @@
   </ul>
 </section>
 
-<!-- 09 WDROŻENIE + AI -->
 <section class="page">
   <h2><span class="n">11</span>Zastosowanie w rzeczywistym środowisku kolejowym</h2>
   <p class="small">Proponuję <b>pilotaż na jednej linii</b>, a nie od razu wdrożenie w całej Polsce. Przykład: linia 276 Wrocław – Kłodzko – Międzylesie. To propozycja, PKP PLK nie wyraziło na nią zgody.</p>
@@ -330,7 +318,6 @@
   </ul>
 </section>
 
-<!-- 11 BIZNES + 12 ROZWÓJ -->
 <section class="page">
   <h2><span class="n">13</span>Model rozwoju i model biznesowy</h2>
   <p>RailSentinel może być narzędziem wewnętrznym PLK albo produktem SaaS dla zarządców infrastruktury. Rachunek opieram na <b>opublikowanych danych</b>. Tam, gdzie liczba jest założeniem, zaznaczam to wprost.</p>
@@ -358,7 +345,6 @@
   </table>
 </section>
 
-<!-- 13 ŹRÓDŁA -->
 <section class="page">
   <h2><span class="n">15</span>Kolejne testy na prawdziwych zdarzeniach i funkcje dla praktyków</h2>
   <h3>Powodzie 2010 – nowe zdarzenia, model bez douczania</h3>
@@ -393,7 +379,7 @@
     <tr><td>IMGW-PIB – archiwum dobowych stanów wód 2010</td><td>Test powodzi 2010</td><td>dane publiczne IMGW-PIB</td></tr>
   </table>
   <h3>Narzędzia i biblioteki</h3>
-  <p class="small">Python 3, scikit-learn (BSD-3), pandas, NumPy (BSD-3), matplotlib, requests (Apache-2.0), Pillow (HPND), Leaflet (BSD-2), Playwright (Apache-2.0, nagrania i zrzuty ekranu), GitHub Actions (codzienna prognoza). Lektor w filmie: syntezator mowy ElevenLabs (plan Starter, licencja na użytek komercyjny). Całość kodu jest mojego autorstwa i znajduje się w repozytorium: <code>src/</code> to potok danych i modele, <code>web/</code> to dashboard i symulator.</p>
+  <p class="small">Python 3, scikit-learn (BSD-3), pandas, NumPy (BSD-3), matplotlib, requests (Apache-2.0), Pillow (HPND), Leaflet (BSD-2), Playwright (Apache-2.0, nagrania i zrzuty ekranu), GitHub Actions (codzienna prognoza). Lektor w filmie: syntezator mowy ElevenLabs (plan Starter, licencja na użytek komercyjny). Całość kodu napisałem i zintegrowałem samodzielnie, korzystając z narzędzi programistycznych, w tym asystenta AI (Claude, Anthropic). Kod znajduje się w repozytorium: <code>src/</code> to potok danych i modele, <code>web/</code> to dashboard i symulator.</p>
   <h3>Materiały dołączone do zgłoszenia</h3>
   <ul class="small">
     <li>Kod źródłowy i dane pośrednie (ZIP / link)</li>
