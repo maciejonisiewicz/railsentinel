@@ -1,65 +1,77 @@
 ﻿priorytet;dzien;linia;km_od;km_do;od;do;miejscowosc;rzeka;powiat;poziom;ryzyko_proc;zagrozenie;woda_proc;upal_proc;wiatr_proc;lod_proc;opad_1d_mm;opad_3d_mm;porywy_kmh;szyna_C;pewnosc;ostrzezenia_imgw;prognoza_wydana;id
-1;2026-11-13;93;72,6;76,2;Zebrzydowice;Zebrzydowice;Jastrzębie-Zdrój;Pielgrzymówka;cieszyński;ALARM;57;woda;57;0;0;0;13,2;24,5;34,0;8,5;wysoka;;2026-11-13 12:28;L93_997_372
-2;2026-11-13;311;28,3;30,0;Szklarska Poręba;Szklarska Poręba;Szklarska Poręba;Kamienna;jeleniogórski;ALARM;52;wiatr;0;0;51;1;0,3;8,4;85,0;2,2;wysoka;;2026-11-13 12:28;L311_1016_310
-3;2026-11-13;311;30,0;35,0;Szklarska Poręba;Szklarska Poręba;Szklarska Poręba;Kamienna;jeleniogórski;ALARM;52;wiatr;0;0;51;1;0,3;8,4;85,0;2,2;wysoka;;2026-11-13 12:28;L311_1016_309
-4;2026-11-13;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,6;wysoka;;2026-11-13 12:28;L340_1016_315
-5;2026-11-13;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,6;wysoka;;2026-11-13 12:28;L308_1016_315
-6;2026-11-13;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,6;wysoka;;2026-11-13 12:28;L340_1015_315
-7;2026-11-13;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,6;wysoka;;2026-11-13 12:28;L308_1016_316
-8;2026-11-13;93;76,3;78,9;Zebrzydowice;Marklowice Górne;Jastrzębie-Zdrój;Petrůvka;cieszyński;UWAGA;34;woda;34;0;0;0;8,6;14,0;35,0;9,4;wysoka;;2026-11-13 12:28;L93_997_371
-1;2026-11-14;276;130,0;136,0;Międzylesie;Boboszów;Międzylesie;Nysa Kłodzka;kłodzki;ALARM;85;oblodzenie;0;0;0;85;0,0;6,9;34,0;8,1;niższa;;2026-11-13 12:28;L276_1002_333
-2;2026-11-14;93;72,6;76,2;Zebrzydowice;Zebrzydowice;Jastrzębie-Zdrój;Pielgrzymówka;cieszyński;ALARM;57;woda;57;0;0;0;0,0;17,2;32,0;11,1;średnia;;2026-11-13 12:28;L93_997_372
-3;2026-11-14;93;76,3;78,9;Zebrzydowice;Marklowice Górne;Jastrzębie-Zdrój;Petrůvka;cieszyński;UWAGA;34;woda;34;0;0;0;0,0;10,4;22,0;10,3;średnia;;2026-11-13 12:28;L93_997_371
-1;2026-11-15;343;1,1;8,2;Głuchołazy;Głuchołazy;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;22;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L343_1006_347
-2;2026-11-15;297;8,8;12,4;Głuchołazy;Głuchołazy;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;22;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L297_1006_347
-3;2026-11-15;333;0,0;2,8;Głuchołazy;Głuchołazy;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;22;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L333_1006_347
-4;2026-11-15;297;0,7;5,0;Nowy Świętów;Bodzanów;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;13;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L297_1007_347
-5;2026-11-15;333;2,0;4,9;Głuchołazy;Moszczanka;Głuchołazy;Biała Głuchołaska;nyski, prudnicki;ALARM;96;wiatr;13;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L333_1006_348
-6;2026-11-15;333;6,6;11,1;Moszczanka;Wieszczyna;Głuchołazy;Złoty Potok;prudnicki, nyski;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L333_1005_349
-7;2026-11-15;137;107,9;109,8;Lubrza;Prudnik;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L137_1006_352
-8;2026-11-15;137;109,8;111,8;Prudnik;Prudnik;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L137_1006_351
-9;2026-11-15;137;111,8;116,2;Prudnik;Szybowice;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L137_1006_350
-10;2026-11-15;137;114,8;122,9;Prudnik;Nowy Las;Głuchołazy;Prudnik;nyski, prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L137_1006_349
-11;2026-11-15;306;38,9;41,3;Lubrza;Prudnik;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;11,1;niższa;;2026-11-13 12:28;L306_1006_351
-12;2026-11-15;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;ALARM;88;wiatr;0;0;88;0;0,0;0,2;99,0;7,6;niższa;;2026-11-13 12:28;L340_1016_315
-13;2026-11-15;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;ALARM;88;wiatr;0;0;88;0;0,0;0,2;99,0;7,6;niższa;;2026-11-13 12:28;L308_1016_315
-14;2026-11-15;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;ALARM;88;wiatr;0;0;88;0;0,0;0,2;99,0;7,6;niższa;;2026-11-13 12:28;L340_1015_315
-15;2026-11-15;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;ALARM;88;wiatr;0;0;88;0;0,0;0,2;99,0;7,6;niższa;;2026-11-13 12:28;L308_1016_316
-16;2026-11-15;274;67,5;81,2;Wałbrzych;Wałbrzych;Wałbrzych;Pełcznica;Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1014_325
-17;2026-11-15;274;68,2;74,9;Szczawno-Zdrój;Wałbrzych;Wałbrzych;Pełcznica;Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1015_325
-18;2026-11-15;274;66,9;68,1;Szczawno-Zdrój;Szczawno-Zdrój;Szczawno-Zdrój;Pełcznica;Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1016_325
-19;2026-11-15;274;59,8;66,8;Świebodzice;Szczawno-Zdrój;Świebodzice;Pełcznica;Wałbrzych, świdnicki;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1016_326
-20;2026-11-15;286;39,7;42,8;Głuszyca;Głuszyca;Głuszyca;Bystrzyca;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L286_1013_327
-21;2026-11-15;291;17,9;23,1;Boguszów-Gorce;Unisław Śląski;Boguszów-Gorce;Ścinawka;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L291_1014_324
-22;2026-11-15;274;85,7;90,1;Boguszów-Gorce;Czarny Bór;Boguszów-Gorce;Lesk;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1015_323
-23;2026-11-15;274;90,7;93,5;Czarny Bór;Witków;Boguszów-Gorce;Lesk;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1015_322
-24;2026-11-15;274;80,6;84,5;Wałbrzych;Boguszów-Gorce;Boguszów-Gorce;Lesk;wałbrzyski, Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1014_324
-25;2026-11-15;286;49,6;50,8;Wałbrzych;Wałbrzych;Wałbrzych;Pełcznica;Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L286_1014_325
-26;2026-11-15;286;43,3;52,6;Jedlina-Zdrój;Jedlina-Zdrój;Jedlina-Zdrój;Ogorzelec;Wałbrzych, wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L286_1014_326
-27;2026-11-15;291;23,4;32,4;Unisław Śląski;Nowe Siodło;Mieroszów;Ścinawka;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L291_1013_324
-28;2026-11-15;869;;;Szczawno-Zdrój;Szczawno-Zdrój;Szczawno-Zdrój;Pełcznica;wałbrzyski, Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L869_1016_325
-29;2026-11-15;266;74,8;78,7;Jugowice;Jedlina-Zdrój;Jedlina-Zdrój;Bystrzyca;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L266_1014_327
-30;2026-11-15;266;76,0;81,0;Jedlina-Zdrój;Jedlina-Zdrój;Jedlina-Zdrój;Bystrzyca;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L266_1014_326
-31;2026-11-15;291;26,8;28,6;Mieroszów;Mieroszów;Mieroszów;Ścinawka;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L291_1013_323
-32;2026-11-15;869;;;Szczawno-Zdrój;Szczawno-Zdrój;Szczawno-Zdrój;Pełcznica;Wałbrzych;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L869_1016_326
-33;2026-11-15;274;55,6;59,6;Świebodzice;Świebodzice;Świebodzice;Pełcznica;świdnicki;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1017_326
-34;2026-11-15;286;42,9;43,9;Głuszyca;Grzmiąca;Głuszyca;Bystrzyca;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L286_1013_326
-35;2026-11-15;773;;;Boguszów-Gorce;Boguszów-Gorce;Boguszów-Gorce;Lesk;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L773_1015_323
-36;2026-11-15;274;82,7;86,0;Boguszów-Gorce;Boguszów-Gorce;Boguszów-Gorce;Lesk;wałbrzyski;ALARM;84;wiatr;0;0;84;0;0,0;0,6;96,0;7,0;niższa;;2026-11-13 12:28;L274_1015_324
-37;2026-11-15;99;37,0;38,4;Poronin;Poronin;Zakopane;Poroniec;tatrzański;ALARM;75;wiatr;1;0;74;0;0,0;30,9;92,0;7,9;niższa;;2026-11-13 12:28;L99_986_400
-38;2026-11-15;99;38,8;43,4;Poronin;Zakopane;Zakopane;Zakopianka;tatrzański;ALARM;75;wiatr;1;0;74;0;0,0;30,9;92,0;7,9;niższa;;2026-11-13 12:28;L99_986_399
-39;2026-11-15;93;72,6;76,2;Zebrzydowice;Zebrzydowice;Jastrzębie-Zdrój;Pielgrzymówka;cieszyński;ALARM;58;woda;57;0;1;0;0,0;13,2;54,0;12,3;niższa;;2026-11-13 12:28;L93_997_372
-40;2026-11-15;96;89,6;93,3;Nowy Sącz;Stary Sącz;Stary Sącz;;nowosądecki, Nowy Sącz;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_991_413
-41;2026-11-15;96;79,1;83,1;Kamionka Wielka;Jamnica;Nowy Sącz;Kamienica;nowosądecki, Nowy Sącz;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_991_415
-42;2026-11-15;104;70,8;76,3;Rdziostów;Nowy Sącz;Nowy Sącz;Dunajec;Nowy Sącz, nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L104_992_413
-43;2026-11-15;96;82,8;85,9;Kamionka Mała;Kunów;Nowy Sącz;Kamienica;Nowy Sącz, nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_991_414
-44;2026-11-15;96;88,5;89,5;Nowy Sącz;Nowy Sącz;Nowy Sącz;Dunajec;Nowy Sącz;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_992_413
-45;2026-11-15;96;86,1;88,5;Kunów;Nowy Sącz;Nowy Sącz;Kamienica;Nowy Sącz;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_992_414
-46;2026-11-15;96;100,0;102,2;Barcice;Rytro;Stary Sącz;Poprad;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_990_413
-47;2026-11-15;96;96,3;99,8;Stary Sącz;Barcice;Stary Sącz;Poprad;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_990_412
-48;2026-11-15;96;110,3;118,2;Piwniczna-Zdrój;Zubrzyk;Piwniczna-Zdrój;Poprad;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_988_414
-49;2026-11-15;96;102,7;109,4;Rytro;Piwniczna-Zdrój;Piwniczna-Zdrój;Poprad;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_989_413
-50;2026-11-15;96;93,5;96,1;Stary Sącz;Stary Sącz;Stary Sącz;Poprad;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_991_412
-51;2026-11-15;96;118,7;119,5;Zubrzyk;Zubrzyk;Piwniczna-Zdrój;Poprad;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_988_415
-52;2026-11-15;96;75,1;79,0;Królowa Górna;Kamionka Wielka;Grybów;Kamienica;nowosądecki;UWAGA;47;wiatr;0;0;47;0;0,0;24,6;84,0;9,5;niższa;;2026-11-13 12:28;L96_991_416
-53;2026-11-15;93;76,3;78,9;Zebrzydowice;Marklowice Górne;Jastrzębie-Zdrój;Petrůvka;cieszyński;UWAGA;34;woda;34;0;0;0;0,0;8,6;23,0;12,0;niższa;;2026-11-13 12:28;L93_997_371
+1;2026-11-13;311;28,3;30,0;Szklarska Poręba;Szklarska Poręba;Szklarska Poręba;Kamienna;jeleniogórski;ALARM;52;wiatr;0;0;51;3;0,7;8,8;85,0;2,3;wysoka;;2026-11-13 22:30;L311_1016_310
+2;2026-11-13;311;30,0;35,0;Szklarska Poręba;Szklarska Poręba;Szklarska Poręba;Kamienna;jeleniogórski;ALARM;52;wiatr;0;0;51;1;0,7;8,8;85,0;2,3;wysoka;;2026-11-13 22:30;L311_1016_309
+3;2026-11-13;93;72,6;76,2;Zebrzydowice;Zebrzydowice;Jastrzębie-Zdrój;Pielgrzymówka;cieszyński;UWAGA;46;woda;46;0;0;0;13,2;24,5;34,0;8,4;wysoka;;2026-11-13 22:30;L93_997_372
+4;2026-11-13;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,7;wysoka;;2026-11-13 22:30;L340_1016_315
+5;2026-11-13;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,7;wysoka;;2026-11-13 22:30;L308_1016_315
+6;2026-11-13;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,7;wysoka;;2026-11-13 22:30;L340_1015_315
+7;2026-11-13;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;UWAGA;42;wiatr;0;0;41;1;0,2;3,5;82,0;4,7;wysoka;;2026-11-13 22:30;L308_1016_316
+8;2026-11-13;404;77,5;94,5;Syrkowice;Stramnica;Gościno;Pysznica;kołobrzeski, białogardzki;UWAGA;34;wiatr;0;0;34;0;1,2;1,7;80,0;11,1;wysoka;Silny wiatr 1°;2026-11-13 22:30;L404_1082_315
+9;2026-11-13;402;20,5;29,8;Borkowice;Grąbnica;Mielno;Czerwona;kołobrzeski, koszaliński;UWAGA;34;wiatr;0;0;34;0;1,2;1,7;80,0;11,1;wysoka;Silny wiatr 1°;2026-11-13 22:30;L402_1084_316
+10;2026-11-13;402;34,6;40,7;Bagicz;Kołobrzeg;Kołobrzeg;Parsęta;kołobrzeski;UWAGA;34;wiatr;0;0;34;0;1,2;1,7;80,0;11,1;wysoka;Silny wiatr 1°;2026-11-13 22:30;L402_1083_312
+11;2026-11-13;402;29,9;30,7;Grąbnica;Sianożęty;Kołobrzeg;Czerwona;kołobrzeski;UWAGA;34;wiatr;0;0;34;0;1,2;1,7;80,0;11,1;wysoka;Silny wiatr 1°;2026-11-13 22:30;L402_1084_315
+12;2026-11-13;402;30,8;34,2;Sianożęty;Bagicz;Kołobrzeg;Czerwona;kołobrzeski;UWAGA;34;wiatr;0;0;34;0;1,2;1,7;80,0;11,1;wysoka;Silny wiatr 1°;2026-11-13 22:30;L402_1083_314
+1;2026-11-14;93;72,6;76,2;Zebrzydowice;Zebrzydowice;Jastrzębie-Zdrój;Pielgrzymówka;cieszyński;UWAGA;46;woda;46;0;0;0;0,0;17,2;28,0;11,4;średnia;;2026-11-13 22:30;L93_997_372
+1;2026-11-15;343;1,1;8,2;Głuchołazy;Głuchołazy;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;22;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L343_1006_347
+2;2026-11-15;297;8,8;12,4;Głuchołazy;Głuchołazy;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;22;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L297_1006_347
+3;2026-11-15;333;0,0;2,8;Głuchołazy;Głuchołazy;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;22;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L333_1006_347
+4;2026-11-15;297;0,7;5,0;Nowy Świętów;Bodzanów;Głuchołazy;Biała Głuchołaska;nyski;ALARM;96;wiatr;13;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L297_1007_347
+5;2026-11-15;333;2,0;4,9;Głuchołazy;Moszczanka;Głuchołazy;Biała Głuchołaska;nyski, prudnicki;ALARM;96;wiatr;13;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L333_1006_348
+6;2026-11-15;333;6,6;11,1;Moszczanka;Wieszczyna;Głuchołazy;Złoty Potok;prudnicki, nyski;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L333_1005_349
+7;2026-11-15;137;107,9;109,8;Lubrza;Prudnik;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L137_1006_352
+8;2026-11-15;137;109,8;111,8;Prudnik;Prudnik;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L137_1006_351
+9;2026-11-15;137;111,8;116,2;Prudnik;Szybowice;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L137_1006_350
+10;2026-11-15;137;114,8;122,9;Prudnik;Nowy Las;Głuchołazy;Prudnik;nyski, prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L137_1006_349
+11;2026-11-15;306;38,9;41,3;Lubrza;Prudnik;Prudnik;Prudnik;prudnicki;ALARM;95;wiatr;0;0;95;0;0,0;1,8;106,0;10,6;niższa;;2026-11-13 22:30;L306_1006_351
+12;2026-11-15;99;37,0;38,4;Poronin;Poronin;Zakopane;Poroniec;tatrzański;ALARM;94;wiatr;0;0;94;0;0,0;30,3;104,0;7,2;niższa;;2026-11-13 22:30;L99_986_400
+13;2026-11-15;99;38,8;43,4;Poronin;Zakopane;Zakopane;Zakopianka;tatrzański;ALARM;94;wiatr;0;0;94;0;0,0;30,3;104,0;7,2;niższa;;2026-11-13 22:30;L99_986_399
+14;2026-11-15;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;ALARM;87;wiatr;0;0;87;0;0,0;0,2;98,0;9,5;niższa;;2026-11-13 22:30;L340_1016_315
+15;2026-11-15;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;ALARM;87;wiatr;0;0;87;0;0,0;0,2;98,0;9,5;niższa;;2026-11-13 22:30;L308_1016_315
+16;2026-11-15;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;ALARM;87;wiatr;0;0;87;0;0,0;0,2;98,0;9,5;niższa;;2026-11-13 22:30;L340_1015_315
+17;2026-11-15;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;ALARM;87;wiatr;0;0;87;0;0,0;0,2;98,0;9,5;niższa;;2026-11-13 22:30;L308_1016_316
+18;2026-11-15;96;89,6;93,3;Nowy Sącz;Stary Sącz;Stary Sącz;;nowosądecki, Nowy Sącz;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_991_413
+19;2026-11-15;96;79,1;83,1;Kamionka Wielka;Jamnica;Nowy Sącz;Kamienica;nowosądecki, Nowy Sącz;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_991_415
+20;2026-11-15;104;70,8;76,3;Rdziostów;Nowy Sącz;Nowy Sącz;Dunajec;Nowy Sącz, nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L104_992_413
+21;2026-11-15;96;82,8;85,9;Kamionka Mała;Kunów;Nowy Sącz;Kamienica;Nowy Sącz, nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_991_414
+22;2026-11-15;96;88,5;89,5;Nowy Sącz;Nowy Sącz;Nowy Sącz;Dunajec;Nowy Sącz;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_992_413
+23;2026-11-15;96;86,1;88,5;Kunów;Nowy Sącz;Nowy Sącz;Kamienica;Nowy Sącz;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_992_414
+24;2026-11-15;96;100,0;102,2;Barcice;Rytro;Stary Sącz;Poprad;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_990_413
+25;2026-11-15;96;96,3;99,8;Stary Sącz;Barcice;Stary Sącz;Poprad;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_990_412
+26;2026-11-15;96;110,3;118,2;Piwniczna-Zdrój;Zubrzyk;Piwniczna-Zdrój;Poprad;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_988_414
+27;2026-11-15;96;102,7;109,4;Rytro;Piwniczna-Zdrój;Piwniczna-Zdrój;Poprad;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_989_413
+28;2026-11-15;96;118,7;119,5;Zubrzyk;Zubrzyk;Piwniczna-Zdrój;Poprad;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_988_415
+29;2026-11-15;96;93,5;96,1;Stary Sącz;Stary Sącz;Stary Sącz;Poprad;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_991_412
+30;2026-11-15;96;75,1;79,0;Królowa Górna;Kamionka Wielka;Grybów;Kamienica;nowosądecki;ALARM;57;wiatr;0;0;57;0;0,0;25,0;87,0;9,4;niższa;;2026-11-13 22:30;L96_991_416
+31;2026-11-15;285;58,3;60,1;Świdnica;Jakubów;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L285_1016_329
+32;2026-11-15;137;221,8;231,3;Świdnica;Świdnica;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L137_1016_329
+33;2026-11-15;771;0,6;1,9;Świdnica;Świdnica;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L771_1016_329
+34;2026-11-15;266;66,6;71,5;Bystrzyca Górna;Zagórze Śląskie;Jedlina-Zdrój;Bystrzyca;wałbrzyski, świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L266_1015_328
+35;2026-11-15;266;60,8;66,4;Jakubów;Bystrzyca Górna;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L266_1015_329
+36;2026-11-15;137;221,6;222,8;Opoczka;Makowice;Świdnica;Piława;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L137_1016_330
+37;2026-11-15;286;31,9;34,6;Świerki;Bartnica;Nowa Ruda;Włodzica;kłodzki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L286_1012_328
+38;2026-11-15;286;34,8;39,4;Bartnica;Głuszyca;Głuszyca;Bystrzyca;kłodzki, wałbrzyski;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L286_1013_328
+39;2026-11-15;137;227,9;234,5;Świdnica;Jaworzyna Śląska;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L137_1017_329
+40;2026-11-15;266;71,8;74,7;Zagórze Śląskie;Jugowice;Jedlina-Zdrój;Bystrzyca;wałbrzyski;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L266_1014_328
+41;2026-11-15;285;48,9;52,9;Marcinowice;Pszenno;Świdnica;Piława;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L285_1017_331
+42;2026-11-15;318;;;Bielawa;Bielawa;Bielawa;Piława;dzierżoniowski;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L318_1013_331
+43;2026-11-15;771;0,0;-87,0;Świdnica;Świdnica;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L771_1016_330
+44;2026-11-15;285;55,6;57,4;Pszenno;Świdnica;Świdnica;Bystrzyca;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L285_1016_330
+45;2026-11-15;137;218,3;221,1;Grodziszcze;Opoczka;Świdnica;Piława;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L137_1015_330
+46;2026-11-15;137;211,2;214,1;Dzierżoniów;Nowizna;Dzierżoniów;Piława;dzierżoniowski;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L137_1015_332
+47;2026-11-15;285;53,1;55,4;Pszenno;Pszenno;Świdnica;Piława;świdnicki;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L285_1017_330
+48;2026-11-15;137;214,2;218,0;Nowizna;Grodziszcze;Pieszyce;Piława;świdnicki, dzierżoniowski;ALARM;55;wiatr;0;0;55;0;0,0;0,4;86,0;10,9;niższa;;2026-11-13 22:30;L137_1015_331
+49;2026-11-15;93;72,6;76,2;Zebrzydowice;Zebrzydowice;Jastrzębie-Zdrój;Pielgrzymówka;cieszyński;UWAGA;47;woda;46;0;2;0;0,0;13,2;59,0;12,4;niższa;;2026-11-13 22:30;L93_997_372
+50;2026-11-15;276;83,1;85,4;Bardo;Bardo;Bardo;Nysa Kłodzka;ząbkowicki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L276_1010_334
+51;2026-11-15;276;78,6;83,0;Suszka;Bardo;Bardo;Nysa Kłodzka;ząbkowicki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L276_1010_335
+52;2026-11-15;309;0,2;3,2;Kłodzko;Szalejów Dolny;Kłodzko;Bystrzyca Dusznicka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L309_1008_332
+53;2026-11-15;137;183,1;187,5;Strąkowa;Ząbkowice Śląskie;Ząbkowice Śląskie;Budzówka;ząbkowicki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L137_1011_336
+54;2026-11-15;276;93,6;96,7;Kłodzko;Kłodzko;Kłodzko;Jaszkówka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L276_1008_333
+55;2026-11-15;286;;;Kłodzko;Kłodzko;Kłodzko;Nysa Kłodzka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L286_1008_333
+56;2026-11-15;276;98,3;99,2;Kłodzko;Krosnowice;Kłodzko;Biała Lądecka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L276_1008_332
+57;2026-11-15;286;0,9;4,8;Kłodzko;Bierkowice;Kłodzko;Ścinawka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L286_1009_332
+58;2026-11-15;276;85,9;93,3;Bardo;Kłodzko;Bardo;Nysa Kłodzka;ząbkowicki, kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L276_1009_333
+59;2026-11-15;137;179,6;182,6;Kamieniec Ząbkowicki;Strąkowa;Kamieniec Ząbkowicki;Budzówka;ząbkowicki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L137_1011_337
+60;2026-11-15;286;0,2;0,8;Kłodzko;Kłodzko;Kłodzko;Nysa Kłodzka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L286_1009_333
+61;2026-11-15;322;98,7;99,3;Kłodzko;Krosnowice;Kłodzko;Biała Lądecka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L322_1008_332
+62;2026-11-15;322;0,0;-148,4;Krosnowice;Krosnowice;Kłodzko;Biała Lądecka;kłodzki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L322_1007_332
+63;2026-11-15;276;74,4;77,8;Kamieniec Ząbkowicki;Suszka;Kamieniec Ząbkowicki;Budzówka;ząbkowicki;UWAGA;38;wiatr;0;0;38;0;0,0;0,4;82,0;9,3;niższa;;2026-11-13 22:30;L276_1010_336
