@@ -11,7 +11,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 | **API do integracji** | https://railsentinel.pl/api/v1/alarms.json (też `.geojson`, `.csv`, `lines.json`) | Opis: `docs/API.md` |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
 | **Strona projektu z filmem** | https://railsentinel.pl/about.html | Odtwarza się film, linki do PDF i kodu |
-| **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, ok. 3,5 min |
+| **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, trzy fragmenty wywiadu z dyżurnym ruchu (z napisami) i scena „Co zmieniliśmy po rozmowach z kolejarzami”; 4:50, 42 MB. **Posłuchaj całości i sprawdź napisy ze słuchu** |
 | **Praca konkursowa** | `docs/RailSentinel_praca_konkursowa.pdf` | 15 stron (limit 15) i `docs/RailSentinel_zalacznik_techniczny.pdf`; przeczytaj całość – Komisja może zaprosić na prezentację |
 | **Kod** | https://github.com/maciejonisiewicz/railsentinel | Publiczne repozytorium |
 
@@ -30,6 +30,9 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
    temat dokładnie: **Kolej na bezpieczeństwo – zgłoszenie konkursowe**.
    Załączniki: PDF pracy + 2 podpisane załączniki. Film i kod przez link (mail max 50 MB).
 4. Zachowaj potwierdzenie otrzymania zgłoszenia.
+5. **Dyżurny ruchu w filmie:** na nagraniu zgoda jest krótka („zgadzam się na udostępnienie mego wizerunku w projekcie”), bez filmu, strony, YouTube i bez „we własnym imieniu”. Poproś go o potwierdzenie pełnym zdaniem wiadomością na WhatsAppie i **zachowaj zrzut ekranu**.
+6. **Film wrzuć na Dysk Google lub OneDrive** (link bez logowania, z pobieraniem) i wstaw do maila w miejsce `[WSTAW LINK…]`.
+7. **Zgłoś domenę do rekategoryzacji** (`docs/DOSTEPNOSC_I_BLOKADY.md`) i sprawdź stronę na telefonie przez dane komórkowe.
 
 ## 3. Co zrobiłem podczas Twojej nieobecności
 
@@ -64,6 +67,15 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 - **Prostsza nawigacja:** w pasku trzy duże przyciski (Moja linia, Na żywo, Więcej), reszta widoków w menu „Więcej”; większe pola dotyku (≥ 44 px), większe napisy, motyw jasny lub ciemny zgodny z telefonem.
 - **Szybszy start na słabym zasięgu:** pierwsza treść po ok. 4,5 s zamiast 8,4 s na łączu 4G (ciężkie dane widoków historycznych ładują się dopiero po wejściu w widok).
 - **Naprawiony błąd po kliknięciu „O projekcie”** (Safari: „Returned response is null”) i dodane zapasowe strony offline. Dostępność strony w sieciach firmowych: `docs/DOSTEPNOSC_I_BLOKADY.md`.
+
+### Co dodałem 15.11.2026 (po rozmowach z kolejarzami)
+
+- **Film (4:50, 42 MB, limit 5:00 i 50 MB):** trzy fragmenty wywiadu z dyżurnym ruchu (10 lat stażu, z twarzą, napisy z transkrypcji Whisper liczonej lokalnie, w nazwach „oblodzenie” i „wyboczenie” poprawione ręcznie), scena „Co zmieniliśmy po rozmowach z kolejarzami” i krótsza narracja pozostałych scen. Logo firmy na kalendarzu w tle nagrań jest rozmyte automatycznie (`video/redact.py`).
+- **Obiekty i służby:** filtr „Tor i nasyp / Sieć trakcyjna / Rozjazdy i srk” obok filtra zagrożeń (widok na żywo, „Moja linia”, „Mój rejon”), obiekt i służba w raporcie, oknie odcinka, karcie obchodu, eksporcie CSV/GeoJSON i API. Sieć trakcyjna tylko na odcinkach zelektryfikowanych (3 186).
+- **Rozjazdy i srk:** wskaźnik ekspozycji (47,7 tys. rozjazdów i wykolejnic z OSM, razem ze śniegiem, marznącym opadem, mrozem z opadem i upałem). To **nie prognoza awarii**; progi to założenia robocze do kalibracji na rejestrze usterek srk PLK. Nie wchodzi do ogólnego ryzyka ani alarmów.
+- **Mój rejon:** widok wokół stacji (5, 10, 20 km albo sąsiednie stacje), zapisywany jak linie, działa na telefonie.
+- **Praca (nadal 15 stron):** obiekty i służby, model „wyjątek zamiast rutyny”, „Mój rejon”, sekcja „Test z praktykami” (rozdz. 10), heurystyka rozjazdów w Załączniku A3. **Usunąłem z pracy opis propozycji prędkości dla pociągów**: aplikacja ich nie podaje, a dyżurny zwrócił uwagę, że nie ustala prędkości.
+- **Testy:** 32 jednostkowe i 121 w przeglądarce (m.in. filtr obiektów, „Mój rejon” na telefonach 390×844 i 360×640).
 
 ## 4. Najważniejsze wyniki (do zapamiętania na ewentualną prezentację)
 

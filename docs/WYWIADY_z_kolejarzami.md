@@ -1,5 +1,8 @@
 # Wywiad z kolejarzami do filmu RailSentinel – instrukcja dla Taty
 
+> **Stan na 15.11.2026.** Nagrano rozmowę z **dyżurnym ruchu (10 lat stażu)**: krótką zgodę ustną („zgadzam się na udostępnienie mego wizerunku w projekcie”) i trzy pytania z odpowiedziami (nagrania z 12.11.2026). W filmie są 3 fragmenty (razem ok. 64 s), z twarzą, podpis „Dyżurny ruchu · 10 lat stażu”; napisy pochodzą z transkrypcji i wymagają sprawdzenia ze słuchu. Czego **nie ma**: testu zadań Z1–Z4 ze stoperem, zgody w pełnym brzmieniu (film, praca, strona, YouTube, wypowiedź we własnym imieniu) i zgody pisemnej. Poproś rozmówcę, by potwierdził zgodę wiadomością na WhatsAppie pełnym zdaniem, i **zachowaj zrzut ekranu**. Surowe nagrania z twarzą są tylko na Twoim komputerze (`video/wywiady/*.mp4` jest w `.gitignore`, repozytorium jest publiczne). Uwagi drugiego kolejarza (rozjazdy, rejony, trakcja) opisuje rozdz. 10 pracy.
+
+
 Plan: **2 krótkie spotkania nagrane telefonem**, z toromistrzem i z dyżurnym ruchu. Każde trwa 10–15 minut:
 najpierw **3 krótkie zadania w aplikacji** (test użyteczności, mierzymy czas), potem **3 pytania do kamery**.
 Do filmu wejdzie po 20–40 sekund z każdej rozmowy, a do pracy pisemnej 1–2 cytaty.

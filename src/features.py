@@ -87,6 +87,58 @@ def ice_risk(p1, tmax, tmin, electrified, wcode=None):
     return proxy
 
 
+SW_SNOW_SCALE_CM = 8.0
+SW_WET_SNOW_SCALE_CM = 3.0
+SW_WET_SNOW_WEIGHT = 0.6
+SW_WET_SNOW_BAND_C = (-1.0, 2.0)
+SW_FREEZING_RAIN_WEIGHT = 0.7
+SW_FROST_WEIGHT = 0.35
+SW_FROST_PRECIP_SCALE_MM = 3.0
+SW_HEAT_RAIL_C = 55.0
+SW_HEAT_SPREAD_C = 2.5
+SW_HEAT_WEIGHT = 0.6
+SW_EXPOSURE_SCALE = 20.0
+SW_FACTORS = ["", "śnieg", "mokry śnieg", "marznący opad", "mróz z opadem", "upał"]
+
+
+def switch_exposure(n_devices):
+    n = np.maximum(np.nan_to_num(np.asarray(n_devices, dtype=float)), 0.0)
+    return 1 - np.exp(-n / SW_EXPOSURE_SCALE)
+
+
+def switch_weather(snow_cm, wcode, tmin, tmax, p1, rail_t):
+    snow = np.maximum(np.nan_to_num(np.asarray(snow_cm, dtype=float)), 0.0)
+    tmin, tmax = np.nan_to_num(np.asarray(tmin, dtype=float)), np.nan_to_num(np.asarray(tmax, dtype=float))
+    p1 = np.maximum(np.nan_to_num(np.asarray(p1, dtype=float)), 0.0)
+    code = np.nan_to_num(np.asarray(wcode, dtype=float), nan=-1) if wcode is not None else np.full(snow.shape, -1.0)
+    mean = (tmin + tmax) / 2
+    lo, hi = SW_WET_SNOW_BAND_C
+    parts = np.stack([
+        1 - np.exp(-snow / SW_SNOW_SCALE_CM),
+        SW_WET_SNOW_WEIGHT * (1 - np.exp(-snow / SW_WET_SNOW_SCALE_CM)) * ((mean >= lo) & (mean <= hi)),
+        SW_FREEZING_RAIN_WEIGHT * np.isin(code, FREEZING_CODES),
+        SW_FROST_WEIGHT * (tmax < 0.0) * (1 - np.exp(-p1 / SW_FROST_PRECIP_SCALE_MM)),
+        SW_HEAT_WEIGHT / (1 + np.exp(-(np.nan_to_num(np.asarray(rail_t, dtype=float)) - SW_HEAT_RAIL_C) / SW_HEAT_SPREAD_C)),
+    ])
+    risk = combine(*parts)
+    factor = np.where(risk >= 0.05, np.argmax(parts, axis=0) + 1, 0)
+    return risk, factor
+
+
+def switch_risk(snow_cm, wcode, tmin, tmax, p1, rail_t, n_devices):
+    weather, factor = switch_weather(snow_cm, wcode, tmin, tmax, p1, rail_t)
+    return switch_exposure(n_devices) * weather, factor
+
+
+def traction_risk(s_wind, s_ice_weather, electrified):
+    el = np.clip(np.nan_to_num(np.asarray(electrified, dtype=float)), 0, 1)
+    return el * combine(s_wind, s_ice_weather)
+
+
+def track_risk(s_water, s_heat, s_wind):
+    return combine(s_water, s_heat, s_wind)
+
+
 def river_risk(h3, exposure):
     h = np.nan_to_num(np.asarray(h3, dtype=float), nan=-9)
     e = np.nan_to_num(np.asarray(exposure, dtype=float), nan=0)

@@ -443,3 +443,46 @@ button:focus-visible, a:focus-visible, input:focus-visible, .rd:focus-visible, #
   .tabs button { padding: 8px 6px; font-size: 13px; }
   .tabs { padding: 2px; gap: 2px; }
 }
+
+.seg .ic { font-size: 1.15em; vertical-align: -.05em; }
+.seg.obj { display: grid; grid-template-columns: .85fr 1fr 1.2fr 1.2fr; gap: 5px; }
+.seg.obj button { padding: 7px 3px; font-size: 11.5px; text-align: center; line-height: 1.15; }
+.objnote { font-size: 12.5px; line-height: 1.45; color: var(--muted); background: var(--chip); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; }
+.objnote b { color: var(--ink); }
+.seg.scope { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.seg.scope button { padding: 9px 8px; font-size: 14px; text-align: center; min-height: 40px; }
+.seg.radius button { padding: 8px 12px; font-size: 13px; min-height: 38px; }
+.pp .grid.obj { margin-top: 6px; grid-template-columns: repeat(3, 1fr); }
+.pp .grid.obj .o.cur { box-shadow: 0 0 0 2px var(--accent); }
+.pp .objnote2 { margin-top: 4px; font-size: 11px; }
+@media (max-width: 860px) {
+  .seg.obj { display: flex; margin: 0 -14px; padding: 0 14px; }
+  .seg.obj button { padding: 9px 13px; font-size: 14px; line-height: 1.2; }
+  .seg .ic { font-size: 1.4em; margin-right: 2px; }
+  .seg.scope { display: grid; overflow: visible; margin: 0; padding: 0; }
+  .seg.scope button { min-height: 48px; font-size: 15.5px; }
+  .seg.radius { margin: 0 -14px; padding: 0 14px; }
+  .seg.radius button { min-height: 44px; font-size: 14px; }
+  .objnote { font-size: 13px; padding: 10px 12px; }
+}
+#lineCtrl[data-has="0"] #objCtrl, #lineCtrl[data-has="0"] #objNote { display: none; }
+@media (max-width: 860px) and (max-height: 700px) {
+  .linebox { gap: 8px; }
+  .linebox input { height: 50px; }
+  #geoBtn { width: 50px; min-height: 50px; }
+  .linestatus { padding: 10px 12px; }
+  .linestatus p { margin: 4px 0 0; font-size: 14px; line-height: 1.35; }
+  .linestatus b.big { font-size: 18px; }
+  .dt { min-height: 68px; padding: 6px; }
+  .dt b { font-size: 19px; }
+  .rc { min-height: 44px; }
+}
+@media (max-width: 860px) {
+  .linebox { gap: 10px; }
+  .linestatus { padding: 11px 13px; }
+  .dt { min-height: 78px; padding: 7px 6px; }
+}
+@media (max-width: 860px) and (max-height: 700px) {
+  #near:not([hidden]) + #radiusCtrl + #recent, #near:not([hidden]) ~ #recent { display: none; }
+  .seg.scope button { min-height: 44px; font-size: 15px; }
+}

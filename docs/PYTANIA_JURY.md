@@ -13,6 +13,7 @@ Komisja może zaprosić do prezentacji (§7 ust. 2 Regulaminu). Poniżej pytania
 | Powódź 1997 (bez douczania) | 3 z 3 miejsc zniszczeń, ale dopiero z modułem fali; sam model ML: 0 z 3 (rozdz. 06) |
 | Zwykłe dni (IV–X 2021–2023) | ok. 0,31 alarmu na 1000 odcinko-dni, czyli jeden odcinek co 3,5 dnia w całym regionie (rozdz. 08) |
 | Prognoza rzek, 2 dni, test 2024 | wykrywa o 46% więcej przekroczeń niż „bez zmian”, ale przy idealnym opadzie i pełnej historii (Załącznik A2, A3) |
+| Obiekty i służby (po rozmowach z kolejarzami) | tor i nasyp (toromistrz), sieć trakcyjna (służba trakcji, 3 186 odcinków zelektryfikowanych), rozjazdy i srk (służba automatyki): 47,7 tys. rozjazdów i wykolejnic z OSM przypisanych do 3 178 odcinków; to wskaźnik ekspozycji, nie prognoza awarii (rozdz. 09, A3) |
 
 ## Pytania
 
@@ -59,7 +60,13 @@ Koszt uruchomienia prototypu to domena (hosting 0 zł). System zwraca się, jeś
 Tak, korzystałem z asystenta AI (Claude, Anthropic) jako narzędzia programistycznego i wprost to deklaruję w rozdz. 16 (§10 ust. 9 Regulaminu). Całość zintegrowałem sam i potrafię wyjaśnić każdy element: dane, model, walidację i aplikację.
 
 **15. Kim byli rozmówcy z filmu i co zmieniłeś po rozmowach?**
-(Uzupełnić po wywiadach: stanowisko i staż każdego rozmówcy oraz zmiany w aplikacji lub pracy wynikające z uwag. W filmie rozmówcy są opisani tylko stanowiskiem i stażem.)
+W filmie występuje dyżurny ruchu (10 lat stażu), z twarzą i za jego zgodą (ustną, na nagraniu); przedstawiam go jako praktyka, nie jako stanowisko pracodawcy. Uwagi zgłosił też kolejarz, kolega ojca (bez nagrania). Po rozmowach: (1) sieć trakcyjna jako osobny obiekt, (2) wskaźnik rozjazdów i srk (heurystyka, nie prognoza awarii), (3) „Mój rejon” wokół stacji, (4) model „wyjątek zamiast rutyny”, (5) większe ikony i przyciski filtrów na telefonie, (6) usunąłem z pracy opis propozycji prędkości, bo dyżurny słusznie zauważył, że nie ustala prędkości, tylko ostrzega maszynistę. To mały test (dwie osoby), nie badanie reprezentatywne, i nie mierzyłem czasu zadań (rozdz. 10).
 
 **16. Co dalej?**
 Pilotaż na jednej linii (np. 276), dostęp do ewidencji i rejestru zdarzeń PLK, kalibracja progów z zespołami utrzymania, nowcasting radarowy i mapa zadrzewień (rozdz. 11, 14).
+
+**17. Czy to nie jest nowy, dodatkowy obowiązek dla dyżurnego?**
+Nie, i tak jest zaprojektowane. Dyżurny widzi UWAGĘ i ALARM tylko w swoim rejonie („Mój rejon” wokół stacji, promień 5, 10 lub 20 km albo sąsiednie stacje), a dzień bez nich oznacza „bez zagrożeń”. Poranny przegląd całej sieci robi dyspozytor lub zakład, a toromistrz, służba trakcji i automatyka mają osobne listy. Uczciwie: obecny rejon to przybliżenie zasięgu dyżurnego; docelowy podział na posterunki dyżurnych i LCS wymaga ewidencji PLK i jest w planie pilotażu (rozdz. 10 i 11).
+
+**18. Czy wskaźnik rozjazdów przewiduje awarie zwrotnic i wykolejnic?**
+Nie. To wskaźnik ekspozycji: liczba rozjazdów i wykolejnic z OpenStreetMap na odcinku razem z pogodą (śnieg, marznący opad, mokry śnieg i mróz z opadem, upał). Nie mam rejestru usterek srk, więc nie uczyłem żadnego modelu i nie podaję prawdopodobieństwa awarii. Progi są nazwanymi stałymi w kodzie i opisanymi jako założenia robocze do kalibracji na rejestrze usterek PLK. Dane OSM są niepełne. Wskaźnik nie wchodzi do ogólnego ryzyka, alarmów ani backtestów (Załącznik A3).

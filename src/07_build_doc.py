@@ -1,4 +1,5 @@
 import json
+import os
 import pickle
 import re
 import subprocess
@@ -35,23 +36,24 @@ def load_js(name):
 def main():
     author = sys.argv[1] if len(sys.argv) > 1 else "[Imię i nazwisko autora]"
     FIG.mkdir(parents=True, exist_ok=True)
-    shot("screen_replay", "mode=replay2024&issue=4&day=1")
-    shot("screen_popup", "mode=replay2024&issue=4&day=1&lat=50.40&lon=16.75&z=11&popup=1", 1500, 820)
-    shot("screen_1997", "mode=y1997&day=2", 1500, 900)
-    shot("screen_sim", "mode=sim&preset=storm&clim=20", 1500, 900)
-    shot("screen_live_pl", "mode=live", 1500, 950)
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as p:
-        b = p.chromium.launch(channel="chrome")
-        pg = b.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
-        pg.goto(f"{INDEX}#theme=dark&mode=line&line=276"); pg.wait_for_timeout(4000)
-        pg.screenshot(path=str(FIG / "screen_phone.png")); b.close()
-    print("zrzut screen_phone.png")
-    shot("screen_heat", "mode=heat&day=1&hz=heat", 1500, 950)
-    from PIL import Image
-    im = Image.open(FIG / "screen_popup.png")
-    W, H = im.size
-    im.crop((int(W * 0.455), int(H * 0.195), int(W * 0.74), int(H * 0.855))).save(FIG / "popup_crop.png")
+    if not os.environ.get("RS_BEZ_ZRZUTOW"):
+        shot("screen_replay", "mode=replay2024&issue=4&day=1")
+        shot("screen_popup", "mode=replay2024&issue=4&day=1&lat=50.40&lon=16.75&z=11&popup=1", 1500, 820)
+        shot("screen_1997", "mode=y1997&day=2", 1500, 900)
+        shot("screen_sim", "mode=sim&preset=storm&clim=20", 1500, 900)
+        shot("screen_live_pl", "mode=live", 1500, 950)
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            b = p.chromium.launch(channel="chrome")
+            pg = b.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
+            pg.goto(f"{INDEX}#theme=dark&mode=line&line=276"); pg.wait_for_timeout(4000)
+            pg.screenshot(path=str(FIG / "screen_phone.png")); b.close()
+        print("zrzut screen_phone.png")
+        shot("screen_heat", "mode=heat&day=1&hz=heat", 1500, 950)
+        from PIL import Image
+        im = Image.open(FIG / "screen_popup.png")
+        W, H = im.size
+        im.crop((int(W * 0.455), int(H * 0.195), int(W * 0.74), int(H * 0.855))).save(FIG / "popup_crop.png")
 
     m = json.load(open(ROOT / "data" / "processed" / "metrics.json"))
     rp = load_js("replay2024")
@@ -111,6 +113,7 @@ def main():
         vals[f"v_97_{tag}"] = f3(V[key]["test1997_auc_model"])
     vals.update(new_tests(rp, segs))
     vals.update(extra_vals(m))
+    vals.update(object_vals(segs))
     html = (DOCS / "praca_template.html").read_text(encoding="utf-8")
     for k, v in vals.items():
         html = html.replace("{{" + k + "}}", str(v))
@@ -137,6 +140,14 @@ def main():
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=180)
     set_pdf_author(ann_pdf, author)
     print("PDF:", pdf, json.dumps(vals, ensure_ascii=False))
+
+
+def object_vals(segs):
+    sp = ROOT / "data" / "processed" / "switches.json"
+    sw = json.load(open(sp, encoding="utf-8")) if sp.exists() else {"meta": {"przypisanych": 0, "odcinkow_z_rozjazdami": 0}}
+    sp_ = lambda n: f"{n:,}".replace(",", " ")
+    return {"n_elec": sp_(sum(1 for x in segs if x["electrified"] >= 0.5)), "n_switches": sp_(sw["meta"]["przypisanych"]),
+            "n_sw_seg": sp_(sw["meta"]["odcinkow_z_rozjazdami"]), "n_sw_nodes": sp_(sw["meta"].get("wezlow", 0))}
 
 
 def fetch_status():

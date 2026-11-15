@@ -11,7 +11,7 @@ import pandas as pd
 import requests
 
 from features import (FEATURE_LABELS_PL, add_extreme, cell_daily, combine, heat_risk, ice_risk,
-                      rail_temp, river_risk, static_frame, wind_risk)
+                      rail_temp, river_risk, static_frame, switch_risk, track_risk, traction_risk, wind_risk)
 
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
@@ -33,6 +33,9 @@ def hyd_hist():
     return _HYD
 HM = json.load(open(P / "hydro_mapping.json"))
 ST["exposure"] = ST["id"].map(HM["exposure"]).astype(float)
+SWF = P / "switches.json"
+SWD = json.load(open(SWF, encoding="utf-8"))["seg"] if SWF.exists() else {}
+ST["sw_n"] = ST["id"].map(lambda i: float(sum(SWD.get(i, [0, 0])))).astype(float)
 
 _cell_elev = ST.groupby("cell")["elev"].mean()
 _known = {c: v for c, v in M["clim_q99"].items() if c in _cell_elev}
@@ -128,6 +131,13 @@ def score(df, out_of_fold=False):
     df["s_water"] = combine(df["s_flood"].values, df["s_river"].values)
     df["s_total"] = combine(df["s_water"].values, df["s_heat"].values, df["s_wind"].values, df["s_ice"].values)
     df["t_rail"] = rail_temp(df["tmax"].values, df["sw"].values)
+    wc = df["wcode"].values if "wcode" in df else None
+    snow = df["snowfall_sum"].values if "snowfall_sum" in df else np.zeros(len(df))
+    df["s_sw"], df["sw_f"] = switch_risk(snow, wc, df["tmin"].values, df["tmax"].values, df["p1"].values,
+                                         df["t_rail"].values, df["sw_n"].values)
+    ice_wire = ice_risk(df["p1"].values, df["tmax"].values, df["tmin"].values, np.ones(len(df)), wc)
+    df["s_cat"] = traction_risk(df["s_wind"].values, ice_wire, df["electrified"].values)
+    df["s_trk"] = track_risk(df["s_water"].values, df["s_heat"].values, df["s_wind"].values)
     hot = df["s_flood"] > 0.3
     df["why"] = None
     if hot.any():
@@ -173,6 +183,10 @@ def pack(df, days, meta, extra=False):
             out["risk"][str(d)[:10]]["tmin"] = sub["tmin"].round(1).fillna(0).tolist()
             out["risk"][str(d)[:10]]["snow"] = (sub["snowfall_sum"].round(1).fillna(0).tolist() if "snowfall_sum" in sub
                                                 else [0] * len(sub))
+            out["risk"][str(d)[:10]]["trk"] = sub["s_trk"].round(2).fillna(0).tolist()
+            out["risk"][str(d)[:10]]["cat"] = sub["s_cat"].round(2).fillna(0).tolist()
+            out["risk"][str(d)[:10]]["sw"] = sub["s_sw"].round(2).fillna(0).tolist()
+            out["risk"][str(d)[:10]]["swf"] = sub["sw_f"].fillna(0).astype(int).tolist()
     return out
 
 
@@ -435,6 +449,13 @@ if __name__ == "__main__":
             g["v"] = int(s["maxspeed"])
         if PW.get(s["id"]):
             g["pw"] = PW[s["id"]]
+        if s.get("electrified"):
+            g["el"] = round(float(s["electrified"]), 2)
+        n_sw, n_dr = SWD.get(s["id"], [0, 0])
+        if n_sw:
+            g["sw"] = n_sw
+        if n_dr:
+            g["wk"] = n_dr
         geo.append(g)
     write_js("segments", geo)
     json.dump(json.load(open(P / "metrics.json")), open(WEB / "metrics.json", "w"), indent=1)

@@ -2,14 +2,41 @@
 (() => {
   const D = window.RS_DATA || {};
   const SEG = D.segments || [];
-  const HZ = { flood: "Woda: podmycie lub fala", heat: "Wyboczenie toru (upał)", wind: "Wiatr: drzewa na torze", ice: "Oblodzenie sieci" };
-  const HZS = { flood: "woda", heat: "upał", wind: "wiatr", ice: "oblodzenie" };
+  const HZ = { flood: "Woda: podmycie lub fala", heat: "Wyboczenie toru (upał)", wind: "Wiatr: drzewa na torze", ice: "Oblodzenie sieci",
+    sw1: "Śnieg na rozjazdach", sw2: "Mokry śnieg na rozjazdach", sw3: "Marznący opad na rozjazdach", sw4: "Mróz z opadem na rozjazdach", sw5: "Upał: rozjazdy" };
+  const HZS = { flood: "woda", heat: "upał", wind: "wiatr", ice: "oblodzenie",
+    sw1: "śnieg", sw2: "mokry śnieg", sw3: "marznący opad", sw4: "mróz z opadem", sw5: "upał" };
+  const OBJ = {
+    trk: { name: "Tor i nasyp", icon: "🛤", who: "toromistrz (utrzymanie toru)", hz: ["flood", "heat", "wind"],
+      note: "Podmycie i fala, wyboczenie w upale, drzewa na torze. Sprawdza toromistrz." },
+    cat: { name: "Sieć trakcyjna", icon: "⚡", who: "służba trakcji", hz: ["wind", "ice"],
+      note: "Wiatr i oblodzenie sieci, tylko na odcinkach zelektryfikowanych. Sprawdza służba trakcji." },
+    sw: { name: "Rozjazdy i srk", icon: "🔀", who: "służba automatyki (srk)", hz: [],
+      note: "Wskaźnik ekspozycji: liczba rozjazdów z OSM razem z pogodą (śnieg, marznący opad, mokry śnieg i mróz z opadem, upał). To heurystyka, nie prognoza awarii: założenia robocze do kalibracji na rejestrze usterek srk PLK." },
+  };
   const ACTION = {
     flood: "obchód toru i kontrola przepustów, mostów i nasypów przed pierwszym pociągiem; gotowość pociągu sieciowego i sprzętu do zabezpieczenia skarp; przy fali wezbraniowej – obserwacja filarów mostów i usuwanie spływającego drewna",
     heat: "kontrola geometrii toru w godz. 13–19, szczególnie na odcinkach po robotach torowych",
     wind: "gotowość brygad do usuwania powalonych drzew; objazd linii po przejściu frontu przed wznowieniem ruchu",
     ice: "kursy pociągów odladzających sieć trakcyjną; rozważenie trakcji spalinowej na odcinkach krytycznych",
   };
+  const ACTION_OBJ = {
+    trk: {},
+    cat: { wind: "objazd sieci trakcyjnej po przejściu frontu przed wznowieniem ruchu; gotowość brygad do usuwania drzew i gałęzi z sieci i toru", ice: ACTION.ice },
+    sw: {
+      sw1: "kontrola sprawności ogrzewania rozjazdów i napędów; gotowość brygady srk do usuwania śniegu z rozjazdów",
+      sw2: "kontrola ogrzewania rozjazdów przy mokrym śniegu, który przymarza w szczelinach; gotowość do odśnieżania",
+      sw3: "kontrola ogrzewania rozjazdów i gotowość do odladzania przy marznącym opadzie",
+      sw4: "kontrola ogrzewania rozjazdów przy mrozie z opadem; sprawdzenie, czy zwrotnice przestawiają się bez oporu",
+      sw5: "kontrola luzów i lekkości przestawiania rozjazdów w upale, szczególnie po robotach torowych",
+    },
+  };
+  const WHO = { flood: "toromistrz", heat: "toromistrz", wind: "toromistrz, służba trakcji", ice: "służba trakcji",
+    sw1: "służba automatyki (srk)", sw2: "służba automatyki (srk)", sw3: "służba automatyki (srk)", sw4: "służba automatyki (srk)", sw5: "służba automatyki (srk)" };
+  const whoOf = (k) => (st.obj !== "all" && OBJ[st.obj] && st.obj !== "trk" ? OBJ[st.obj].who : WHO[k] || "toromistrz");
+  const lvlName = (x, sw) => (sw ? (x >= 0.5 ? "WYSOKI WSKAŹNIK" : x >= 0.3 ? "PODWYŻSZONY WSKAŹNIK" : "niski") : x >= 0.5 ? "ALARM" : x >= 0.3 ? "UWAGA" : "niskie");
+  const objOf = (r) => (st.obj !== "all" && hasObj(r) ? st.obj : null);
+  const actionFor = (k, r) => (r && objOf(r) && ACTION_OBJ[st.obj][k]) || ACTION[k];
   const ALARM = 0.5, WARN = 0.3;
 
   const kmf = (k) => k.toFixed(1).replace(".", ",");
@@ -19,7 +46,7 @@
   const VIEWS = { live: [[52.0, 19.3], 6], line: [[52.0, 19.3], 6], heat: [[52.0, 19.3], 6],
     replay2024: [[50.55, 16.95], 8], y1997: [[50.85, 17.45], 8], sim: [[50.45, 16.9], 9] };
 
-  const st = { mode: "live", hz: "total", day: 0, issue: 3, rain: false,
+  const st = { mode: "live", hz: "total", obj: "all", scope: "line", region: null, regionIdx: null, radius: "10", day: 0, issue: 3, rain: false,
     sim: { lat: null, lon: null, rain: 180, radius: 35, soil: 80, river: 0.5, climate: 0 } };
   let simRisk = null, simBase = null;
   const $ = (s) => document.querySelector(s);
@@ -236,6 +263,15 @@
   };
   const stale = (v) => isLive() && v && v.meta && ageH(v) > 30;
   const qOf = (r, i) => (r && r.q ? r.q[i] : 0);
+  const hasObj = (r) => !!(r && r.trk && r.cat && r.sw);
+  const tot = (r) => (objOf(r) ? r[st.obj] : r.total);
+  const swN = (s) => (s.sw || 0) + (s.wk || 0);
+  function objKeyFor(k, r, i) {
+    if (k === "sw") return "sw" + (r.swf ? r.swf[i] : 0);
+    const keys = OBJ[k].hz;
+    return keys.reduce((a, h) => (r[h][i] > r[a][i] ? h : a), keys[0]);
+  }
+  const objKey = (r, i) => objKeyFor(st.obj, r, i);
   function confidence(r, i, day = st.day) {
     if (qOf(r, i) === 2) return { lvl: "brak", txt: "ocena niedostępna – brak danych pogodowych" };
     if (st.mode === "sim") return { lvl: "symulacja", txt: "scenariusz symulacji, nie prognoza" };
@@ -248,10 +284,12 @@
     return { lvl: L[k], txt };
   }
   const DECIDE = "Decyzję o działaniach podejmuje uprawniony pracownik zgodnie z obowiązującymi procedurami. RailSentinel wspiera ocenę zagrożenia i nie zastępuje procedur ani ostrzeżeń IMGW.";
+  const EXCEPTION = "Tryb pracy: wyjątek, nie rutyna. Dyżurny ruchu reaguje tylko na UWAGĘ i ALARM w swoim rejonie, a poranny przegląd robi dyspozytor lub zakład. Toromistrz, trakcja i automatyka dostają osobne listy.";
   const STALE_TXT = "Dane nieaktualne: brak alarmu NIE oznacza braku zagrożenia. Postępuj według standardowych procedur i ostrzeżeń IMGW.";
   let RANK = {}, NWARN = 0;
 
   const domHz = (r, i) => ["flood", "heat", "wind", "ice"].reduce((a, h) => (r[h][i] > r[a][i] ? h : a), "flood");
+  const hzOf = (r, i) => (objOf(r) ? objKey(r, i) : domHz(r, i));
 
   function render() {
     if (st.mode !== "live") { $("#warnCard").hidden = true; warnLayer.clearLayers(); }
@@ -261,6 +299,7 @@
     app.dataset.mode = st.mode;
     $("#statusCard").hidden = st.mode === "line";
     $("#hzCtrl").hidden = st.mode === "sim" || st.mode === "line";
+    syncObjects();
     $("#topBox").hidden = st.mode === "line";
     $("#issueCtrl").hidden = st.mode !== "replay2024";
     if (st.mode === "sim") runSim();
@@ -275,7 +314,7 @@
       `<button data-d="${k}" class="${k === st.day ? "on" : ""}">${dayLbl(d, k)}</button>`).join("") : "";
     if (st.mode === "replay2024") renderTimeline(v, r);
 
-    const vals = r[st.hz];
+    const vals = objOf(r) ? r[st.obj] : r[st.hz];
     const low = lowCol();
     layers.forEach((pl, i) => {
       const x = vals[i] || 0;
@@ -296,15 +335,16 @@
     const alarm = idx.filter(([x]) => x >= ALARM), warn = idx.filter(([x]) => x >= WARN && x < ALARM);
     RANK = {}; idx.forEach(([x, i], k) => { if (x >= WARN) RANK[i] = k + 1; }); NWARN = alarm.length + warn.length;
     $("#kAlarm").textContent = alarm.length.toLocaleString("pl-PL");
-    $("#kAlarmLbl").textContent = alarm.length === 1 ? "odcinek w alarmie" : "odcinków w alarmie";
+    const swView = objOf(r) === "sw";
+    $("#kAlarmLbl").textContent = swView ? "odc. z wysokim wskaźnikiem" : alarm.length === 1 ? "odcinek w alarmie" : "odcinków w alarmie";
     $("#kWarn").textContent = warn.length.toLocaleString("pl-PL");
     $("#kKm").textContent = Math.round(alarm.reduce((a, [, i]) => a + SEG[i].len, 0)).toLocaleString("pl-PL");
     $("#statusCard").className = "status " + (alarm.length ? "" : warn.length ? "warn" : "ok");
 
-    $("#topH").textContent = idx.length && idx[0][0] >= WARN ? "Do sprawdzenia" : "Najwyższe ryzyko (poniżej progu uwagi)";
+    $("#topH").textContent = idx.length && idx[0][0] >= WARN ? (objOf(r) ? `Do sprawdzenia: ${OBJ[st.obj].name}` : "Do sprawdzenia") : "Najwyższe ryzyko (poniżej progu uwagi)";
     const list = idx.filter(([x]) => x >= 0.15).slice(0, 8);
     $("#top").innerHTML = list.length ? list.map(([x, i]) => {
-      const s = SEG[i], h = st.hz === "total" ? domHz(r, i) : st.hz;
+      const s = SEG[i], h = objOf(r) ? objKey(r, i) : st.hz === "total" ? domHz(r, i) : st.hz;
       return `<li data-i="${i}" tabindex="0" role="button"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span>
         <span class="t"><b>${segTitle(s)}${dmg.has(s.id) ? " <span class='tag r'>zniszczony</span>" : ""}</b>
         <small>${s.km ? odDo(s) + " · " : ""}${HZS[h]}${detail(h, r, i)}${s.river ? " · dolina " + s.river : ""}</small></span></li>`;
@@ -329,6 +369,9 @@
     if (h === "heat") return ` · szyna ${Math.round(r.trail[i])} °C`;
     if (h === "wind") return ` · porywy ${Math.round(r.gust[i])} km/h`;
     if (h === "ice") return " · marznący opad";
+    if (h === "sw1" || h === "sw2") return ` ${r.snow ? Math.round(r.snow[i]) : "?"} cm · ${swN(SEG[i])} rozj.`;
+    if (h === "sw3" || h === "sw4") return ` · ${swN(SEG[i])} rozj.`;
+    if (h === "sw5") return ` · szyna ${Math.round(r.trail[i])} °C · ${swN(SEG[i])} rozj.`;
     return "";
   }
 
@@ -388,14 +431,90 @@
     return labelCache[l];
   }
   const recents = () => { try { return JSON.parse(LS.get("rs_recent") || "[]").filter((l) => byLine[l]); } catch (e) { return []; } };
+  const rKey = (g) => `${g.name}|${g.r}`;
+  const RADII = ["5", "10", "20", "adj"];
+  const radiusTxt = (r) => (r === "adj" ? "sąsiednie stacje" : `${r}\u00a0km`);
+  const recentRegions = () => { try { return JSON.parse(LS.get("rs_regions") || "[]").filter((g) => g && g.name && RADII.includes(String(g.r)) && PLACES.has(fold(g.name))); } catch (e) { return []; } };
+  const pushRegion = (g) => LS.set("rs_regions", JSON.stringify([g, ...recentRegions().filter((x) => rKey(x) !== rKey(g))].slice(0, 5)));
   const pushRecent = (l) => LS.set("rs_recent", JSON.stringify([l, ...recents().filter((x) => x !== l)].slice(0, 5)));
-  function lineLevel(l, v) {
+  const KY = 110.57;
+  const KX = (la) => Math.cos(la * Math.PI / 180) * 111.32;
+  function pointDist(p, poly, kx) {
+    let best = 1e9;
+    for (let k = 0; k < poly.length; k++) {
+      const a = poly[k], b = poly[Math.min(k + 1, poly.length - 1)];
+      const ax = (a[1] - p[1]) * kx, ay = (a[0] - p[0]) * KY, bx = (b[1] - p[1]) * kx, by = (b[0] - p[0]) * KY;
+      const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+      const t = L2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0;
+      const d = Math.hypot(ax + t * dx, ay + t * dy);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+  const segDist = (p, i, kx) => SEG[i].g.reduce((m, poly) => Math.min(m, pointDist(p, poly, kx)), 1e9);
+  const d2pt = (a, b) => (a[0] - b[0]) ** 2 + ((a[1] - b[1]) * Math.cos(a[0] * Math.PI / 180)) ** 2;
+  function placePoint(name) {
+    const pts = D.places && D.places[name];
+    if (pts && pts.length) return st.me ? pts.reduce((a, b) => (d2pt(st.me, b) < d2pt(st.me, a) ? b : a)) : pts[0];
+    const c = [];
+    SEG.forEach((s, i) => { if (s.place === name || s.od === name || s.do === name) c.push(centers[i]); });
+    return c.length ? [c.reduce((a, q) => a + q[0], 0) / c.length, c.reduce((a, q) => a + q[1], 0) / c.length] : null;
+  }
+  const regionCache = {};
+  function regionSet(g) {
+    const key = rKey(g) + (st.me ? "|me" : "");
+    if (regionCache[key]) return regionCache[key];
+    const keep = (o) => { if (D.places) regionCache[key] = o; return o; };
+    const p = placePoint(g.name);
+    const out = { ii: [], p, dist: {} };
+    if (!p) return keep(out);
+    const kx = KX(p[0]);
+    if (g.r === "adj") {
+      const want = fold(g.name), set = new Set();
+      Object.keys(byLine).filter((l) => l !== "bn").forEach((l) => {
+        const ord = lineOrder(byLine[l]), hit = [];
+        ord.forEach((i, k) => { if ([SEG[i].place, SEG[i].od, SEG[i].do].some((n) => n && fold(n) === want) && segDist(p, i, kx) <= 12) hit.push(k); });
+        if (!hit.length) return;
+        for (let k = Math.max(0, Math.min(...hit) - 1); k <= Math.min(ord.length - 1, Math.max(...hit) + 1); k++) set.add(ord[k]);
+      });
+      out.ii = [...set];
+    } else {
+      const R = +g.r;
+      SEG.forEach((s, i) => { if (s.line !== "bn" && segDist(p, i, kx) <= R) out.ii.push(i); });
+    }
+    out.ii.forEach((i) => { out.dist[i] = segDist(p, i, kx); });
+    return keep(out);
+  }
+  function regionOrder(ii) {
+    const by = {};
+    ii.forEach((i) => { (by[SEG[i].line] = by[SEG[i].line] || []).push(i); });
+    const dist = (st.regionInfo && st.regionInfo.dist) || {};
+    return Object.values(by).map((a) => [Math.min(...a.map((i) => dist[i] ?? 0)), lineOrder(a)]).sort((x, y) => x[0] - y[0]).flatMap((x) => x[1]);
+  }
+  const scopeIdx = () => {
+    if (st.scope !== "region") return byLine[st.line] || null;
+    if (!st.region) return null;
+    st.regionInfo = regionSet(st.region);
+    return st.regionInfo.ii;
+  };
+  const scopeOrder = (ii) => (st.scope === "region" ? regionOrder(ii) : lineOrder(ii));
+  const scopeTitle = () => (st.scope === "region" && st.region ? `rejon ${st.region.name} (${radiusTxt(st.region.r)})` : `linia ${st.line}`);
+  function levelOf(ii, v) {
     let w = 0;
-    byLine[l].forEach((i) => v.days.forEach((d) => { const x = v.risk[d].total[i]; if (x > w) w = x; }));
+    ii.forEach((i) => v.days.forEach((d) => { const x = tot(v.risk[d])[i]; if (x > w) w = x; }));
     return w;
   }
+  const lineLevel = (l, v) => levelOf(byLine[l], v);
   const lvlIcon = (x) => (x >= ALARM ? "⛔" : x >= WARN ? "⚠" : "✓");
   function renderRecent(v) {
+    if (st.scope === "region") {
+      const rr = recentRegions();
+      $("#recent").innerHTML = rr.length && v ? `<span class="rc-h">Ostatnio:</span>` + rr.map((g) => {
+        const w = levelOf(regionSet(g).ii, v), on = st.region && rKey(g) === rKey(st.region);
+        return `<button type="button" class="rc ${w >= ALARM ? "alarm" : w >= WARN ? "warn" : "ok"}${on ? " on" : ""}" data-rg="${encodeURIComponent(rKey(g))}">${lvlIcon(w)} ${g.name} <small>${radiusTxt(g.r)}</small></button>`;
+      }).join("") : "";
+      return;
+    }
     const r = recents();
     $("#recent").innerHTML = r.length && v ? `<span class="rc-h">Ostatnio:</span>` + r.map((l) => {
       const w = lineLevel(l, v);
@@ -405,10 +524,10 @@
   function renderTiles(ord, v) {
     $("#dayTiles").innerHTML = v.days.map((d, k) => {
       let w = { x: -1, i: ord[0] };
-      ord.forEach((i) => { const x = v.risk[d].total[i]; if (x > w.x) w = { x, i }; });
+      ord.forEach((i) => { const x = tot(v.risk[d])[i]; if (x > w.x) w = { x, i }; });
       const lvl = w.x >= ALARM ? "alarm" : w.x >= WARN ? "warn" : "ok";
       return `<button type="button" class="dt ${lvl}${k === st.day ? " sel" : ""}" data-k="${k}" data-i="${w.i}"><span class="dd">${dayLbl(d, k)}</span>` +
-        `<b>${lvlIcon(w.x)} ${lvl === "ok" ? "OK" : pct(w.x)}</b><small>${lvl === "ok" ? "spokojnie" : HZS[domHz(v.risk[d], w.i)]}</small></button>`;
+        `<b>${lvlIcon(w.x)} ${lvl === "ok" ? "OK" : pct(w.x)}</b><small>${lvl === "ok" ? "spokojnie" : HZS[hzOf(v.risk[d], w.i)]}</small></button>`;
     }).join("");
   }
   function showChips(label, items) {
@@ -427,6 +546,7 @@
   function suggest(q) {
     const t = fold(q);
     if (!t) return [];
+    if (/^\d+$/.test(t) && st.scope === "region") return [];
     if (/^\d+$/.test(t)) return lineNames.filter((l) => l.startsWith(t)).slice(0, 6).map((l) => ({ kind: "line", line: l, title: `Linia ${l}`, sub: lineLabel(l) }));
     const hits = [];
     PLACES.forEach((e, k) => {
@@ -450,6 +570,12 @@
     $("#lineInput").blur();
     $("#sugg").hidden = true;
     st.me = null;
+    if (st.scope === "region") {
+      if (x.kind === "place") setRegion(x.title, st.radius);
+      $("#near").hidden = true;
+      if (mobile()) setSheet("half");
+      return;
+    }
     setLine(x.line, true);
     if (x.kind === "place" && x.alts.length > 1) showChips(`Linie przez ${x.title}:`, x.alts.slice(0, 6).map((l) => ({ line: l })));
     else $("#near").hidden = true;
@@ -457,56 +583,95 @@
   }
   function commit() {
     const val = $("#lineInput").value.trim();
-    if (val && val !== "bn" && byLine[val]) { pick({ kind: "line", line: val }); return; }
+    if (st.scope !== "region" && val && val !== "bn" && byLine[val]) { pick({ kind: "line", line: val }); return; }
     const s = suggest(val);
     if (s.length) { pick(s[0]); return; }
-    say(`Nie znam „${val}”. Wpisz numer linii (np. 276) albo nazwę stacji lub miejscowości.`);
+    say(st.scope === "region" ? `Nie znam „${val}”. Wpisz nazwę stacji lub miejscowości.` : `Nie znam „${val}”. Wpisz numer linii (np. 276) albo nazwę stacji lub miejscowości.`);
   }
   function renderLine(fit) {
     const v = view();
     lineLayer.clearLayers();
+    syncScope();
     renderRecent(v);
     if (!v) { $("#lineStatus").innerHTML = "Brak prognozy."; return; }
-    const ii = byLine[st.line];
-    $("#lineCtrl").dataset.has = ii ? "1" : "0";
-    if (!ii) {
+    const reg = st.scope === "region", ii = scopeIdx();
+    $("#lineCtrl").dataset.has = ii && ii.length ? "1" : "0";
+    if (!ii || !ii.length) {
       $("#lineStatus").className = "linestatus";
-      $("#lineStatus").innerHTML = st.line ? `Nie znam linii „${st.line}”. Wpisz numer linii, nazwę stacji albo użyj 📍.` :
-        "Wpisz numer linii, nazwę stacji lub miejscowość albo użyj <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego odcinka na 3 dni.";
+      $("#lineStatus").innerHTML = reg
+        ? (st.region ? `W rejonie „${st.region.name}” (${radiusTxt(st.region.r)}) nie ma odcinków z prognozą. Zwiększ zasięg albo wybierz inną stację.` :
+          "Wpisz stację lub miejscowość albo użyj <b>📍 Gdzie jestem</b>. Pokażę wszystkie odcinki w promieniu 5, 10 lub 20 km na 3 dni.")
+        : (st.line ? `Nie znam linii „${st.line}”. Wpisz numer linii, nazwę stacji albo użyj 📍.` :
+          "Wpisz numer linii, nazwę stacji lub miejscowość albo użyj <b>📍 Gdzie jestem</b>. Pokażę zagrożenia dla każdego odcinka na 3 dni.");
       clearLineBox();
       if (mobile()) setSheet();
       return;
     }
-    const ord = lineOrder(ii);
+    const ord = scopeOrder(ii);
     let worst = { x: -1 };
-    v.days.forEach((d) => ord.forEach((i) => { const r = v.risk[d]; if (r.total[i] > worst.x) worst = { x: r.total[i], d, i, h: domHz(r, i) }; }));
+    v.days.forEach((d) => ord.forEach((i) => { const r = v.risk[d]; if (tot(r)[i] > worst.x) worst = { x: tot(r)[i], d, i, h: hzOf(r, i) }; }));
     const lvl = worst.x >= ALARM ? "alarm" : worst.x >= WARN ? "warn" : "ok";
     const km = Math.round(ord.reduce((a, i) => a + SEG[i].len, 0));
     const places = [...new Set(ord.map((i) => SEG[i].place).filter(Boolean))];
+    const nLines = new Set(ord.map((i) => SEG[i].line)).size;
     const wk = Math.max(0, v.days.indexOf(worst.d));
+    const swv = objOf(v.risk[worst.d]) === "sw";
+    const word = lvl === "alarm" ? (swv ? "WYSOKI WSKAŹNIK" : "ALARM") : lvl === "warn" ? (swv ? "PODWYŻSZONY WSKAŹNIK" : "UWAGA") : "bez zagrożeń";
+    const head = reg ? `Rejon ${st.region.name}` : `Linia ${st.line}`;
+    const sub = reg ? `${ord.length} odc. · ${nLines} ${nLines === 1 ? "linia" : nLines < 5 ? "linie" : "linii"} · ${km} km toru · ${radiusTxt(st.region.r)}` :
+      `${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru`;
+    const where = (g) => `${reg ? "linia " + g.line + ", " : ""}${kmTxt(g) ? kmTxt(g) + " (" + odDo(g) + ")" : "rejon " + (g.place || "?")}`;
     $("#lineStatus").className = "linestatus " + lvl;
-    $("#lineStatus").innerHTML = `<div class="ls"><span class="ls-ic" aria-hidden="true">${lvlIcon(worst.x)}</span><div><b class="big">Linia ${st.line}: ${lvl === "alarm" ? "ALARM" : lvl === "warn" ? "UWAGA" : "bez zagrożeń"}</b>` +
-      `<span class="muted">${places[0] || ""}${places.length > 1 ? " – " + places[places.length - 1] : ""} · ${km} km toru</span></div></div>` +
+    $("#lineStatus").innerHTML = `<div class="ls"><span class="ls-ic" aria-hidden="true">${lvlIcon(worst.x)}</span><div><b class="big">${head}: ${word}</b>` +
+      `<span class="muted">${sub}</span></div></div>` +
       (lvl === "ok" ? `<p>W ciągu 72 h brak zagrożeń pogodowych powyżej progu uwagi.</p>` :
-        `<p><b>${dayLbl(worst.d, wk)}</b>: ${HZ[worst.h].toLowerCase()}, ryzyko <b>${pct(worst.x)}</b><br>${kmTxt(SEG[worst.i]) ? kmTxt(SEG[worst.i]) + " (" + odDo(SEG[worst.i]) + ")" : "rejon " + (SEG[worst.i].place || "?")}</p>`);
-    const actTxt = lvl === "ok" ? "" : `Do rozważenia (decyzja: uprawniony pracownik): ${ACTION[worst.h]}.`;
+        `<p><b>${dayLbl(worst.d, wk)}</b>: ${HZ[worst.h].toLowerCase()}, ${swv ? "wskaźnik" : "ryzyko"} <b>${pct(worst.x)}</b><br>${where(SEG[worst.i])}</p>`);
+    const actTxt = lvl === "ok" ? "" : `Do rozważenia (decyzja: uprawniony pracownik): ${actionFor(worst.h, v.risk[worst.d])}.`;
     $("#lineAct").innerHTML = actTxt ? `<b>Co zrobić?</b> <i>${actTxt}</i>` : "";
     $("#lineTable").innerHTML = `<table class="ltab"><tr><th>Odcinek</th>${v.days.map((d, k) => `<th class="c">${dayLbl(d, k)}</th>`).join("")}</tr>` +
-      ord.map((i) => `<tr data-i="${i}"><td>${odDo(SEG[i]) || "–"}${SEG[i].km ? ` <span class="muted small">· ${kmTxt(SEG[i])}</span>` : ""}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
-        v.days.map((d) => { const x = v.risk[d].total[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
+      ord.map((i) => `<tr data-i="${i}"><td>${reg ? `<span class="muted small">L${SEG[i].line} ·</span> ` : ""}${odDo(SEG[i]) || "–"}${SEG[i].km ? ` <span class="muted small">· ${kmTxt(SEG[i])}</span>` : ""}${SEG[i].river ? ` <span class="muted small">· ${SEG[i].river}</span>` : ""}</td>` +
+        v.days.map((d) => { const x = tot(v.risk[d])[i]; return `<td class="c"><span class="chip" style="background:${color(x)}">${Math.round(x * 100)}</span></td>`; }).join("") + "</tr>").join("") + "</table>";
     $("#lineUpd").textContent = `prognoza z ${fmtDay(v.meta.issued || v.days[0])}`;
     renderTiles(ord, v);
     renderLineWarn(ord, v);
     st.lineOrd = ord;
-    renderStrip(ord, v);
+    if (reg) $("#lineStrip").innerHTML = ""; else renderStrip(ord, v);
     renderRounds(ord, v);
     ord.forEach((i) => L.polyline(SEG[i].g, { color: "#3b82f6", weight: 12, opacity: 0.3, interactive: false }).addTo(lineLayer));
+    if (reg && st.regionInfo && st.regionInfo.p && st.region.r !== "adj") {
+      L.circle(st.regionInfo.p, { radius: +st.region.r * 1000, color: "#3b82f6", weight: 1.5, dashArray: "5 6", fillOpacity: 0.04, interactive: false }).addTo(lineLayer);
+      L.circleMarker(st.regionInfo.p, { radius: 6, color: "#fff", weight: 2, fillColor: "#ffb020", fillOpacity: 1, interactive: false }).addTo(lineLayer);
+    }
     if (st.me) L.circleMarker(st.me, { radius: 8, color: "#fff", weight: 3, fillColor: "#3b82f6", fillOpacity: 1, interactive: false }).addTo(lineLayer);
-    if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { ...pad(), maxZoom: 11 });
+    if (fit) map.fitBounds(L.featureGroup(ord.map((i) => layers[i])).getBounds(), { ...pad(), maxZoom: reg ? 12 : 11 });
     st.lineText = $("#lineStatus").innerText + (actTxt ? "\n" + actTxt : "");
     if (mobile()) setSheet();
   }
+  function setRegion(name, r = st.radius, fit = true) {
+    st.scope = "region";
+    LS.set("rs_scope", "region");
+    st.radius = String(r);
+    st.region = { name, r: String(r) };
+    st.regionInfo = regionSet(st.region);
+    LS.set("rs_region", JSON.stringify(st.region));
+    if (st.regionInfo.ii.length) pushRegion(st.region);
+    $("#lineInput").value = name;
+    $("#sugg").hidden = true;
+    syncScope();
+    render();
+    renderLine(fit);
+  }
+  function syncScope() {
+    const reg = st.scope === "region";
+    document.querySelectorAll("#scope button").forEach((b) => { b.classList.toggle("on", b.dataset.s === st.scope); b.setAttribute("aria-pressed", String(b.dataset.s === st.scope)); });
+    $("#radiusCtrl").hidden = !reg;
+    document.querySelectorAll("#radiusCtrl button").forEach((b) => b.classList.toggle("on", b.dataset.r === String(st.radius)));
+    $("#lineInput").placeholder = reg ? "Stacja lub miejscowość" : "Linia, stacja lub miejscowość";
+    $("#lineInput").setAttribute("aria-label", reg ? "Stacja lub miejscowość" : "Linia, stacja lub miejscowość");
+  }
   function setLine(l, fit = true) {
+    st.scope = "line";
+    LS.set("rs_scope", "line");
     st.line = String(l).trim();
     LS.set("rs_line", st.line);
     if (byLine[st.line]) pushRecent(st.line);
@@ -526,7 +691,34 @@
   inp.addEventListener("blur", () => setTimeout(() => { $("#sugg").hidden = true; }, 200));
   $("#sugg").addEventListener("pointerdown", (e) => e.preventDefault());
   $("#sugg").addEventListener("click", (e) => { const b = e.target.closest("button[data-k]"); if (b) pick(st.sugg[+b.dataset.k]); });
-  const chipClick = (e) => { const b = e.target.closest("button[data-l]"); if (b) { st.me = e.currentTarget.id === "near" ? st.me : null; setLine(b.dataset.l); if (mobile()) setSheet("half"); } };
+  const chipClick = (e) => {
+    const g = e.target.closest("button[data-rg]");
+    if (g) { const [n, r] = decodeURIComponent(g.dataset.rg).split("|"); st.me = null; setRegion(n, r); if (mobile()) setSheet("half"); return; }
+    const b = e.target.closest("button[data-l]");
+    if (b) { st.me = e.currentTarget.id === "near" ? st.me : null; setLine(b.dataset.l); if (mobile()) setSheet("half"); }
+  };
+  $("#scope").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-s]");
+    if (!b || b.dataset.s === st.scope) return;
+    st.scope = b.dataset.s;
+    LS.set("rs_scope", st.scope);
+    if (st.scope === "region" && !st.region) {
+      try { const g = JSON.parse(LS.get("rs_region") || "null"); if (g && g.name && RADII.includes(String(g.r))) { st.region = g; st.radius = String(g.r); st.regionInfo = regionSet(g); } } catch (e2) {  }
+    }
+    $("#lineInput").value = st.scope === "region" ? (st.region ? st.region.name : "") : st.line;
+    $("#near").hidden = true;
+    syncScope();
+    render();
+    renderLine(true);
+    if (mobile()) setSheet("half");
+  });
+  $("#radiusCtrl").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-r]");
+    if (!b) return;
+    st.radius = b.dataset.r;
+    if (st.region) setRegion(st.region.name, st.radius); else syncScope();
+    if (mobile()) setSheet("half");
+  });
   $("#recent").addEventListener("click", chipClick);
   $("#near").addEventListener("click", chipClick);
   $("#dayTiles").addEventListener("click", (e) => {
@@ -547,6 +739,14 @@
     });
     return Object.values(best).map((b) => ({ line: b.line, km: Math.sqrt(b.d2) })).filter((b) => b.km <= maxKm).sort((a, b) => a.km - b.km).slice(0, max);
   }
+  function nearestPlace(la, lo, maxKm = 25) {
+    let best = null;
+    Object.entries(D.places || {}).forEach(([name, pts]) => {
+      const q = [pts[0][0], pts[0][1]], d = Math.sqrt(d2pt([la, lo], q)) * 111;
+      if (!best || d < best.d) best = { name, d };
+    });
+    return best && best.d <= maxKm ? best : null;
+  }
   $("#geoBtn").addEventListener("click", () => {
     const btn = $("#geoBtn"), IDLE = btn.innerHTML;
     if (!navigator.geolocation) { say("Ta przeglądarka nie udostępnia lokalizacji. Wpisz numer linii albo nazwę stacji."); return; }
@@ -555,7 +755,16 @@
     const done = () => { btn.innerHTML = IDLE; btn.disabled = false; };
     navigator.geolocation.getCurrentPosition((pos) => {
       done();
-      const { latitude: la, longitude: lo } = pos.coords, nl = nearLines(la, lo);
+      const { latitude: la, longitude: lo } = pos.coords;
+      if (st.scope === "region") {
+        const np = nearestPlace(la, lo);
+        if (!np) { say("W promieniu 25 km od Ciebie nie ma stacji ani miejscowości z linią kolejową. Wpisz nazwę stacji."); return; }
+        st.me = [la, lo];
+        setRegion(np.name, st.radius);
+        if (mobile()) setSheet("half");
+        return;
+      }
+      const nl = nearLines(la, lo);
       if (!nl.length) { say("W promieniu 8 km od Ciebie nie ma linii kolejowej z prognozą. Wpisz numer linii albo nazwę stacji."); return; }
       st.me = [la, lo];
       setLine(nl[0].line, true);
@@ -568,7 +777,8 @@
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   });
   $("#shareBtn").addEventListener("click", async () => {
-    const txt = `RailSentinel – ${st.lineText || ""}\n${location.origin + location.pathname}#mode=line&line=${st.line}`;
+    const link = st.scope === "region" && st.region ? `#mode=line&scope=region&place=${encodeURIComponent(st.region.name)}&r=${st.region.r}` : `#mode=line&line=${st.line}`;
+    const txt = `RailSentinel – ${st.lineText || ""}\n${location.origin + location.pathname}${link}`;
     try { if (navigator.share) await navigator.share({ title: "RailSentinel", text: txt }); else { await navigator.clipboard.writeText(txt); $("#shareBtn").textContent = "✓ Skopiowano"; } } catch (e) {  }
   });
   let deferred = null;
@@ -631,7 +841,7 @@
   function renderStory(v) {
     const T = {
       live: ["Prognoza na żywo", v ? `Cała Polska, najbliższe 72 h · pogoda ECMWF/ICON i bieżące stany rzek IMGW` : ""],
-      line: ["Moja linia", "Status Twojej linii na 3 dni. Działa też bez zasięgu."],
+      line: st.scope === "region" ? ["Mój rejon", "Wszystkie odcinki wokół wybranej stacji na 3 dni. Działa też bez zasięgu."] : ["Moja linia", "Status Twojej linii na 3 dni. Działa też bez zasięgu."],
       replay2024: ["Powódź 2024 – czy system by ostrzegł?", "System widzi tylko prognozy wydane w tamtych dniach. Naciśnij ▶ i obserwuj."],
       sim: ["Symulator: co jeśli?", "Postaw ulewę, podnieś rzeki albo wzmocnij opady. Model ML przelicza ryzyko na żywo."],
       heat: [v ? v.meta.title.split("–")[0].trim() : "Upał", "Szacowana temperatura szyny. Powyżej ok. 50 °C rośnie ryzyko wyboczenia toru."],
@@ -646,7 +856,7 @@
   function renderBrief(v, r, alarm, warn) {
     const day = v.days[st.day];
     if (!alarm.length && !warn.length) {
-      $("#brief").innerHTML = warnBrief(day) + `<p><b>${fmtDay(day)}:</b> brak odcinków powyżej progu uwagi. Standardowy tryb utrzymania.</p>`;
+      $("#brief").innerHTML = warnBrief(day) + `<p><b>${fmtDay(day)}:</b> brak odcinków powyżej progu uwagi. Standardowy tryb utrzymania.</p>` + objBrief(r);
       return;
     }
     const byHz = {};
@@ -656,7 +866,7 @@
       `${stt ? `; IMGW: ${stt.gauges ? stt.gauges + " wodowskazów" : "brak danych – moduł fali nieaktywny"}; prognoza pogody: ${stt.cells_ok}/${stt.cells} punktów` : ""}.` +
       `${stale(v) ? `<br><b class="warnTxt">⚠ ${STALE_TXT}</b>` : ""}` +
       `<br><b>Jak czytać:</b> pozycje uszeregowane według priorytetu weryfikacji (1 = najpierw). Pewność oceny maleje z wyprzedzeniem prognozy.` +
-      `<br><b>Kto decyduje:</b> ${DECIDE}</div>`;
+      `<br><b>Kto decyduje:</b> ${DECIDE}<br><b>${EXCEPTION}</b></div>`;
     html += `<p><b>${fmtDay(day)}</b> – <span class="tag r">ALARM</span> ${alarm.length} odc. · <span class="tag o">UWAGA</span> ${warn.length} odc. · pewność oceny: ${confidence(r, alarm[0] ?? warn[0]).lvl}</p>`;
     for (const [h, list] of Object.entries(byHz)) {
       const lines = {};
@@ -684,24 +894,36 @@
       }).join("");
       html += `<p><b>${HZ[h]}</b></p><ul>${items}</ul><p><i>Działania do rozważenia przez uprawnionego pracownika:</i> ${ACTION[h]}.</p>`;
     }
-    $("#brief").innerHTML = html;
+    $("#brief").innerHTML = html + objBrief(r);
+  }
+  function objBrief(r) {
+    if (!hasObj(r) || !isLive()) return "";
+    const rows = Object.entries(OBJ).map(([k, o]) => {
+      const idx = r[k].map((x, i) => [x, i]).filter(([x]) => x >= WARN).sort((a, b) => b[0] - a[0]);
+      const top = idx.slice(0, 4).map(([x, i]) => `linia ${SEG[i].line}${SEG[i].km ? ", " + kmTxt(SEG[i]) : ""} (${pct(x)}, ${HZS[objKeyFor(k, r, i)] || "pogoda"})`).join("; ");
+      const act = k === "sw" ? "kontrola ogrzewania i napędów rozjazdów, gotowość brygady srk" : k === "cat" ? "objazd sieci po wietrze, odladzanie przy marznącym opadzie" : "obchód toru, przepusty, mosty, nasypy, geometria toru w upale";
+      return `<li><b>${o.icon} ${o.name}</b> · sprawdza: ${o.who}. ${idx.length ? `${idx.length} odc., np. ${top}.` : "Brak odcinków powyżej progu uwagi."} <i>Do rozważenia: ${act}.</i>${k === "sw" ? " <i>Wskaźnik ekspozycji (założenia robocze), nie prognoza awarii.</i>" : ""}</li>`;
+    }).join("");
+    return `<p><b>Według obiektów i służb</b> (kto sprawdza):</p><ul>${rows}</ul>`;
   }
 
   function openPopup(i, latlng) {
     const v = view(), r = cur();
     if (!r) return;
-    const s = SEG[i], h = domHz(r, i), x = r.total[i];
+    const s = SEG[i], h = hzOf(r, i), x = tot(r)[i];
+    const swv = objOf(r) === "sw";
     const why = (r.why && r.why[i] || []).map(([k, val]) =>
       `<div>${k}<div class="bar"><i style="width:${Math.min(100, val * 250)}%"></i></div></div>`).join("");
     const dmg = st.mode === "replay2024" && D.replay2024.damaged.includes(s.id);
     const lead = st.mode === "replay2024" && D.replay2024.lead_hours_by_segment[s.id];
-    const lvl = x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie ryzyko";
+    const lvl = swv ? lvlName(x, true) : x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie ryzyko";
     const cf = confidence(r, i);
+    const oa = objActions(r, i);
     L.popup({ autoPanPadding: [30, 30], maxWidth: 340, maxHeight: mobile() ? Math.max(220, innerHeight - sheetPx() - 150) : undefined, autoPanPaddingTopLeft: mobile() ? [16, 112] : [400, 90], autoPanPaddingBottomRight: mobile() ? [16, sheetPx() + 16] : [30, 30] }).setLatLng(latlng).setContent(`<div class="pp">
       <h4>${segTitle(s)}</h4>
       <div class="sub">${s.km ? odDo(s) + " · " : ""}${s.river ? "dolina: " + s.river + " · " : ""}${s.elev} m n.p.m. · ${s.len.toFixed(1)} km · ${fmtDay(v.days[st.day])}</div>
       ${qOf(r, i) === 2 ? `<div class="act warnbox"><b>Ocena niedostępna</b> – brak danych pogodowych dla tego odcinka. To NIE oznacza niskiego ryzyka.</div>` : `
-      <div class="score"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span><span><b>${lvl}</b>${RANK[i] ? ` · priorytet ${RANK[i]} z ${NWARN}` : ""}<br>główne zagrożenie: ${HZS[h]}</span></div>`}
+      <div class="score"><span class="pill" style="background:${color(x)}">${Math.round(x * 100)}</span><span><b>${lvl}</b>${RANK[i] ? ` · priorytet ${RANK[i]} z ${NWARN}` : ""}<br>${objOf(r) ? "główny czynnik" : "główne zagrożenie"}: ${HZS[h]}</span></div>`}
       <div class="conf">Pewność oceny: <b>${cf.lvl}</b> – ${cf.txt}${v.meta && v.meta.generated ? ` · dane z ${v.meta.generated}` : ""}</div>
       <div class="grid">
         <div><small>Woda${r.flash ? " (ulewa / rzeka)" : ""}</small><b>${pct(r.flood[i])}</b>${r.flash ? ` <span class="muted small">${pct(r.flash[i])} / ${pct(r.river[i])}</span>` : ""}</div>
@@ -709,12 +931,28 @@
         <div><small>Upał · szyna</small><b>${pct(r.heat[i])}</b> <span class="muted small">${r.trail[i]} °C</span></div>
         <div><small>Wiatr · porywy</small><b>${pct(r.wind[i])}</b> <span class="muted small">${r.gust[i]} km/h</span></div>
       </div>
+      ${objTiles(r, i, s)}
       ${why ? `<div class="why"><b>Dlaczego? Wkład czynników do ryzyka</b>${why}</div>` : ""}
       ${warnPopup(s, x)}
-      ${x >= WARN ? `<div class="act"><b>Do rozważenia:</b> ${ACTION[h]}.<div class="dec">${DECIDE}</div></div>` : ""}
+      ${x >= WARN || oa ? `<div class="act"><b>Co sprawdzić:</b> ${oa || actionFor(h, r) + "."}<div class="dec">${DECIDE}</div></div>` : ""}
       ${stale(v) ? `<div class="act warnbox">⚠ ${STALE_TXT}</div>` : ""}
       ${dmg ? `<div class="why"><span class="tag r">Odcinek faktycznie zniszczony 09.2024</span>${lead ? ` – alarm ${lead} h przed zniszczeniem` : ""}</div>` : ""}
     </div>`).openOn(map);
+  }
+  function objTiles(r, i, s) {
+    if (!hasObj(r) || !isLive()) return "";
+    const t = (k, v, sub) => `<div class="o${objOf(r) === k ? " cur" : ""}"><small>${OBJ[k].icon} ${OBJ[k].name}</small><b>${v}</b>${sub ? ` <span class="muted small">${sub}</span>` : ""}</div>`;
+    const el = s.el || 0, n = swN(s);
+    return `<div class="grid obj">${t("trk", pct(r.trk[i]), "")}${t("cat", el ? pct(r.cat[i]) : "–", el ? (el < 0.95 ? "część odcinka" : "") : "brak sieci")}` +
+      `${t("sw", n ? pct(r.sw[i]) : "–", n ? n + " rozj." : "brak w OSM")}</div>` +
+      `<div class="muted small objnote2">Rozjazdy i srk: wskaźnik ekspozycji (rozjazdy z OSM i pogoda), założenia robocze – nie prognoza awarii.</div>`;
+  }
+  function objActions(r, i) {
+    if (!hasObj(r) || !isLive()) return "";
+    return Object.entries(OBJ).filter(([k]) => r[k][i] >= WARN).map(([k, o]) => {
+      const key = objKeyFor(k, r, i);
+      return `<div><b>${o.icon} ${o.name} (${o.who}):</b> ${ACTION_OBJ[k][key] || ACTION[key]}.</div>`;
+    }).join("");
   }
   function focusSeg(i) {
     if (mobile()) setSheet("peek");
@@ -750,7 +988,7 @@
     if ((m === "live" || m === "line") && D.live) st.day = Math.max(0, D.live.days.indexOf(today()));
     lineLayer.clearLayers(); simLayer.clearLayers();
     if (m === "sim" && st.sim.lat == null && st.sim.scope !== "odra") { Object.assign(st.sim, (({ view, ...x }) => x)(PRESETS["2024"])); syncSliders(); }
-    if (fly && !(m === "line" && byLine[st.line])) goView(m);
+    if (fly && !(m === "line" && (st.scope === "region" ? st.region : byLine[st.line]))) goView(m);
     render();
     if (m === "line") setTimeout(() => renderLine(fly), 0);
     setSheet();
@@ -758,9 +996,29 @@
   $("#modes").addEventListener("click", (e) => { const b = e.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
   $("#hazards").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x === b));
+    st.obj = "all";
     st.hz = b.dataset.h; render();
   });
+  $("#objects").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-o]"); if (!b) return;
+    st.obj = b.dataset.o === st.obj ? "all" : b.dataset.o;
+    if (st.obj !== "all") st.hz = "total";
+    render();
+  });
+  function placeObjects() {
+    const inLine = st.mode === "line", host = $("#radiusCtrl").parentElement;
+    if (inLine && $("#objCtrl").parentElement !== host) $("#radiusCtrl").after($("#objCtrl"), $("#objNote"));
+    if (!inLine && $("#objCtrl").parentElement === host) $("#lineCtrl").before($("#objCtrl"), $("#objNote"));
+  }
+  function syncObjects() {
+    placeObjects();
+    const r = cur(), show = isLive() && hasObj(r), on = objOf(r);
+    $("#objCtrl").hidden = !show;
+    $("#objNote").hidden = !on;
+    document.querySelectorAll("#objects button").forEach((b) => { b.classList.toggle("on", b.dataset.o === st.obj); b.setAttribute("aria-pressed", String(b.dataset.o === st.obj)); });
+    document.querySelectorAll("#hazards button").forEach((b) => b.classList.toggle("on", st.obj === "all" && b.dataset.h === st.hz));
+    if (on) $("#objNote").innerHTML = `<b>${OBJ[on].icon} ${OBJ[on].name}</b> · sprawdza: ${OBJ[on].who}.<br>${OBJ[on].note}`;
+  }
   $("#days").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { st.day = +b.dataset.d; render(); } });
   $("#issue").addEventListener("input", (e) => { st.issue = +e.target.value; render(); });
   $("#top").addEventListener("click", (e) => { const li = e.target.closest("li[data-i]"); if (li) focusSeg(+li.dataset.i); });
@@ -812,8 +1070,10 @@
     const lineMode = st.mode === "line";
     const anchor = lineMode ? [$("#dayTiles"), $("#lineStatus"), $("#lineCtrl"), $("#story")].find((x) => x.offsetHeight) || $("#grab") :
       !$("#statusCard").hidden && $("#statusCard").offsetHeight ? $("#statusCard") : $("#story");
-    const peek = Math.max(110, Math.min(H * (lineMode ? (H < 700 ? 0.66 : 0.58) : 0.4), anchor.offsetTop + anchor.offsetHeight + sa));
-    return { peek, half: Math.max(peek, H * (lineMode ? (H < 700 ? 0.68 : 0.6) : 0.52)), full: H - 66 };
+    const fit = anchor.offsetTop + anchor.offsetHeight + sa;
+    const peek = Math.max(110, Math.min(H * (lineMode ? (H < 700 ? 0.66 : 0.58) : 0.4), fit));
+    const base = H * (lineMode ? (H < 700 ? 0.68 : 0.6) : 0.52);
+    return { peek, half: lineMode && anchor === $("#dayTiles") ? Math.max(base, Math.min(H * 0.76, fit)) : Math.max(peek, base), full: H - 66 };
   }
   function setSheet(s = sheet) {
     sheet = s;
@@ -865,15 +1125,19 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
   function segRecord(i, v, d) {
-    const r = v.risk[d], s = SEG[i], h = domHz(r, i), x = r.total[i], k = Math.max(0, v.days.indexOf(d));
+    const r = v.risk[d], s = SEG[i], h = hzOf(r, i), x = tot(r)[i], k = Math.max(0, v.days.indexOf(d));
+    const ob = hasObj(r) ? Object.keys(OBJ).filter((o) => r[o][i] >= 0.15).sort((a, b) => r[b][i] - r[a][i])[0] : null;
     const iw = isLive() && IMG.ok ? warnAt(s.pw, d).map((w) => `${wname(w)} ${wdeg(w)}°`).join(", ") : "";
     return {
       dzien: d, linia: s.line, km_od: s.km ? s.km[0] : "", km_do: s.km ? s.km[1] : "", od: s.od || "", do: s.do || "",
       miejscowosc: s.place || "", rzeka: s.river || "", powiat: (s.pw || []).map((c) => pwName[c]).filter(Boolean).join(", "),
-      poziom: x >= ALARM ? "ALARM" : x >= WARN ? "UWAGA" : "niskie", ryzyko_proc: Math.round(x * 100), zagrozenie: HZS[h],
+      poziom: lvlName(x, objOf(r) === "sw"), ryzyko_proc: Math.round(x * 100), zagrozenie: HZS[h],
       woda_proc: Math.round(r.flood[i] * 100), upal_proc: Math.round(r.heat[i] * 100), wiatr_proc: Math.round(r.wind[i] * 100),
       lod_proc: Math.round(r.ice[i] * 100), opad_1d_mm: r.p1[i], opad_3d_mm: r.p3[i], porywy_kmh: r.gust[i], szyna_C: r.trail[i],
       pewnosc: confidence(r, i, k).lvl, ostrzezenia_imgw: iw, prognoza_wydana: (v.meta && (v.meta.generated || v.meta.issued)) || "", id: s.id,
+      obiekt: ob ? OBJ[ob].name.toLowerCase() : "", sluzba: ob ? OBJ[ob].who : "",
+      tor_proc: hasObj(r) ? Math.round(r.trk[i] * 100) : "", trakcja_proc: hasObj(r) ? Math.round(r.cat[i] * 100) : "",
+      rozjazdy_wskaznik_proc: hasObj(r) ? Math.round(r.sw[i] * 100) : "", rozjazdy_liczba: swN(s), elektryfikacja_proc: Math.round((s.el || 0) * 100),
     };
   }
   function exportRows(scope) {
@@ -881,7 +1145,7 @@
     if (!v) return [];
     if (scope === "line") return (st.lineOrd || []).flatMap((i) => v.days.map((d) => ({ i, rec: segRecord(i, v, d) })));
     const d = v.days[st.day], r = v.risk[d];
-    return r.total.map((x, i) => [x, i]).filter(([x]) => x >= WARN).sort((a, b) => b[0] - a[0])
+    return tot(r).map((x, i) => [x, i]).filter(([x]) => x >= WARN).sort((a, b) => b[0] - a[0])
       .map(([, i], n) => ({ i, rec: { priorytet: n + 1, ...segRecord(i, v, d) } }));
   }
   function exportFile(scope, kind) {
@@ -900,20 +1164,23 @@
   }
 
   function mergeRanges(ord, v, d) {
-    const r = v.risk[d], out = [];
+    const r = v.risk[d], out = [], T = tot(r);
     let run = null;
     ord.forEach((i) => {
-      if (r.total[i] >= WARN) { if (!run) { run = []; out.push(run); } run.push(i); } else run = null;
+      if (T[i] >= WARN) {
+        if (!run || SEG[run[run.length - 1]].line !== SEG[i].line) { run = []; out.push(run); }
+        run.push(i);
+      } else run = null;
     });
     return out.map((ii) => {
-      const worst = ii.reduce((a, b) => (r.total[b] > r.total[a] ? b : a), ii[0]);
+      const worst = ii.reduce((a, b) => (T[b] > T[a] ? b : a), ii[0]);
       const kms = ii.filter((i) => SEG[i].km);
       const km = kms.length === ii.length ? [Math.min(...kms.map((i) => SEG[i].km[0])), Math.max(...kms.map((i) => SEG[i].km[1]))] : null;
       const a = SEG[ii[0]], b = SEG[ii[ii.length - 1]];
-      return { ii, x: r.total[worst], h: domHz(r, worst), len: ii.reduce((t, i) => t + SEG[i].len, 0), km, from: a.od || a.place || "", to: b.do || b.place || "" };
+      return { ii, x: T[worst], h: hzOf(r, worst), len: ii.reduce((t, i) => t + SEG[i].len, 0), km, line: a.line, from: a.od || a.place || "", to: b.do || b.place || "" };
     });
   }
-  const rangeTxt = (g) => (g.km ? `km ${kmf(g.km[0])}–${kmf(g.km[1])}` : "rejon") +
+  const rangeTxt = (g) => (st.scope === "region" ? `linia ${g.line}, ` : "") + (g.km ? `km ${kmf(g.km[0])}–${kmf(g.km[1])}` : "rejon") +
     (g.from || g.to ? ` (${g.from === g.to || !g.to ? g.from : g.from + " – " + g.to})` : "");
   function renderRounds(ord, v) {
     let html = "";
@@ -945,14 +1212,14 @@
   }
   function printCard() {
     const v = view(), ord = st.lineOrd;
-    if (!v || !ord || !st.line) return;
+    if (!v || !ord || (st.scope === "region" ? !st.region : !st.line)) return;
     const now = new Date().toLocaleString("pl-PL", { dateStyle: "long", timeStyle: "short" });
     const body = v.days.map((d, k) => {
       const g = mergeRanges(ord, v, d);
-      return `<h3>${dayLbl(d, k)} · ${fmtDay(d)}</h3>` + (g.length ? `<table class="rtab"><tr><th>Odcinek</th><th>Zagrożenie</th><th>Ryzyko</th><th>Wykonano (data, godz., podpis)</th></tr>` +
-        g.map((x) => `<tr><td><b>${rangeTxt(x)}</b><br>${kmf(x.len)} km toru</td><td>${HZ[x.h]}</td><td>${pct(x.x)}</td><td></td></tr>`).join("") + `</table>` : `<p>Brak odcinków powyżej progu uwagi.</p>`);
+      return `<h3>${dayLbl(d, k)} · ${fmtDay(d)}</h3>` + (g.length ? `<table class="rtab"><tr><th>Odcinek</th><th>Zagrożenie</th><th>Ryzyko</th><th>Kto sprawdza</th><th>Wykonano (data, godz., podpis)</th></tr>` +
+        g.map((x) => `<tr><td><b>${rangeTxt(x)}</b><br>${kmf(x.len)} km toru</td><td>${HZ[x.h]}</td><td>${pct(x.x)}</td><td>${whoOf(x.h)}</td><td></td></tr>`).join("") + `</table>` : `<p>Brak odcinków powyżej progu uwagi.</p>`);
     }).join("");
-    $("#printArea").innerHTML = `<header><div><b>RailSentinel</b> · Karta obchodu, linia ${st.line}</div><div>${(st.lineText || "").split("\n")[1] || ""}</div></header>` +
+    $("#printArea").innerHTML = `<header><div><b>RailSentinel</b> · Karta obchodu, ${scopeTitle()}</div><div>${(st.lineText || "").split("\n")[1] || ""}</div></header>` +
       `<p class="meta">Prognoza wydana: <b>${fmtDay(v.meta.issued || v.days[0])}</b> · wydruk: ${now}</p><div class="body">${body}</div>` +
       `<table class="sign"><tr><td>Przyjął (toromistrz / dyżurny)</td><td>Data i godzina</td><td>Uwagi z obchodu</td></tr><tr><td></td><td></td><td></td></tr></table>` +
       `<footer>${DECIDE} Kilometraż orientacyjny (OpenStreetMap). Prototyp studencki, nie jest systemem PKP PLK. railsentinel.pl</footer>`;
@@ -1022,7 +1289,7 @@
   $("#cvdBtn").addEventListener("click", () => setCvd(!cvd));
   if (LS.get("rs_cvd") === "1") { cvd = true; document.documentElement.dataset.cvd = "1"; $("#cvdBtn").classList.add("on"); $("#cvdBtn").setAttribute("aria-pressed", "true"); }
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const DATA_NEED = { replay2024: ["data/replay2024.js"], heat: ["data/heat.js"], y1997: ["data/y1997.js"], sim: ["data/model.js", "sim.js"] };
+  const DATA_NEED = { replay2024: ["data/replay2024.js"], heat: ["data/heat.js"], y1997: ["data/y1997.js"], sim: ["data/model.js", "sim.js"], line: ["data/places.js"] };
   const loadingJs = {};
   const loaded = (src) => (src === "sim.js" ? !!window.RS_SIM : !!D[src.replace(/^data\//, "").replace(/\.js$/, "")]);
   const need = (m) => (DATA_NEED[m] || []).filter((src) => !loaded(src));
@@ -1088,18 +1355,27 @@
   if (hp.get("theme")) { document.documentElement.dataset.theme = hp.get("theme"); setTiles(); }
   if (hp.get("line")) { st.line = hp.get("line"); $("#lineInput").value = st.line; }
   if (hp.get("hz")) { st.hz = hp.get("hz"); document.querySelectorAll("#hazards button").forEach((x) => x.classList.toggle("on", x.dataset.h === st.hz)); }
+  if (hp.get("obj") && OBJ[hp.get("obj")]) st.obj = hp.get("obj");
+  try {
+    const g = hp.get("place") ? { name: hp.get("place"), r: hp.get("r") || "10" } : JSON.parse(LS.get("rs_region") || "null");
+    if (g && g.name && RADII.includes(String(g.r))) { st.region = { name: g.name, r: String(g.r) }; st.radius = String(g.r); }
+  } catch (e) {  }
+  st.scope = hp.get("scope") === "region" || hp.get("place") ? "region" : hp.get("line") ? "line" : LS.get("rs_scope") === "region" ? "region" : "line";
   if (hp.get("rain")) { st.rain = true; $("#rainBtn").classList.add("on"); }
   if (hp.get("wov")) st.wov = true;
   if (hp.get("preset")) { const { view: vw, ...x } = PRESETS[hp.get("preset")]; Object.assign(st.sim, x); if (hp.get("clim")) st.sim.climate = +hp.get("clim"); syncSliders(); }
-  const startMode = hp.get("mode") || (mobile() && st.line && byLine[st.line] && D.live ? "line" : D.live ? "live" : "replay2024");
+  const haveScope = st.scope === "region" ? !!st.region : !!(st.line && byLine[st.line]);
+  const startMode = hp.get("mode") || (mobile() && haveScope && D.live ? "line" : D.live ? "live" : "replay2024");
   if (hp.get("issue")) { st.issue = +hp.get("issue"); $("#issue").value = st.issue; }
   window.addEventListener("load", () => map.invalidateSize());
   const boot = () => {
+    $("#lineInput").value = st.scope === "region" && st.region ? st.region.name : st.line;
+    syncScope();
     setMode(startMode, false);
     if (hp.get("day")) { st.day = +hp.get("day"); render(); }
     if (hp.get("lat")) map.setView([+hp.get("lat"), +hp.get("lon")], +(hp.get("z") || 9));
     else if (hp.get("preset")) presetView(PRESETS[hp.get("preset")].view);
-    else if (startMode === "line" && byLine[st.line]) setTimeout(() => renderLine(true), 0);
+    else if (startMode === "line" && haveScope) setTimeout(() => { if (st.scope === "region") st.regionInfo = regionSet(st.region); renderLine(true); }, 0);
     else if (NATIONAL.includes(startMode)) map.fitBounds(PL, pad());
     else { const v = VIEWS[startMode]; presetView([v[0][0], v[0][1], v[1]]); }
     if (hp.get("popup")) setSheet("peek");

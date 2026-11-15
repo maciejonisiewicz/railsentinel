@@ -26,6 +26,15 @@ Po każdym przebiegu prognozy (dwa razy na dobę, ok. 4:15 i 16:15) na stronie p
 | `ostrzezenia_imgw` | oficjalne ostrzeżenia IMGW obowiązujące w powiecie odcinka tego dnia |
 | `prognoza_wydana` | data i godzina przebiegu |
 | `id` | stały identyfikator odcinka |
+| `obiekt` | obiekt o najwyższym ryzyku (≥ 15%): tor i nasyp, sieć trakcyjna albo rozjazdy i srk; puste, gdy żaden nie przekracza progu |
+| `sluzba` | służba, która sprawdza ten obiekt: toromistrz, służba trakcji lub służba automatyki (srk) |
+| `tor_proc` | ryzyko dla toru i nasypu (woda, upał, wiatr) w procentach |
+| `trakcja_proc` | ryzyko dla sieci trakcyjnej (wiatr, oblodzenie) w procentach; 0 na odcinkach bez sieci |
+| `rozjazdy_wskaznik_proc` | **wskaźnik ekspozycji** rozjazdów i srk w procentach (liczba rozjazdów z OSM razem z pogodą: śnieg, marznący opad, mokry śnieg i mróz z opadem, upał). To heurystyka, nie prognoza awarii; progi to założenia robocze do kalibracji na rejestrze usterek srk PLK |
+| `rozjazdy_liczba` | liczba rozjazdów i wykolejnic z OpenStreetMap przypisanych do odcinka (niepełna) |
+| `elektryfikacja_proc` | udział długości odcinka z siecią trakcyjną w procentach |
+
+Pola od `obiekt` do `elektryfikacja_proc` zostały dodane po rozmowach z kolejarzami; dotychczasowe pola i ich kolejność nie zmieniły się. Wskaźnik rozjazdów nie wchodzi do `ryzyko_proc` ani do `poziom`, więc lista UWAGA i ALARM jest taka jak wcześniej.
 
 ## Przykłady
 

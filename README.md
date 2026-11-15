@@ -13,6 +13,8 @@ wskazywać – **dla każdego z 4606 odcinków sieci kolejowej w Polsce** – od
 - **powalonych drzew / uszkodzeń sieci** przy wichurze (progi IMGW),
 - **oblodzenia sieci trakcyjnej** (marznący opad).
 
+Wynik jest podzielony na **obiekty i służby**: tor i nasyp (toromistrz), sieć trakcyjna (służba trakcji, tylko odcinki zelektryfikowane) oraz rozjazdy i srk (służba automatyki). Rozjazdy to **wskaźnik ekspozycji** (liczba rozjazdów z OSM razem ze śniegiem, marznącym opadem, mokrym śniegiem i mrozem z opadem oraz upałem), a nie prognoza awarii; progi to założenia robocze do kalibracji na rejestrze usterek srk PLK (`src/features.py`, stałe `SW_*`).
+
 Dodatkowo aplikacja pobiera **oficjalne ostrzeżenia IMGW** (meteorologiczne i hydrologiczne) i zawęża je do konkretnych odcinków:
 pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem i ile z nich RailSentinel wskazuje do sprawdzenia.
 Każdy przebieg prognozy trafia do **publicznego dziennika** (gałąź `logs`), z którego powstaje weryfikacja prospektywna na stronie
@@ -37,6 +39,8 @@ python3 -m venv .venv && .venv/bin/pip install pandas numpy scikit-learn request
 .venv/bin/python src/10_validate_modules.py    # walidacja modułów upału/wiatru (Eunice 2022, upał 2025)
 .venv/bin/python -I src/16_powiaty.py          # granice powiatów (TERYT) i przypisanie odcinków – ostrzeżenia IMGW
 .venv/bin/python src/11_export_model.py        # model ML do przeglądarki (symulator)
+.venv/bin/python -I src/21_switches.py         # rozjazdy i wykolejnice z OSM (Overpass, kafelki 1°) -> data/processed/switches.json
+.venv/bin/python -I src/22_places.py           # współrzędne miejscowości dla „Mojego rejonu” -> web/data/places.js
 .venv/bin/python src/06_figures.py && .venv/bin/python src/07_build_doc.py "Imię Nazwisko"   # wykresy + PDF
 open web/index.html                            # aplikacja (działa też bez serwera)
 .venv/bin/python video/build_video.py          # film (wymaga: python3 -m http.server 8765 w katalogu projektu)
@@ -47,13 +51,13 @@ Odświeżenie prognozy na żywo: `.venv/bin/python src/05_predict.py live`
 (z dziennikiem: `RS_LOG_DIR=data/log`, potem `src/18_verify.py data/log/status.json` i `src/19_api.py <katalog>`).
 
 Testy: `python -m unittest discover -s tests` (potok, dziennik, API, dokumenty) oraz
-`python -m http.server 8765 &` i `python tests/e2e.py` (aplikacja w przeglądarce, 50 sprawdzeń). Oba zestawy działają w GitHub Actions
+`python -m http.server 8765 &` i `python tests/e2e.py` (aplikacja w przeglądarce, 121 sprawdzeń, w tym filtr obiektów i „Mój rejon” na komputerze oraz telefonach 390×844 i 360×640). Oba zestawy działają w GitHub Actions
 (`.github/workflows/ci.yml`). Szczegóły API: `docs/API.md`.
 
 ## Aplikacja (PWA) i strona
 
 `web/` to jednocześnie strona internetowa i aplikacja instalowana na telefonie (manifest + Service Worker):
-tryb **„Moja linia”** dla kolejarzy (status linii, schemat liniowy, odcinki robocze do obchodu, karta obchodu do druku, „Gdzie jestem”, udostępnianie komunikatu, eksport CSV/GeoJSON),
+tryb **„Moja linia”** i **„Mój rejon”** dla kolejarzy (status linii albo wszystkich odcinków w promieniu 5, 10 lub 20 km od stacji, schemat liniowy, odcinki robocze do obchodu, karta obchodu do druku z kolumną „kto sprawdza”, „Gdzie jestem”, udostępnianie komunikatu, eksport CSV/GeoJSON), filtr obiektów (tor i nasyp, sieć trakcyjna, rozjazdy i srk) obok filtra zagrożeń,
 praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka linii, stacji i miejscowości, zapisane linie, kafelki 3 dni, „Gdzie jestem”), mapa całej Polski, ostrzeżenia IMGW, backtest 2024, test 1997, symulator, opis modelu, przewodnik dla nowych użytkowników, paleta dla daltonistów.
 `web/status.html` – stan systemu i weryfikacja prospektywna; `railsentinel.pl/api/v1/` – statyczne API (JSON, GeoJSON, CSV).
 `web/about.html` – strona projektu z filmem. Hosting: GitHub Pages (gałąź `gh-pages`), domena railsentinel.pl.
@@ -67,7 +71,8 @@ praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka 
 | `data/labels_flood_1997.json` | etykiety zniszczeń 07.1997 ze źródłami (niezależny test) |
 | `data/processed/metrics.json` | wyniki walidacji |
 | `web/` | dashboard (Leaflet, statyczny) + `sim.js` – model ML w przeglądarce (symulator) |
-| `docs/` | praca konkursowa, załącznik techniczny, opis API |
+| `docs/` | praca konkursowa, załącznik techniczny, opis API, odpowiedzi dla jury |
+| `video/` | film: `build_video.py` (montaż), `transkrypcja.py` (Whisper lokalnie), `redact.py` (rozmycie logo w tle nagrań); surowe nagrania z twarzą i modele są poza repozytorium (`.gitignore`) |
 | `tests/` | testy jednostkowe i testy aplikacji w przeglądarce |
 | `web/vendor/leaflet/` | biblioteka mapy Leaflet 1.9.4 (BSD-2, kopia lokalna, suma SHA-512 zgodna z cdnjs) |
 | `mirror/` | zestaw do kopii lustrzanej strony na github.io (workflow, skrypt `setup_mirror.sh`) |
@@ -77,7 +82,7 @@ praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka 
 
 | Źródło | Zastosowanie | Licencja |
 |---|---|---|
-| OpenStreetMap (Overpass API) | geometria linii, mosty/nasypy/przekopy, rzeki, miejscowości | ODbL 1.0 |
+| OpenStreetMap (Overpass API) | geometria linii, mosty/nasypy/przekopy, rzeki, miejscowości, rozjazdy i wykolejnice (`railway=switch`, `railway=derail`) | ODbL 1.0 |
 | IMGW-PIB – dane publiczne (danepubliczne.imgw.pl) | dobowe opady z posterunków, dobowe stany wód, API hydro na żywo | dane publiczne IMGW-PIB, wymagane wskazanie źródła |
 | Open-Meteo Archive API (ERA5, ECMWF/Copernicus) | historia pogody 2021–2024, 1997 | CC BY 4.0 |
 | Open-Meteo Previous Runs API (ECMWF IFS 0.25°) | archiwalne prognozy do backtestu | CC BY 4.0 |

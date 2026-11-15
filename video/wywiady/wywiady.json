@@ -1,0 +1,90 @@
+[
+ {
+  "plik": "w2_2011_13.mp4",
+  "od": 51.95,
+  "do": 74.9,
+  "podpis": "Dyżurny ruchu",
+  "opis": "10 lat stażu",
+  "anonim": false,
+  "rozmyj": true,
+  "napisy": [
+   [
+    52.02,
+    55.88,
+    "Pogoda jest zmienna, zmienia to się w każdej chwili."
+   ],
+   [
+    55.9,
+    59.96,
+    "Z deszczu może pojawić się śnieg i oblodzenie trakcji."
+   ],
+   [
+    59.98,
+    66.76,
+    "Także nie mamy jakoś czasu na… musimy po prostu przewidywać"
+   ],
+   [
+    66.78,
+    72.1,
+    "na podstawie prognozy pogody, zagrożenia, jakie mogą wystąpić"
+   ],
+   [
+    72.12,
+    74.85,
+    "na danej linii kolejowej. Na bieżąco."
+   ]
+  ]
+ },
+ {
+  "plik": "w4_2011_45.mp4",
+  "od": 66.85,
+  "do": 86.45,
+  "podpis": "Dyżurny ruchu",
+  "opis": "10 lat stażu",
+  "anonim": false,
+  "rozmyj": true,
+  "napisy": [
+   [
+    66.77,
+    74.41,
+    "I aplikacja ta pokazuje, że mi, ja mogę ostrzec odpowiednio wcześnie"
+   ],
+   [
+    74.43,
+    80.97,
+    "na przykład o zbliżającym się oblodzeniu trakcji, możliwym wyboczeniu toru ze względu na temperatury."
+   ],
+   [
+    82.61,
+    86.23,
+    "Także nie ukrywam, że jest przydatne i jest interesująca."
+   ]
+  ]
+ },
+ {
+  "plik": "w4_2011_45.mp4",
+  "od": 94.6,
+  "do": 115.78,
+  "podpis": "Dyżurny ruchu",
+  "opis": "10 lat stażu",
+  "anonim": false,
+  "rozmyj": true,
+  "napisy": [
+   [
+    94.7,
+    102.72,
+    "Być może zmieniłbym troszeczkę ikony większe, bo na komputerze jest to widoczne bardzo dobrze,"
+   ],
+   [
+    103.4,
+    110.0,
+    "ale na telefonie, jeżeli by chciał to robić w czasie obchodu, sprawdzić zagrożenia,"
+   ],
+   [
+    110.32,
+    115.73,
+    "to ikonki mógłbym troszeczkę powiększyć, żeby było to bardziej czytelne."
+   ]
+  ]
+ }
+]

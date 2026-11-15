@@ -71,7 +71,7 @@
 <section class="page">
   <h2><span class="n">01</span>Streszczenie</h2>
   <p><b>Problem.</b> Ulewy, powodzie, upały i wichury są coraz częstsze, a kolej jest na nie szczególnie wrażliwa. Powódź z września 2024 r. spowodowała straty w infrastrukturze PLK wstępnie szacowane na <b>880 mln zł</b>. Podczas orkanu Eunice (19.02.2022) PLK odnotowały <b>400 zdarzeń pogodowych jednego dnia</b>. Ostrzeżenia meteorologiczne i hydrologiczne wydaje się dziś dla powiatów i rzek, a nie dla kilometrów toru. Nikt nie mówi dyżurnemu, <i>który konkretnie odcinek</i> jest zagrożony.</p>
-  <p><b>Rozwiązanie.</b> RailSentinel codziennie przelicza ryzyko dla każdego ok. 5-kilometrowego odcinka sieci. Powódź modeluje jako <b>dwa mechanizmy</b>: (A) lokalną ulewę i podmycie toru, którą ocenia model uczenia maszynowego z wbudowaną wiedzą fizyczną, oraz (B) falę wezbraniową, która przychodzi rzeką z gór, ocenianą przez drugi model ML, który prognozuje stany ok. 800 wodowskazów IMGW na 3 dni. Do tego dochodzą moduły wyboczenia toru w upale, wichury i oblodzenia sieci. Wynikiem są mapa ryzyka, ranking odcinków i gotowy raport dla dyżurnego z zalecanymi działaniami. Każdy alarm ma wyjaśnienie: <i>dlaczego</i> ten odcinek.</p>
+  <p><b>Rozwiązanie.</b> RailSentinel codziennie przelicza ryzyko dla każdego ok. 5-kilometrowego odcinka sieci. Powódź modeluje jako <b>dwa mechanizmy</b>: (A) lokalną ulewę i podmycie toru, którą ocenia model uczenia maszynowego z wbudowaną wiedzą fizyczną, oraz (B) falę wezbraniową, która przychodzi rzeką z gór, ocenianą przez drugi model ML, który prognozuje stany ok. 800 wodowskazów IMGW na 3 dni. Do tego dochodzą moduły wyboczenia toru w upale, wichury i oblodzenia sieci. Wynikiem są mapa ryzyka, ranking odcinków i gotowy raport dla dyżurnego z zalecanymi działaniami, podzielony na obiekty (tor i nasyp, sieć trakcyjna, rozjazdy i srk) i służby, które je sprawdzają. Każdy alarm ma wyjaśnienie: <i>dlaczego</i> ten odcinek.</p>
   <p><b>Dowód na dwóch powodziach.</b> System obejmuje <b>całą Polskę</b>: {{n_segments}} odcinków ({{km}} km torów) i {{n_gauges}} wodowskazów, wyłącznie na danych publicznych. Etykiety zniszczeń zebrałem dla Dolnego Śląska i Opolszczyzny, więc tam odbywa się trening i walidacja. W backteście 2024 korzysta tylko z <b>prognoz ECMWF dostępnych przed powodzią</b>, a każdy odcinek ocenia model, który nie widział jego linii. Następnie <b>bez żadnego douczania</b> sprawdziłem go na powodzi tysiąclecia z 1997 r.</p>
   <div class="kpis">
     <div class="kpi"><b>{{detected}}/{{damaged}}</b><small>odcinków zniszczonych w 2024 r. z alarmem przed czasem, mediana <strong>{{median_lead}} h</strong> przed pierwszymi zniszczeniami</small></div>
@@ -80,8 +80,8 @@
     <div class="kpi"><b>+{{rgain}}%</b><small>więcej przekroczeń stanu rzek wykrytych z 2-dniowym wyprzedzeniem (test historyczny przy znanym opadzie – górna granica)</small></div>
   </div>
   <p><b>Odbiorcy.</b> Dyżurni ruchu i dyspozytorzy, zakłady linii kolejowych odpowiedzialne za utrzymanie, sztaby kryzysowe PLK, a pośrednio przewoźnicy i pasażerowie.</p>
-  <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ograniczenia prędkości na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
-  <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) <b>oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków</b> oraz publiczny dziennik prognoz z weryfikacją na żywo; (5) wyłącznie otwarte dane i kod.</div>
+  <p><b>Oczekiwana zmiana.</b> Przejście od „sprawdzamy po fakcie” do „sprawdzamy zanim”: wcześniejsze obchody i ostrzeżenie maszynistów na kilkudziesięciu wskazanych odcinkach zamiast na całym obszarze ostrzeżenia, mniej pociągów na uszkodzonym torze i krótsze przerwy w ruchu. Wdrożenie nie wymaga urządzeń w torze, bo system korzysta z danych, które już istnieją.</p>
+  <div class="box"><b>Co wyróżnia tę pracę:</b> (1) uczciwa walidacja: test na drugiej, niezależnej powodzi, porównanie z regułą progową i pokazanie, co <i>nie</i> zadziałało; (2) dwa modele ML – ulewa oraz prognoza stanów rzek – i symulator „co jeśli?” działający w przeglądarce; (3) <b>gotowa aplikacja dla kolejarzy</b> (instalowana na telefonie, działa bez zasięgu) pod adresem <b>railsentinel.pl</b> oraz film prezentacyjny; (4) <b>oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków</b> oraz publiczny dziennik prognoz z weryfikacją na żywo; (5) wyłącznie otwarte dane i kod; (6) <b>test z praktykami</b> (dyżurny ruchu, kolejarz) i zmiany w aplikacji po ich uwagach: sieć trakcyjna, wskaźnik dla rozjazdów, „Mój rejon” (rozdz. 10).</div>
 </section>
 
 <section class="page">
@@ -93,6 +93,7 @@
     <tr><td><b>Fala wezbraniowa</b></td><td>Opady w górnej części zlewni → fala spływająca dużą rzeką przez kilka dni → napór na filary mostów, zatory z drewna, zalanie toru przy brzegu.</td><td>Uszkodzenie mostów, wielomiesięczne lub trwałe zamknięcia.</td></tr>
     <tr><td><b>Wyboczenie toru</b></td><td>Szyna w słońcu nagrzewa się ok. 20 °C bardziej niż powietrze; w torze bezstykowym rosną siły ściskające.</td><td>Wykolejenie przy dużej prędkości.</td></tr>
     <tr><td><b>Wichura / oblodzenie</b></td><td>Porywy powyżej ok. 70–90 km/h → drzewa na torze i sieci; marznący opad → lód na przewodzie jezdnym.</td><td>Najechanie na przeszkodę, zerwana sieć.</td></tr>
+    <tr><td><b>Śnieg, lód, upał a rozjazdy</b></td><td>Według uwag kolejarzy oblodzone, zasypane lub rozgrzane rozjazdy i wykolejnice mogą się nie przestawić. Pokazuję to jako wskaźnik ekspozycji, nie prognozę awarii (rozdz. 09, A3).</td><td>Utrudnienia w ruchu, awarie srk.</td></tr>
   </table>
   <h3>Dwie powodzie, dwa mechanizmy</h3>
   <p><b>Wrzesień 2024</b> to przede wszystkim mechanizm A. Najpoważniejsze zniszczenia powstały w węźle kłodzkim, gdzie przy ujściu Bystrzycy Dusznickiej woda zniszczyła torowisko i rozmyła ok. 300 m nasypu na początku linii do Kudowy-Zdroju. Uszkodzone zostały także odcinki Nysa – Prudnik, Głuchołazy, Otmuchów – Paczków – Kamieniec Ząbkowicki i Bystrzyca Kłodzka – Długopole-Zdrój. <b>Lipiec 1997</b> pokazał mechanizm B: fala na Odrze uszkodziła mosty kolejowe w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym. Część tych zniszczeń do dziś ogranicza przepustowość magistral (Z Biegiem Szyn nr 133).</p>
@@ -122,7 +123,7 @@
   <h3>B · Moduł fali wezbraniowej</h3>
   <p>Dla każdego odcinka szukam <b>największej rzeki w promieniu 1,5 km</b>, która ma wodowskaz IMGW. Odcinek przypisuję do najbliższego wodowskazu na tej rzece ({{n_mapped}} z {{n_segments}} odcinków w Polsce). Indeks stanu wody: 0 oznacza medianę, a 1 poziom 1% najwyższych dni z lat 2021–2024. Alarm włącza się przy indeksie ok. 2, z pełną wagą dla toru, który przecina rzekę mostem lub biegnie do 300 m od brzegu. <b>Próg ustaliłem z góry i nie dostrajałem go na teście z 1997 r.</b> W trybie na żywo stany wód pochodzą z publicznego API IMGW.</p>
   <h3>Moduły fizyczne i raport</h3>
-  <p><b>Wyboczenie:</b> temperatura szyny ≈ T<sub>pow.</sub> + k·nasłonecznienie, a ryzyko rośnie powyżej ok. 50–55 °C. <b>Wiatr:</b> progi ostrzeżeń IMGW (70/90/110 km/h). <b>Oblodzenie:</b> opad przy temperaturze ok. 0 °C. Wszystkie moduły łączy wzór P = 1 − Π(1 − P<sub>i</sub>). Raport dla dyżurnego pogrupowany jest według linii i zawiera miejscowość, rzekę, wartości opadu, stanu wody, temperatury szyny lub wiatru oraz <b>zalecane działanie</b>. Dla każdego zagrożonego odcinka system proponuje też <b>prędkość maksymalną osobno dla pociągów pasażerskich i towarowych</b> (np. woda – alarm: 40 / 30 km/h po obchodzie toru; upał – alarm: 70 / 50 km/h w godz. 13–19). Towarowe mają niższy limit, bo większe naciski osi silniej obciążają rozmiękły nasyp i zwiększają siły poprzeczne w nagrzanym torze. Wartości są propozycją do decyzji zarządcy i nigdy nie przekraczają prędkości rozkładowej. Generują go deterministyczne szablony, więc w komunikacie bezpieczeństwa nie ma „halucynacji” AI.</p>
+  <p><b>Wyboczenie:</b> temperatura szyny ≈ T<sub>pow.</sub> + k·nasłonecznienie, a ryzyko rośnie powyżej ok. 50–55 °C. <b>Wiatr:</b> progi ostrzeżeń IMGW (70/90/110 km/h). <b>Oblodzenie:</b> opad przy temperaturze ok. 0 °C. Wszystkie moduły łączy wzór P = 1 − Π(1 − P<sub>i</sub>). Raport dla dyżurnego pogrupowany jest według linii i zawiera miejscowość, rzekę, wartości opadu, stanu wody, temperatury szyny lub wiatru oraz <b>zalecane działanie</b>. Wyniki są przypisane do obiektów: tor i nasyp, sieć trakcyjna (odcinki zelektryfikowane) oraz rozjazdy i srk (rozdz. 09). System <b>nie proponuje prędkości</b>: wskazuje obiekt, przyczynę i kolejność sprawdzenia, a o ograniczeniach decyduje uprawniony pracownik (rozdz. 10). Raport generują deterministyczne szablony, więc w komunikacie bezpieczeństwa nie ma „halucynacji” AI.</p>
   <figure><img src="fig/popup_crop.png" style="max-height:58mm"><figcaption>Rys. 2. Szczegóły odcinka: ryzyko w podziale na mechanizmy, parametry i wyjaśnienie, które czynniki spowodowały alarm.</figcaption></figure>
 </section>
 
@@ -246,48 +247,49 @@
 
 <section class="page">
   <h2><span class="n">09</span>Cała Polska i aplikacja dla kolejarzy</h2>
-  <p><b>Zasięg krajowy.</b> Sieć {{n_segments}} odcinków ({{km}} km torów, {{n_lines}} linii) zbudowałem z OpenStreetMap dla całej Polski. Cechy terenu liczę z modelu wysokościowego, a stany wód pochodzą z {{n_gauges}} wodowskazów IMGW ({{n_mapped}} odcinków ma wodowskaz na pobliskiej rzece). Prognoza pogody obejmuje {{n_cells}} komórek siatki. Dla komórek spoza obszaru treningu klimatologię opadu (poziom 1% najwyższych sum 3-dniowych) szacuję regresją względem wysokości terenu.</p>
+  <p><b>Zasięg krajowy.</b> Sieć {{n_segments}} odcinków ({{km}} km torów, {{n_lines}} linii) zbudowałem z OpenStreetMap dla całej Polski. Cechy terenu liczę z modelu wysokościowego, a stany wód pochodzą z {{n_gauges}} wodowskazów IMGW ({{n_mapped}} odcinków ma wodowskaz na pobliskiej rzece). Prognoza pogody obejmuje {{n_cells}} komórek siatki; klimatologię opadu dla komórek spoza obszaru treningu szacuję regresją względem wysokości terenu.</p>
   <div class="two">
-    <figure><img src="fig/screen_live_pl.png" style="max-height:78mm"><figcaption>Rys. 9. Prognoza na żywo dla całej Polski.</figcaption></figure>
-    <figure><img src="fig/screen_phone.png" style="max-height:78mm"><figcaption>Rys. 10. „Moja linia” na telefonie.</figcaption></figure>
+    <figure><img src="fig/screen_live_pl.png" style="max-height:60mm"><figcaption>Rys. 9. Prognoza na żywo dla całej Polski.</figcaption></figure>
+    <figure><img src="fig/screen_phone.png" style="max-height:60mm"><figcaption>Rys. 10. „Moja linia” na telefonie.</figcaption></figure>
   </div>
-  <p><b>Aplikacja (PWA) pod adresem <u>railsentinel.pl</u>.</b> Działa jako strona i jako aplikacja instalowana na telefonie z Androidem lub iPhonie oraz na komputerze. Nie wymaga sklepu z aplikacjami ani logowania.</p>
+  <p><b>Aplikacja (PWA) pod adresem <u>railsentinel.pl</u>.</b> Działa jako strona i jako aplikacja instalowana na telefonie lub komputerze, bez sklepu z aplikacjami i bez logowania. Zapamiętuje ostatnią prognozę, więc działa także bez zasięgu, a duże przyciski są wygodne w rękawicach.</p>
   <ul>
-    <li><b>„Moja linia”</b>: dyżurny, toromistrz czy kierownik sekcji wpisuje numer linii albo klika <b>📍 Gdzie jestem</b> i od razu widzi status linii (bez zagrożeń / uwaga / alarm), każdy odcinek z ryzykiem na 3 dni i zalecane działanie. Przycisk „Udostępnij komunikat” wysyła go do zespołu.</li>
-    <li><b>Praca w terenie:</b> aplikacja zapamiętuje ostatnią prognozę i mapę (Service Worker), więc działa także bez zasięgu na szlaku. Duże przyciski są wygodne w rękawicach.</li>
-    <li><b>Dla sztabu i analityków:</b> mapa całej Polski, backtest 2024, test 1997 i symulator; opis modelu i metryki na stronie „O projekcie”.</li>
-    <li><b>Ostrzeżenia IMGW na żywo:</b> aplikacja pobiera oficjalne ostrzeżenia meteorologiczne i hydrologiczne i pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem oraz ile z nich RailSentinel wskazuje do sprawdzenia. {{imgw_example}}. Ostrzeżenia o śniegu, mrozie i zawiejach, których system sam nie prognozuje, są pokazane przy odcinkach jako informacja oficjalna.</li>
-    <li><b>Od prognozy do działania:</b> „Moja linia” rysuje schemat liniowy (ryzyko wzdłuż kilometrażu na 3 dni), zlepia sąsiednie zagrożone odcinki w <b>odcinki robocze do obchodu</b> (np. „km 85,9–96,2”) i drukuje <b>kartę obchodu</b> z polem na podpis i godzinę. Wyniki można pobrać jako CSV (Excel) lub GeoJSON (GIS) albo odczytać ze statycznego API JSON (<code>railsentinel.pl/api/v1/alarms.json</code>), więc PLK może zasilić własne narzędzia bez integracji z systemami.</li>
+    <li><b>„Moja linia”</b>: numer linii, stacja albo <b>📍 Gdzie jestem</b> → status linii (bez zagrożeń / uwaga / alarm), każdy odcinek na 3 dni i zalecane działanie. Schemat liniowy zlepia sąsiednie zagrożone odcinki w <b>odcinki robocze do obchodu</b> (np. „km 85,9–96,2”), a <b>karta obchodu</b> ma pole na podpis i godzinę.</li>
+    <li><b>„Mój rejon”</b>: widok wokół stacji (promień 5, 10 lub 20 km albo odcinki do sąsiednich stacji), zapisywany jak linie (ostatnie rejony jako przyciski), także na telefonie. To przybliżenie zasięgu dyżurnego; docelowy podział na posterunki dyżurnych i LCS wymaga ewidencji PLK (rozdz. 11).</li>
+    <li><b>Ostrzeżenia IMGW na żywo:</b> aplikacja pokazuje, ile odcinków leży w powiatach objętych ostrzeżeniem i ile z nich RailSentinel wskazuje do sprawdzenia. {{imgw_example}}. Śnieg, mróz i zawieje (własnej prognozy dla nich nie mam) są pokazane jako informacja oficjalna.</li>
+    <li><b>Dla sztabu i integracji:</b> mapa Polski, backtest 2024, test 1997, symulator; CSV, GeoJSON i statyczne API (<code>railsentinel.pl/api/v1/alarms.json</code>).</li>
   </ul>
-  <p><b>Film prezentacyjny</b> (ok. 3,5 min, lektor, muzyka) pokazuje działanie aplikacji na tle historycznych powodzi. Jest dostępny na stronie <b>railsentinel.pl/about.html</b>, a link do niego jest w mailu zgłoszeniowym.</p>
-  <div class="box">Koszt uruchomienia: hosting strony i aplikacji 0 zł (GitHub Pages, HTTPS); jedyny wydatek to domena railsentinel.pl. Prognoza odświeża się automatycznie dwa razy na dobę (<code>src/05_predict.py live</code>), a w pilotażu uruchamiałby ją co kilka godzin harmonogram po stronie PLK.</div>
+  <p><b>Obiekty i służby.</b> Po rozmowach z kolejarzami (rozdz. 10) wynik jest podzielony na obiekty, które sprawdzają różne służby. Filtr „obiekt” stoi obok filtra zagrożeń w widoku na żywo, w „Mojej linii” i „Moim rejonie”; obiekt i służba są też w raporcie, oknie odcinka, eksporcie i API.</p>
+  <table class="small">
+    <tr><th style="width:27%">Zagrożenie</th><th style="width:29%">Obiekt</th><th style="width:15%">Kto sprawdza</th><th>Co do rozważenia</th></tr>
+    <tr><td>ulewa, fala, upał, drzewa na torze</td><td>tor i nasyp (przepusty, mosty, tor bezstykowy)</td><td>toromistrz</td><td>obchód, geometria toru w upale, przepusty</td></tr>
+    <tr><td>wiatr, marznący opad</td><td>sieć trakcyjna ({{n_elec}} odcinków zelektryfikowanych)</td><td>służba trakcji</td><td>objazd sieci, odladzanie, drzewa na sieci</td></tr>
+    <tr><td>śnieg, marznący opad, mokry śnieg i mróz z opadem, upał</td><td>rozjazdy i srk: <b>wskaźnik ekspozycji</b>, nie prognoza awarii ({{n_switches}} rozjazdów z OSM)</td><td>służba automatyki (srk)</td><td>ogrzewanie i napędy rozjazdów, odśnieżanie, luzy w upale</td></tr>
+  </table>
 </section>
 
 <section class="page">
   <h2><span class="n">10</span>Użytkownicy, oczekiwana zmiana i wpływ</h2>
-  <table>
-    <tr><th style="width:26%">Użytkownik</th><th>Co dostaje</th><th style="width:32%">Jak używa</th></tr>
-    <tr><td><b>Dyżurny / dyspozytor</b></td><td>Raport poranny i wieczorny, alarmy dla swojego obszaru</td><td>Ograniczenia prędkości, zamknięcia, kolejność obchodów</td></tr>
-    <tr><td><b>Zakład linii kolejowych</b></td><td>Ranking odcinków do sprawdzenia, zalecane działania</td><td>Planowanie obchodów, sprzęt i brygady przed zjawiskiem</td></tr>
-    <tr><td><b>Sztab kryzysowy PLK</b></td><td>Widok sieci na 72 h, symulator scenariuszy</td><td>Wczesna mobilizacja, ćwiczenia, koordynacja</td></tr>
-    <tr><td><b>Planowanie inwestycji</b></td><td>Mapa „gorących punktów”, test klimatyczny</td><td>Priorytety modernizacji przepustów, mostów, skarp</td></tr>
+  <table class="small">
+    <tr><th style="width:24%">Użytkownik</th><th>Co dostaje</th><th style="width:34%">Jak używa</th></tr>
+    <tr><td><b>Dyżurny ruchu</b></td><td>Tylko UWAGĘ i ALARM w swoim rejonie („Mój rejon”)</td><td>Ostrzega maszynistę i toromistrza; o ograniczeniach decyduje uprawniony pracownik</td></tr>
+    <tr><td><b>Dyspozytor, zakład linii</b></td><td>Poranny przegląd sieci; osobne listy dla toromistrza, trakcji i automatyki</td><td>Obchody, sprzęt i brygady przed zjawiskiem</td></tr>
+    <tr><td><b>Sztab PLK, inwestycje</b></td><td>Widok sieci na 72 h, symulator, mapa „gorących punktów”</td><td>Wczesna mobilizacja, ćwiczenia, priorytety modernizacji</td></tr>
   </table>
-  <h3>Jak zmierzyć efekt (KPI pilotażu)</h3>
-  <table>
-    <tr><th style="width:32%">Wskaźnik</th><th>Definicja</th><th style="width:22%">Cel pilotażu</th></tr>
-    <tr><td>Wykrywalność</td><td>% zdarzeń pogodowych na infrastrukturze poprzedzonych alarmem w horyzoncie 72 h</td><td>≥ 70%</td></tr>
-    <tr><td>Wyprzedzenie</td><td>Mediana czasu od pierwszego alarmu do zdarzenia</td><td>≥ 24 h</td></tr>
-    <tr><td>Trafność / obciążenie</td><td>% alarmów potwierdzonych na obchodzie; liczba alarmów na zakład tygodniowo</td><td>≥ 20%; akceptowane przez zespoły</td></tr>
-    <tr><td>Ekspozycja</td><td>Pociągi, które wjechały na odcinek uszkodzony przez pogodę</td><td>spadek r/r</td></tr>
-    <tr><td>Czas przywrócenia ruchu</td><td>Godziny zamknięcia po zjawisku</td><td>spadek r/r</td></tr>
+  <p class="small"><b>Model użycia: wyjątek zamiast rutyny.</b> RailSentinel nie dodaje dyżurnemu ruchu codziennego obowiązku. W swoim rejonie dyżurny widzi tylko UWAGĘ albo ALARM (dzień bez nich to „bez zagrożeń”), więc reaguje na wyjątki, a poranny przegląd całej sieci robi dyspozytor lub zakład. Toromistrz, służba trakcji i automatyka dostają własne listy: filtr „obiekt” oraz kolumna „kto sprawdza” w raporcie i na karcie obchodu.</p>
+  <h3>Test z praktykami</h3>
+  <p class="small">To mały test, nie badanie reprezentatywne: nagrana rozmowa z <b>dyżurnym ruchu (10 lat stażu)</b> z 12.11.2026 oraz uwagi kolejarza, kolegi ojca autora. Dyżurny wyraził na nagraniu zgodę na udostępnienie wizerunku w projekcie; jego wypowiedzi przedstawiam jako opinię praktyka, nie stanowisko pracodawcy. Obejrzał film z aplikacji i odpowiedział na trzy pytania; nie mierzyłem czasu zadań, więc nie podaję wyników użyteczności. Cytaty pochodzą z automatycznej transkrypcji (poprawiłem tylko nazwy „oblodzenie” i „wyboczenie”).</p>
+  <table class="small">
+    <tr><th style="width:62%">Co powiedział dyżurny ruchu</th><th>Co zmieniłem po rozmowie</th></tr>
+    <tr><td>„Pogoda jest zmienna, zmienia to się w każdej chwili. Z deszczu może pojawić się śnieg i oblodzenie trakcji.”</td><td>Sieć trakcyjna jako osobny obiekt (wiatr, oblodzenie)</td></tr>
+    <tr><td>„[Aplikacja] pokazuje, że (…) ja mogę ostrzec odpowiednio wcześnie na przykład o zbliżającym się oblodzeniu trakcji, możliwym wyboczeniu toru ze względu na temperatury. Także nie ukrywam, że jest przydatne i jest interesująca.”</td><td>Zasada „ostrzeżenie z wyprzedzeniem” bez zmian</td></tr>
+    <tr><td>„Pociągi się poruszają z danym rozkładem jazdy, więc nie mogę im proponować prędkości. Mogę je ostrzec przed zagrożeniem i maszynista (…) może dostosować prędkość do warunków jazdy.”</td><td>Usunąłem z pracy opis propozycji prędkości: system wskazuje obiekt, przyczynę i kolejność sprawdzenia</td></tr>
+    <tr><td>„Być może zmieniłbym troszeczkę ikony większe (…) na telefonie, jeżeli by chciał to robić w czasie obchodu (…).”</td><td>Większe ikony i przyciski filtrów na telefonie (≥ 44 px)</td></tr>
+    <tr><td>„Jeżeli aplikacja by była ogólnodostępna lub przez firmę nakazana, to korzystałbym z niej.”</td><td>„Mój rejon”, poranny przegląd, „wyjątek zamiast rutyny”</td></tr>
   </table>
-  <h3>Spodziewany wpływ na bezpieczeństwo</h3>
-  <ul>
-    <li><b>Zapobieganie:</b> obchód i ograniczenie prędkości przed pierwszym pociągiem na wskazanych odcinkach zmniejsza ryzyko wykolejenia na podmytym, wyboczonym lub zablokowanym torze.</li>
-    <li><b>Ograniczanie skutków:</b> wcześniejsza mobilizacja brygad, sprzętu i komunikacji zastępczej skraca przerwy w ruchu.</li>
-    <li><b>Lepsze wykorzystanie zasobów:</b> zamiast ograniczeń na całym obszarze ostrzeżenia, działania na odcinkach o wysokim ryzyku. W szczycie powodzi 2024 moduł A alarmował o połowę mniej zbędnie niż reguła opadowa.</li>
-    <li><b>Adaptacja do klimatu:</b> symulator i mapa ryzyka wskazują, gdzie modernizacja przepustu czy umocnienie skarpy da największy efekt.</li>
-  </ul>
+  <p class="small"><b>Uwagi kolejarza (w skrócie, nie cytat):</b> (1) zwrotnice i wykolejnice mogą nie działać przez pogodę: oblodzone, a w ogromny upał się nie przełożą → wskaźnik „Rozjazdy i srk”, heurystyka, nie prognoza awarii (A3); (2) czy program byłby podzielony na obszary według stacji z konkretnym dyżurnym → „Mój rejon”; (3) czy to miałby być codzienny obowiązek dyżurnego → „wyjątek zamiast rutyny”; (4) skoro kontrola torów, to może też kontrola trakcji → obiekt „Sieć trakcyjna”. <b>Ograniczenia:</b> dwie osoby; wskaźnik rozjazdów nie był porównany z rejestrem usterek PLK.</p>
+  <p class="small"><b>KPI pilotażu (rozdz. 11):</b> wykrywalność ≥ 70% zdarzeń w 72 h, wyprzedzenie ≥ 24 h, ≥ 20% alarmów potwierdzonych na obchodzie przy liczbie alarmów akceptowanej przez zespoły oraz mniej pociągów na odcinku uszkodzonym przez pogodę i krótszy czas przywrócenia ruchu (spadek r/r).</p>
+  <p class="small"><b>Spodziewany wpływ:</b> obchód i ostrzeżenie maszynisty przed pierwszym pociągiem zmniejszają ryzyko wykolejenia na podmytym, wyboczonym lub zablokowanym torze, a wcześniejsza mobilizacja brygad skraca przerwy w ruchu. Zamiast działań na całym obszarze ostrzeżenia, działania na odcinkach o wysokim ryzyku (w szczycie powodzi 2024 moduł A alarmował o połowę mniej zbędnie niż reguła opadowa). Symulator i mapa ryzyka wskazują też, gdzie modernizacja przepustu czy skarpy da największy efekt.</p>
 </section>
 
 <section class="page">
@@ -295,14 +297,13 @@
   <p class="small">Proponuję <b>pilotaż na jednej linii</b>, a nie od razu wdrożenie w całej Polsce. Przykład: linia 276 Wrocław – Kłodzko – Międzylesie. To propozycja, PKP PLK nie wyraziło na nią zgody.</p>
   <table class="small">
     <tr><th style="width:20%">Etap</th><th>Zakres</th><th style="width:15%">Czas</th></tr>
-    <tr><td><b>0. Prototyp</b></td><td>Gotowy: cała Polska, codzienna automatyczna prognoza, kilometraż, wydruk dla dyżurnego; testy 2024, 1997, 2010 i 7 orkanów</td><td>zrobione</td></tr>
-    <tr><td><b>1. Przygotowanie</b></td><td>Uzgodnienie z zarządcą; dostęp do odczytu ewidencji (kilometraż, obiekty) i rejestru zdarzeń; osoba po stronie PLK odpowiedzialna za walidację; szkolenie użytkowników (1–2 h)</td><td>1–2 miesiące</td></tr>
+    <tr><td><b>0. Prototyp</b></td><td>Gotowy: cała Polska, codzienna automatyczna prognoza, kilometraż, wydruk dla dyżurnego, obiekty i służby, „Mój rejon”; testy 2024, 1997, 2010 i 7 orkanów</td><td>zrobione</td></tr>
+    <tr><td><b>1. Przygotowanie</b></td><td>Uzgodnienie z zarządcą; dostęp do odczytu ewidencji (kilometraż, obiekty, <b>posterunki dyżurnych i LCS</b> do podziału na rejony) oraz rejestrów zdarzeń i <b>usterek srk</b> (kalibracja wskaźnika rozjazdów); osoba po stronie PLK do walidacji; szkolenie (1–2 h)</td><td>1–2 miesiące</td></tr>
     <tr><td><b>2. Obserwacja „w cieniu”</b></td><td>30 dni, najlepiej w sezonie burzowym (V–IX). Codzienny raport dla zespołu pilotażu, <b>bez wpływu na ruch pociągów</b>. Każdy alarm porównany z obchodami i raportami.</td><td>30 dni</td></tr>
     <tr><td><b>3. Ocena</b></td><td>Trafne i fałszywe wskazania, przeoczenia, czas reakcji użytkowników, zrozumiałość raportu (krótka ankieta)</td><td>2 tygodnie</td></tr>
     <tr><td><b>4. Decyzja</b></td><td>Szerszy test tylko, jeśli: ≥ 70% zdarzeń pogodowych miało wcześniejszy alarm, liczba alarmów jest akceptowana przez zespół i ani razu brak danych nie został pokazany jako niskie ryzyko</td><td>–</td></tr>
   </table>
-  <p class="small"><b>Potrzebne zasoby:</b> dostęp do danych zarządcy, jedna osoba do walidacji, serwer (wystarcza obecna infrastruktura chmurowa), szkolenie użytkowników.</p>
-  <p>System działa jako niezależna aplikacja i nie wymaga integracji z urządzeniami sterowania ruchem. Potrzebuje tylko dostępu do odczytu ewidencji infrastruktury i rejestru zdarzeń oraz danych meteorologicznych i hydrologicznych. Przeliczenie całej sieci zajmuje minuty na jednym serwerze.</p>
+  <p class="small"><b>Zasoby i integracja:</b> dostęp do danych zarządcy, jedna osoba do walidacji, serwer (wystarcza obecna infrastruktura chmurowa). System jest niezależną aplikacją bez integracji z urządzeniami sterowania ruchem; przeliczenie całej sieci zajmuje minuty.</p>
   <table>
     <tr><th style="width:32%">Ryzyko</th><th>Mitygacja</th></tr>
     <tr><td>„Zmęczenie alarmami”</td><td>Progi kalibrowane z zespołami utrzymania, dwa poziomy (uwaga/alarm), fala jako osobna kategoria, pomiar trafności w pilotażu</td></tr>
@@ -313,7 +314,7 @@
   </table>
   <h2 style="margin-top:10px"><span class="n">12</span>Odpowiedzialne stosowanie AI</h2>
   <ul>
-    <li><b>Człowiek decyduje.</b> System rekomenduje, a o ograniczeniu prędkości czy zamknięciu decyduje uprawniony pracownik.</li>
+    <li><b>Człowiek decyduje.</b> System rekomenduje, a o ograniczeniu prędkości czy zamknięciu decyduje uprawniony pracownik. Wskaźnik rozjazdów to heurystyka, nie prognoza awarii.</li>
     <li><b>Wyjaśnialność i fizyka.</b> Każdy alarm ma listę przyczyn. Model ma wymuszoną monotoniczność, a moduły hydrologiczny i fizyczne są w pełni przejrzyste.</li>
     <li><b>Uczciwa walidacja.</b> Test na niezależnym zdarzeniu, porównanie z regułą bazową i jawne opisanie ograniczeń.</li>
     <li><b>Brak danych osobowych</b> i <b>deterministyczne komunikaty</b> bez generatywnego modelu językowego.</li>
@@ -323,7 +324,7 @@
 
 <section class="page">
   <h2><span class="n">13</span>Model rozwoju i model biznesowy</h2>
-  <p>RailSentinel może być narzędziem wewnętrznym PLK albo produktem SaaS dla zarządców infrastruktury. Rachunek opieram na <b>opublikowanych danych</b>. Tam, gdzie liczba jest założeniem, zaznaczam to wprost.</p>
+  <p class="small">RailSentinel może być narzędziem wewnętrznym PLK albo produktem SaaS dla zarządców infrastruktury. Rachunek opieram na <b>opublikowanych danych</b>; założenia zaznaczam wprost.</p>
   <p class="small"><b>Fakty:</b> PKP PLK eksploatuje 18 806,7 km linii (raport za 2023, PAP). Wstępne straty infrastruktury PLK po powodzi 2024 to <b>880 mln zł</b> (PAP, 19.09.2024). Orkan Eunice wywołał 400 zdarzeń pogodowych na sieci w jeden dzień (PLK za Polsat News), a ograniczenia upałowe 3.07.2025 opóźniły 133 pociągi (odpowiedź na interpelację).</p>
   <h3>Próg opłacalności (break-even)</h3>
   <table>
@@ -332,9 +333,8 @@
     <tr><td>100 zł / km / rok</td><td>1,88 mln zł</td><td>0,21% strat jednej powodzi na skalę 2024</td></tr>
     <tr><td>150 zł / km / rok</td><td>2,82 mln zł</td><td>0,32% strat jednej powodzi na skalę 2024</td></tr>
   </table>
-  <p><b>Koszt po stronie systemu jest niski, bo działa na otwartych danych.</b> Prototyp od 11.11.2026 codziennie liczy prognozę dla całej Polski na bezpłatnej infrastrukturze (GitHub Actions, dane publiczne IMGW, ECMWF i OSM). Koszt to tylko domena. Wersja produkcyjna wymaga serwera, płatnego dostępu do API pogodowego i zespołu utrzymaniowego. Ceny w tabeli to założenie, które to pokrywa. Nie są potrzebne czujniki w torze ani prace na infrastrukturze.</p>
-  <p>Nawet przy założeniu, że powódź na skalę 2024 zdarza się raz na dekadę, system zwraca się przy uniknięciu ok. 2–3% jej strat. Do tego dochodzą zwykłe zdarzenia (wichury, upały, lokalne ulewy) i najważniejsza, niepoliczalna korzyść: uniknięcie wypadku z udziałem pasażerów.</p>
-  <p class="small"><b>Klienci:</b> PKP PLK (kluczowy), zarządcy regionalni, bocznice przemysłowe i portowe, zarządcy w Czechach i na Słowacji, a dalej zarządcy dróg i sieci energetycznych. <b>Przychody:</b> subskrypcja za km linii, wdrożenie i integracja danych, moduły dodatkowe (nowcasting, analizy inwestycyjne, symulator ćwiczeniowy). <b>Koszty:</b> dane pogodowe, chmura, zespół 2–4 osób. <b>Przewaga:</b> dwa mechanizmy powodzi, testy na wielu prawdziwych zdarzeniach, wyjaśnialność, brak sprzętu w torze, więc szybkie wdrożenie.</p>
+  <p class="small"><b>Koszt po stronie systemu jest niski, bo działa na otwartych danych.</b> Prototyp od 11.11.2026 liczy prognozę dla całej Polski na bezpłatnej infrastrukturze (GitHub Actions, dane IMGW, ECMWF i OSM); koszt to tylko domena, a hosting 0 zł. Wersja produkcyjna wymaga serwera, płatnego API pogodowego i zespołu; ceny w tabeli to założenie, które to pokrywa. Nie są potrzebne czujniki w torze. Nawet przy powodzi na skalę 2024 raz na dekadę system zwraca się przy uniknięciu ok. 2–3% jej strat, a dochodzą wichury, upały i najważniejsza, niepoliczalna korzyść: uniknięcie wypadku z pasażerami.</p>
+  <p class="small"><b>Klienci:</b> PKP PLK (kluczowy), zarządcy regionalni, bocznice, zarządcy w Czechach i na Słowacji. <b>Przychody:</b> subskrypcja za km linii, wdrożenie, moduły dodatkowe (nowcasting, analizy inwestycyjne, symulator). <b>Koszty:</b> dane pogodowe, chmura, zespół 2–4 osób. <b>Przewaga:</b> dwa mechanizmy powodzi, testy na wielu zdarzeniach, wyjaśnialność, brak sprzętu w torze.</p>
   <div class="box">Prawa autorskie pozostają przy autorze, a Organizator otrzymuje licencję na analizę, testy i pilotaż (§10 Regulaminu). Jestem gotowy rozwijać system wspólnie z ekspertami PLK.</div>
   <h2 style="margin-top:10px"><span class="n">14</span>Ograniczenia i plan rozwoju</h2>
   <table class="small">
@@ -344,6 +344,7 @@
     <tr><td>Etykiety zniszczeń z publikacji prasowych i branżowych</td><td>Test na niezależnych zdarzeniach (1997, 2010) bez douczania</td><td>Douczenie na rejestrze zdarzeń i usterek PLK</td></tr>
     <tr><td>Upał, wiatr i oblodzenie to moduły regułowe</td><td>Progi IMGW i fizyka szyny; test na 7 orkanach i upale 2025</td><td>Kalibracja na zdarzeniach PLK, mapa zadrzewień (Sentinel-2, LiDAR)</td></tr>
     <tr><td>Dane infrastruktury z OSM</td><td>Kontrola spójności; kilometraż dla {{km_pct}}% odcinków</td><td>Ewidencja infrastruktury PLK (kilometraż, prędkości, obiekty)</td></tr>
+    <tr><td>Rozjazdy i srk: wskaźnik, nie prognoza awarii</td><td>Liczba rozjazdów z OSM (niepełna) i pogoda; progi jako nazwane stałe, opis „założenia robocze”</td><td>Kalibracja na rejestrze usterek srk PLK i ewidencji urządzeń</td></tr>
     <tr><td>Brak danych lub dane nieaktualne</td><td>Komunikat „prognoza nieaktualna”, odcinki bez oceny na szaro; nigdy jako niskie ryzyko</td><td>Monitoring automatu i powiadomienie administratora</td></tr>
   </table>
 </section>
@@ -392,7 +393,7 @@
   <ul class="small">
     <li>Kod źródłowy i dane pośrednie (ZIP / link)</li>
     <li>Aplikacja i strona: <b>https://railsentinel.pl</b> (kopia lokalna: <code>web/index.html</code>)</li>
-    <li>Film prezentacyjny <code>RailSentinel_film.mp4</code> (ok. 3,5 min) – także na railsentinel.pl/about.html</li>
+    <li>Film prezentacyjny <code>RailSentinel_film.mp4</code> (4 min 50 s, z fragmentami rozmowy z dyżurnym ruchu) – także na railsentinel.pl/about.html</li>
   </ul>
   <p class="small muted" style="margin-top:16px">Praca nie zawiera informacji niejawnych, tajemnicy przedsiębiorstwa ani danych osobowych osób trzecich. RailSentinel jest prototypem studenckim i nie jest systemem operacyjnym PKP PLK S.A.</p>
 </section>

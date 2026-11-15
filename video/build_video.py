@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 import shutil
@@ -8,6 +9,8 @@ from pathlib import Path
 
 import imageio_ffmpeg
 import numpy as np
+
+import redact
 
 ROOT = Path(__file__).resolve().parents[1]
 V = ROOT / "video"
@@ -80,7 +83,7 @@ def script(v):
         ("intro", "html", "Każdego dnia po polskich torach jeżdżą tysiące pociągów. Ale tor nie jest odporny na pogodę. "
                           "Oto RailSentinel: system, który pomaga zdecydować, który odcinek toru sprawdzić najpierw, zanim pogoda go uszkodzi.", None),
         ("y1997", "html", "Lipiec, rok tysiąc dziewięćset dziewięćdziesiąty siódmy. Powódź tysiąclecia. Fala na Odrze niszczy "
-                          "mosty kolejowe w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym. Część tych zniszczeń ogranicza ruch do dziś.", None),
+                          "mosty kolejowe w Kędzierzynie-Koźlu, Krapkowicach i Brzegu Dolnym.", None),
         ("y2024", "html", "Wrzesień, rok dwa tysiące dwudziesty czwarty. Ulewa w Sudetach. Woda zabiera trzysta metrów nasypu pod Kłodzkiem "
                           "i niszczy tory pod Nysą i Głuchołazami. Wstępne straty infrastruktury: osiemset osiemdziesiąt milionów złotych. "
                           "A prognozy pokazywały tę ulewę trzy dni wcześniej.", None),
@@ -89,12 +92,12 @@ def script(v):
         ("live", "app", f"RailSentinel robi to automatycznie, dla całej Polski. Ponad {v['nseg']} odcinków sieci, na siedemdziesiąt dwie godziny "
                         "do przodu: podmycie toru, fala na rzece, wyboczenie w upale, wichura i oblodzenie sieci.",
          "Cała Polska · prognoza na 72 h"),
-        ("how", "html", "Pod spodem pracują dwa modele uczenia maszynowego. Pierwszy ocenia, czy ulewa podmyje tor: opad, nasycenie gruntu, "
-                        f"położenie w dolinie, mosty i nasypy. Drugi prognozuje stany rzek z {v['stations']} wodowskazów IMGW i sam odkrywa, "
-                        "które wodowskazy w górnym biegu zapowiadają nadchodzącą falę.", None),
+        ("how", "html", "Pod spodem pracują dwa modele uczenia maszynowego. Pierwszy ocenia, czy ulewa podmyje tor. "
+                        f"Drugi prognozuje stany rzek z {v['stations']} wodowskazów IMGW i sam odkrywa, "
+                        "które z nich w górnym biegu zapowiadają falę.", None),
         ("replay", "app", "Sprawdźmy to na prawdziwej powodzi. System dostaje tylko to, co było wiadomo wtedy: archiwalne prognozy ECMWF. "
                           f"Wieczorem jedenastego września zapala alarmy na {v['d52']} z {v['dam']} odcinków, które później zniszczyła woda, ponad dwie doby wcześniej. "
-                          "W alarmie jest wtedy tylko około trzech procent sieci. Pozostałe odcinki dostają alarm wieczorem przed zniszczeniem.", "Backtest: powódź 09.2024 na archiwalnych prognozach"),
+                          "W alarmie jest wtedy tylko około trzech procent sieci.", "Backtest: powódź 09.2024 na archiwalnych prognozach"),
         ("popup", "app", "Każdy alarm ma wyjaśnienie: linię i kilometr, przyczynę, priorytet weryfikacji i aktualność danych. "
                          "Decyzję podejmuje uprawniony pracownik, zgodnie z procedurami.", "Wyjaśnialna AI: dlaczego ten odcinek?"),
         ("t1997", "app", "A najtrudniejszy test? Powódź z tysiąc dziewięćset dziewięćdziesiątego siódmego roku, której model nigdy nie widział. "
@@ -105,9 +108,12 @@ def script(v):
         ("sim", "app", "W symulatorze można przećwiczyć każdy scenariusz. Stawiam ulewę w Karkonoszach. Podnoszę stan Odry. "
                        "I włączam scenariusz klimatyczny: opady mocniejsze o dwadzieścia procent to ponad dwa razy więcej kilometrów toru do sprawdzenia.",
          "Symulator: model ML działa w przeglądarce"),
-        ("phone", "phone", "Dla ludzi w terenie jest Moja linia. Instalujesz aplikację na telefonie, wybierasz swoją linię albo klikasz "
-                           "Gdzie jestem, i widzisz każdy odcinek na trzy dni. Działa także bez zasięgu.", None),
+        ("phone", "phone", "Dla ludzi w terenie jest Moja linia. Wybierasz swoją linię albo klikasz Gdzie jestem "
+                           "i widzisz każdy odcinek na trzy dni, także bez zasięgu.", None),
     ] + interview_scenes() + [
+        ("changes", "html", "Po rozmowach z kolejarzami dodaliśmy sieć trakcyjną, bo wiatr i oblodzenie grożą także jej. "
+                            "Dodaliśmy wskaźnik dla rozjazdów i srk: to nie prognoza awarii, tylko liczba rozjazdów zestawiona ze śniegiem, "
+                            "marznącym opadem i upałem. Powstał widok Mój rejon, wokół stacji dyżurnego, a telefon dostał większe przyciski.", None),
         ("whom", "html", "RailSentinel rozwiązuje problemy dyżurnych ruchu, zakładów linii kolejowych, sztabów kryzysowych i planistów inwestycji. "
                          "Wszystko na otwartych danych, bez montowania czegokolwiek w torze.", None),
         ("outro", "html", "RailSentinel pomaga zdecydować, gdzie w pierwszej kolejności zweryfikować zagrożenie.", None),
@@ -115,10 +121,11 @@ def script(v):
 
 
 def tts(i, text, prev="", nxt=""):
-    mp3, wav = TMP / f"v{i:02d}.mp3", TMP / f"v{i:02d}.wav"
-    tag = mp3.with_suffix(".txt")
     el = bool(EL_KEY and EL_VOICE)
     key = (f"EL:{EL_VOICE}:{EL_MODEL}:{json.dumps(EL_SET, sort_keys=True)}:" if el else VOICE) + text
+    h = hashlib.md5(key.encode()).hexdigest()[:12]
+    mp3, wav = TMP / f"v_{h}.mp3", TMP / f"v_{h}.wav"
+    tag = mp3.with_suffix(".txt")
     if not (mp3.exists() and tag.exists() and tag.read_text() == key):
         if el:
             el_tts(text, mp3, prev=prev, nxt=nxt)
@@ -126,12 +133,14 @@ def tts(i, text, prev="", nxt=""):
             subprocess.run([str(ROOT / ".venv/bin/edge-tts"), "--voice", VOICE, "--rate=-3%", "--pitch=-2Hz",
                             "--text", text, "--write-media", str(mp3)], check=True)
         tag.write_text(key)
-    chain = ("highpass=f=60,acompressor=threshold=-20dB:ratio=1.8:attack=15:release=200:makeup=1.5,aresample=48000" if el else
-             "highpass=f=70,equalizer=f=150:t=q:w=1:g=1.5,equalizer=f=4500:t=q:w=1.5:g=1.2,"
-             "acompressor=threshold=-18dB:ratio=2.2:attack=10:release=150:makeup=2,aresample=48000")
-    ff("-i", str(mp3), "-af", chain, "-ac", "1", str(wav))
+        wav.unlink(missing_ok=True)
+    if not wav.exists():
+        chain = ("highpass=f=60,acompressor=threshold=-20dB:ratio=1.8:attack=15:release=200:makeup=1.5,aresample=48000" if el else
+                 "highpass=f=70,equalizer=f=150:t=q:w=1:g=1.5,equalizer=f=4500:t=q:w=1.5:g=1.2,"
+                 "acompressor=threshold=-18dB:ratio=2.2:attack=10:release=150:makeup=2,aresample=48000")
+        ff("-i", str(mp3), "-af", chain, "-ac", "1", str(wav))
     with wave.open(str(wav)) as w:
-        return w.getnframes() / w.getframerate()
+        return wav, w.getnframes() / w.getframerate()
 
 
 def read_wav(p):
@@ -212,7 +221,7 @@ def interview_scenes():
     ii = interviews()
     if not ii:
         return []
-    return [("voices", "html", "Zapytałem ludzi, którzy pilnują torów na co dzień. Oto, co powiedzieli.", None)] + \
+    return [("voices", "html", "Zapytałem dyżurnego ruchu z dziesięcioletnim stażem, czy takie narzędzie ma sens. Oto jego odpowiedzi.", None)] + \
            [(f"int{k}", "interview", e, None) for k, e in enumerate(ii)]
 
 
@@ -229,6 +238,19 @@ def render_overlays(items):
         b.close()
 
 
+def redacted(sid, e, t0, dur):
+    src = WYW / e["plik"]
+    if not e.get("rozmyj"):
+        return src, t0
+    red = TMP / f"red_{sid}.mp4"
+    key = TMP / f"red_{sid}.txt"
+    tag = f"{e['plik']}:{t0:.3f}:{dur:.3f}:{(V / 'redact.py').stat().st_mtime:.0f}:{(WYW / 'ref_kalendarz.png').stat().st_mtime:.0f}"
+    if not (red.exists() and key.exists() and key.read_text() == tag):
+        redact.redact(src, t0, dur, red)
+        key.write_text(tag)
+    return red, 0.0
+
+
 def prep_interview(sid, e):
     t0, t1 = tsec(e["od"]), tsec(e["do"])
     dur = t1 - t0
@@ -240,7 +262,8 @@ def prep_interview(sid, e):
     if anon:
         ov.append((TMP / f"{sid}_anon.png", {"k": "anon"}))
     render_overlays(ov)
-    inp = ["-ss", f"{t0:.2f}", "-t", f"{dur:.2f}", "-i", str(src)]
+    vsrc, vt0 = redacted(sid, e, t0, dur)
+    inp = ["-ss", f"{vt0:.2f}", "-t", f"{dur:.2f}", "-i", str(vsrc if not anon else src)]
     for png, _ in ov:
         inp += ["-loop", "1", "-t", f"{dur:.2f}", "-i", str(png)]
     if anon:
@@ -412,10 +435,10 @@ def main():
         texts = [t for _, k, t, _ in sc]
         prev = texts[i - 1] if i > 0 and isinstance(texts[i - 1], str) else ""
         nxt = texts[i + 1] if i + 1 < len(texts) and isinstance(texts[i + 1], str) else ""
-        d = tts(i, text, prev, nxt)
+        wav, d = tts(i, text, prev, nxt)
         dur = LEAD + d + TAIL
         durs.append(dur)
-        auds.append((TMP / f"v{i:02d}.wav", LEAD, False))
+        auds.append((wav, LEAD, False))
         print(f"scena {sid}: lektor {d:.1f} s -> {dur:.1f} s", flush=True)
         clips.append(record(sid, kind, dur, cap, v))
     trans = ["fade", "smoothleft", "fadeblack", "circleopen", "slideleft", "fade", "smoothup", "fade",
@@ -428,7 +451,7 @@ def main():
         fc.append(f"{last}[{i}:v]xfade=transition={trans[(i - 1) % len(trans)]}:duration={XF}:offset={off:.3f}{lab}")
         last, acc = lab, acc + durs[i] - XF
     total = acc
-    ff(*inputs, "-filter_complex", ";".join(fc), "-map", last, "-c:v", "libx264", "-preset", "medium", "-crf", "21",
+    ff(*inputs, "-filter_complex", ";".join(fc), "-map", last, "-c:v", "libx264", "-preset", "slow", "-crf", "23",
        "-pix_fmt", "yuv420p", str(TMP / "video_noaudio.mp4"))
     n = int(total * SR) + SR
     voice = np.zeros(n, np.float32)
@@ -452,7 +475,7 @@ def main():
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
         w.writeframes((mix * 32767).astype(np.int16).tobytes())
     ff("-i", str(TMP / "video_noaudio.mp4"), "-i", str(TMP / "mix.wav"), "-filter:a", "loudnorm=I=-16:TP=-1.5:LRA=11",
-       "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ac", "2", "-shortest", "-movflags", "+faststart",
+       "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-ac", "2", "-shortest", "-movflags", "+faststart",
        str(V / "RailSentinel_film.mp4"))
     ff("-ss", "3", "-i", str(V / "RailSentinel_film.mp4"), "-frames:v", "1", "-q:v", "3", str(V / "poster.jpg"))
     print(f"GOTOWE: {V / 'RailSentinel_film.mp4'}  ({total:.0f} s)")

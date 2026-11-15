@@ -4,7 +4,7 @@
 **Temat:** Kolej na bezpieczeństwo – zgłoszenie konkursowe
 
 **Załączniki:**
-1. `RailSentinel_praca_konkursowa.pdf` (praca konkursowa, 15 stron, ok. 5 MB)
+1. `RailSentinel_praca_konkursowa.pdf` (praca konkursowa, 15 stron, ok. 6 MB)
 2. `RailSentinel_zalacznik_techniczny.pdf` (materiał uzupełniający: metodologia testów, ok. 2 MB)
 3. Załącznik nr 1 – formularz zgłoszeniowy (podpisany)
 4. Załącznik nr 2 – oświadczenia uczestnika (podpisany)
@@ -26,11 +26,11 @@ oblodzenie sieci) dla każdego z ok. 4,6 tys. odcinków sieci kolejowej w Polsce
 prognozy pogody i stany wód z wodowskazów IMGW. W backteście na powodzi z września 2024 r. – na archiwalnych prognozach
 ECMWF, czyli tylko na danych dostępnych w tamtym momencie – prognoza z wieczora 11 września objęła alarmem 3,3% sieci
 krajowej, a wśród nich 31 z 37 odcinków zniszczonych 14–16 września (52 godziny wcześniej); pozostałe 6 dostało alarm w kolejnych prognozach (z 12 i 13 września). Praca pokazuje też cenę tej skuteczności (alarmy bez potwierdzonego zniszczenia), testy
-historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponowany pilotaż na jednej linii. Aplikacja działa na żywo (aktualizacja dwa razy na dobę), pokazuje oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków, a publiczny dziennik prognoz pozwala sprawdzić trafność prognoz rzek na bieżąco.
+historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponowany pilotaż na jednej linii. Aplikacja działa na żywo (aktualizacja dwa razy na dobę), pokazuje oficjalne ostrzeżenia IMGW zawężone do konkretnych odcinków, a publiczny dziennik prognoz pozwala sprawdzić trafność prognoz rzek na bieżąco. Po rozmowach z kolejarzami (dyżurny ruchu z 10-letnim stażem oraz uwagi drugiego kolejarza) wynik jest podzielony na obiekty i służby (tor i nasyp, sieć trakcyjna, rozjazdy i srk jako wskaźnik ekspozycji, a nie prognoza awarii), doszedł widok „Mój rejon” wokół stacji, a praca opisuje test z praktykami.
 
 **Materiały uzupełniające (§5 ust. 4 Regulaminu):**
 - Działający prototyp – aplikacja i strona: https://railsentinel.pl
-- Film prezentacyjny (MP4, poniżej 5 min), link bez logowania, z możliwością pobrania: [WSTAW LINK DO GOOGLE DRIVE LUB ONEDRIVE]
+- Film prezentacyjny (MP4, 4:50, 42 MB), link bez logowania, z możliwością pobrania: [WSTAW LINK DO GOOGLE DRIVE LUB ONEDRIVE]
   (film jest też na stronie https://railsentinel.pl/about.html)
 - Kod źródłowy: https://github.com/maciejonisiewicz/railsentinel
 - Status systemu i weryfikacja na żywo: https://railsentinel.pl/status.html
@@ -39,7 +39,7 @@ historyczne na powodziach z 1997 i 2010 r. oraz na 7 orkanach, a także proponow
 - Załącznik techniczny (metodologia testów) – w załączniku do wiadomości
 
 Prototyp działa w przeglądarce bez logowania. Praca nie zawiera informacji niejawnych, tajemnicy przedsiębiorstwa ani
-danych osobowych osób trzecich. Osoby występujące w filmie wyraziły pisemną zgodę na wykorzystanie wypowiedzi.
+danych osobowych osób trzecich. Osoba występująca w filmie (dyżurny ruchu) wyraziła na nagraniu zgodę na udostępnienie wizerunku w projekcie.
 Wykorzystane źródła, dane, narzędzia i ich licencje są wymienione w rozdziale 16 pracy (§10 ust. 9 Regulaminu).
 
 Osoba do kontaktu: Maciej Onisiewicz, [e-mail], [telefon]

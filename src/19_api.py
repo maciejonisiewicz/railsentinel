@@ -12,6 +12,8 @@ P = ROOT / "data" / "processed"
 ALARM, WARN = 0.5, 0.3
 HZS = {"flood": "woda", "heat": "upał", "wind": "wiatr", "ice": "oblodzenie"}
 LVL = ["wysoka", "średnia", "niższa"]
+OBJECTS = {"trk": "tor i nasyp", "cat": "sieć trakcyjna", "sw": "rozjazdy i srk"}
+SERVICES = {"trk": "toromistrz (utrzymanie toru)", "cat": "służba trakcji (sieć trakcyjna)", "sw": "służba automatyki (srk)"}
 lg = importlib.import_module("17_log")
 
 
@@ -52,6 +54,8 @@ def build(out):
         x = r["total"][i]
         ws = [w for c in s.get("pw", []) for w in by_pw.get(c, []) if lg.active(w, d)]
         km = s.get("km")
+        obj = {k: r[k][i] for k in OBJECTS if r.get(k)}
+        top = max(obj, key=lambda k: obj[k]) if obj and max(obj.values()) >= 0.15 else None
         return {"dzien": d, "linia": s["line"], "km_od": km[0] if km else None, "km_do": km[1] if km else None,
                 "od": s.get("od", ""), "do": s.get("do", ""), "miejscowosc": s.get("place", ""), "rzeka": s.get("river") or "",
                 "powiat": ", ".join(names.get(c, "") for c in s.get("pw", []) if names.get(c)), "poziom": level(x),
@@ -59,7 +63,12 @@ def build(out):
                 "upal_proc": round(r["heat"][i] * 100), "wiatr_proc": round(r["wind"][i] * 100), "lod_proc": round(r["ice"][i] * 100),
                 "opad_1d_mm": r["p1"][i], "opad_3d_mm": r["p3"][i], "porywy_kmh": r["gust"][i], "szyna_C": r["trail"][i],
                 "pewnosc": confidence(r, i, k), "ostrzezenia_imgw": ", ".join(sorted({f"{w['n']} {w['d']}°" for w in ws})),
-                "prognoza_wydana": issued, "id": s["id"]}
+                "prognoza_wydana": issued, "id": s["id"],
+                "obiekt": OBJECTS[top] if top else "", "sluzba": SERVICES[top] if top else "",
+                "tor_proc": round(obj["trk"] * 100) if "trk" in obj else None,
+                "trakcja_proc": round(obj["cat"] * 100) if "cat" in obj else None,
+                "rozjazdy_wskaznik_proc": round(obj["sw"] * 100) if "sw" in obj else None,
+                "rozjazdy_liczba": s.get("sw", 0) + s.get("wk", 0), "elektryfikacja_proc": round(s.get("el", 0) * 100)}
 
     days, rows, lines = [], [], {}
     for k, d in enumerate(live["days"]):

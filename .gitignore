@@ -14,3 +14,9 @@ video/poster.jpg
 .env
 data/log/
 build/
+
+video/wywiady/*.mp4
+video/wywiady/*.wav
+video/modele/
+video/wywiady/transkrypcje/
+video/wywiady/*.png

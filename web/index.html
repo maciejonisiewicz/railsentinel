@@ -64,16 +64,30 @@
     <div class="ctrl" id="daysCtrl"><div class="seg" id="days"></div></div>
 
     <div class="ctrl" id="hzCtrl">
-      <div class="seg hz" id="hazards">
+      <div class="seg hz" id="hazards" role="group" aria-label="Zagrożenie">
         <button data-h="total" class="on">Wszystko</button>
-        <button data-h="flood">💧 Woda</button>
-        <button data-h="heat">🌡 Upał</button>
-        <button data-h="wind">💨 Wiatr</button>
-        <button data-h="ice">❄ Lód</button>
+        <button data-h="flood"><span class="ic" aria-hidden="true">💧</span> Woda</button>
+        <button data-h="heat"><span class="ic" aria-hidden="true">🌡</span> Upał</button>
+        <button data-h="wind"><span class="ic" aria-hidden="true">💨</span> Wiatr</button>
+        <button data-h="ice"><span class="ic" aria-hidden="true">❄</span> Lód</button>
       </div>
     </div>
 
+    <div class="ctrl" id="objCtrl" hidden>
+      <div class="seg obj" id="objects" role="group" aria-label="Obiekt do sprawdzenia">
+        <button type="button" data-o="all" class="on" aria-pressed="true">Wszystko</button>
+        <button type="button" data-o="trk" aria-pressed="false"><span class="ic" aria-hidden="true">🛤</span> Tor i nasyp</button>
+        <button type="button" data-o="cat" aria-pressed="false"><span class="ic" aria-hidden="true">⚡</span> Sieć trakcyjna</button>
+        <button type="button" data-o="sw" aria-pressed="false"><span class="ic" aria-hidden="true">🔀</span> Rozjazdy i srk</button>
+      </div>
+    </div>
+    <div class="objnote" id="objNote" hidden></div>
+
     <div id="lineCtrl" class="linebox" data-has="0" hidden>
+      <div class="seg scope" id="scope" role="group" aria-label="Zakres widoku: linia lub rejon">
+        <button type="button" data-s="line" class="on" aria-pressed="true">Moja linia</button>
+        <button type="button" data-s="region" aria-pressed="false">Mój rejon</button>
+      </div>
       <div class="srch">
         <input id="lineInput" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Linia, stacja lub miejscowość" aria-label="Linia, stacja lub miejscowość" aria-controls="sugg">
         <button id="geoBtn" class="btn big" aria-label="Znajdź linię w mojej okolicy"><span aria-hidden="true">📍</span><span class="gtxt"> Gdzie jestem</span></button>
@@ -83,6 +97,12 @@
       <div id="recent" class="recent"></div>
       <div id="lineStatus" class="linestatus" aria-live="polite"></div>
       <div id="dayTiles" class="daytiles"></div>
+      <div id="radiusCtrl" class="seg radius" role="group" aria-label="Zasięg rejonu wokół stacji" hidden>
+        <button type="button" data-r="5">5 km</button>
+        <button type="button" data-r="10" class="on">10 km</button>
+        <button type="button" data-r="20">20 km</button>
+        <button type="button" data-r="adj">Sąsiednie stacje</button>
+      </div>
       <div id="lineRounds" class="linerounds"></div>
       <details id="lineMore" class="linemore">
         <summary>Szczegóły: odcinki, schemat, ostrzeżenia IMGW</summary>

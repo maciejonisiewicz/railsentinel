@@ -1,10 +1,10 @@
-const VERSION = "rs-v14";
+const VERSION = "rs-v15";
 const SHELL = ["./", "index.html", "about.html", "status.html", "offline.html", "style.css", "app.js", "manifest.webmanifest",
   "vendor/leaflet/leaflet.min.js", "vendor/leaflet/leaflet.min.css",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/favicon.png",
   "data/segments.js", "data/powiaty.js"];
 const PATIENCE = 3500;
-const HEAVY = /\/data\/(segments|model|replay2024|heat|y1997|metrics|powiaty)\.js$/;
+const HEAVY = /\/data\/(segments|model|replay2024|heat|y1997|metrics|powiaty|places)\.js$/;
 const CACHED_HOSTS = /(^|\.)arcgisonline\.com$/;
 
 self.addEventListener("install", (e) => {
