@@ -6,7 +6,7 @@ Z sieci PWr strona nie otwiera się, a przeglądarka pisze, że nie jest bezpiec
 
 Filtry firmowe i szkolne oceniają domeny osobno i **nowe domeny (młodsze niż ok. 30 dni, często do 90) z założenia traktują jako ryzykowne**. Domena railsentinel.pl powstała kilka dni temu. Sieć PLK, w której jury będzie oceniać pracę, może działać tak samo. Dlatego **ocena pracy nie może zależeć od jednej nowej domeny**.
 
-Adres `maciejonisiewicz.github.io/railsentinel` nie jest zapasowym: GitHub przekierowuje go na railsentinel.pl, bo domena własna jest ustawiona dla tego repozytorium.
+Adres `maciejonisiewicz.github.io/railsentinel` nie jest zapasowym: GitHub przekierowuje go na railsentinel.pl, bo domena własna jest ustawiona dla tego repozytorium. Zapasowy jest osobny adres kopii: `maciejonisiewicz.github.io/railsentinel-app` (punkt 3 poniżej).
 
 ## Co zostało zrobione w kodzie
 
@@ -23,6 +23,6 @@ Jeśli przeglądarka na Twoim komputerze nadal pokazuje błąd po kliknięciu �
 
    > railsentinel.pl is a static, non-commercial website of a student project submitted to the PKP PLK competition "Kolej na bezpieczeństwo" (weather-risk forecast for railway infrastructure). It is hosted on GitHub Pages, collects no personal data, has no login or ads. Suggested category: Education / Science and Technology (not newly registered / not high-risk).
 
-3. **Kopia strony na znanej domenie (github.io).** Przygotowałem gotowy zestaw w katalogu `mirror/`: nowe publiczne repozytorium `railsentinel-app` z automatyczną synchronizacją co kilka godzin, bez żadnych tokenów. Utworzenie publicznego repozytorium wymaga Twojej wyraźnej zgody. Gdy ją dasz (lub uruchomisz sam `./mirror/setup_mirror.sh`), kopia pojawi się pod `https://maciejonisiewicz.github.io/railsentinel-app/`, a ja dopiszę ten adres do maila, pracy i strony.
+3. **Kopia strony na znanej domenie (github.io): działa od 15.11.2026.** Adres: **https://maciejonisiewicz.github.io/railsentinel-app/**. To publiczne repozytorium `railsentinel-app` (utworzone za Twoją zgodą skryptem `./mirror/setup_mirror.sh`, zestaw w katalogu `mirror/`) z automatyczną synchronizacją co 3 godziny z gałęzi `gh-pages` głównego repozytorium, bez żadnych tokenów. Kopia nie ma własnej domeny, więc GitHub nie przekierowuje jej na railsentinel.pl. Adres jest w mailu, README, START_TUTAJ i na stronie „Brak połączenia”; jeśli railsentinel.pl jest blokowana, podaj jury ten adres.
 4. **Odblokowanie w PWr (opcjonalnie).** Możesz napisać do działu IT uczelni: „Proszę o odblokowanie strony railsentinel.pl (kategoria high-risk), to mój projekt konkursowy na GitHub Pages, termin zgłoszenia 22.11.”.
 5. **Przed wysyłką sprawdź stronę z telefonu na danych komórkowych** (Wi-Fi wyłączone).

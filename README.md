@@ -2,7 +2,7 @@
 
 Prototyp na konkurs PLK „Kolej na bezpieczeństwo” (II edycja), wyzwanie **2: Czy AI może przewidzieć zagrożenie?**
 
-**Aplikacja i strona: https://railsentinel.pl** · film: https://railsentinel.pl/about.html
+**Aplikacja i strona: https://railsentinel.pl** · kopia na github.io (gdy nowa domena jest blokowana): https://maciejonisiewicz.github.io/railsentinel-app/ · film: https://railsentinel.pl/about.html
 
 RailSentinel łączy prognozę pogody, ukształtowanie terenu, hydrografię i cechy infrastruktury, by codziennie
 wskazywać – **dla każdego z 4606 odcinków sieci kolejowej w Polsce** – odcinki, na których w ciągu 72 h rośnie ryzyko:
@@ -75,7 +75,7 @@ praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka 
 | `video/` | film: `build_video.py` (montaż), `transkrypcja.py` (Whisper lokalnie), `redact.py` (rozmycie logo w tle nagrań); surowe nagrania z twarzą i modele są poza repozytorium (`.gitignore`) |
 | `tests/` | testy jednostkowe i testy aplikacji w przeglądarce |
 | `web/vendor/leaflet/` | biblioteka mapy Leaflet 1.9.4 (BSD-2, kopia lokalna, suma SHA-512 zgodna z cdnjs) |
-| `mirror/` | zestaw do kopii lustrzanej strony na github.io (workflow, skrypt `setup_mirror.sh`) |
+| `mirror/` | zestaw kopii lustrzanej strony na github.io (workflow, skrypt `setup_mirror.sh`); kopia działa: https://maciejonisiewicz.github.io/railsentinel-app/ |
 | gałąź `logs` | dziennik przebiegów prognozy (JSON), źródło weryfikacji prospektywnej |
 
 ## Źródła danych i licencje (§10 ust. 9 Regulaminu)

@@ -6,7 +6,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 
 | Co | Gdzie | Na co patrzeć |
 |---|---|---|
-| **Strona i aplikacja** | https://railsentinel.pl | Zakładki: Na żywo (karta ostrzeżeń IMGW), Moja linia (schemat liniowy, odcinki do obchodu, karta obchodu), Powódź 2024 (przycisk ▶ i komentarz do każdej daty), Symulator, Upał, Powódź 1997; przycisk **?** pokazuje przewodnik, ◍ paletę dla daltonistów |
+| **Strona i aplikacja** | https://railsentinel.pl (kopia na github.io, gdy nowa domena jest blokowana: https://maciejonisiewicz.github.io/railsentinel-app/) | Zakładki: Na żywo (karta ostrzeżeń IMGW), Moja linia (schemat liniowy, odcinki do obchodu, karta obchodu), Powódź 2024 (przycisk ▶ i komentarz do każdej daty), Symulator, Upał, Powódź 1997; przycisk **?** pokazuje przewodnik, ◍ paletę dla daltonistów |
 | **Status i weryfikacja na żywo** | https://railsentinel.pl/status.html | Publiczny dziennik prognoz od 12.11.2026: czy prognoza rzek jest lepsza niż „bez zmian”, ile alarmów dziennie, zgodność z ostrzeżeniami IMGW |
 | **API do integracji** | https://railsentinel.pl/api/v1/alarms.json (też `.geojson`, `.csv`, `lines.json`) | Opis: `docs/API.md` |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
@@ -15,6 +15,8 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 | **Praca konkursowa** | `docs/RailSentinel_praca_konkursowa.pdf` | 15 stron (limit 15) i `docs/RailSentinel_zalacznik_techniczny.pdf`; przeczytaj całość – Komisja może zaprosić na prezentację |
 | **Kod** | https://github.com/maciejonisiewicz/railsentinel | Publiczne repozytorium |
 
+> **Kopia na znanej domenie (15.11.2026):** https://maciejonisiewicz.github.io/railsentinel-app/ – to samo, co railsentinel.pl, odświeżane co 3 godziny; publiczne repozytorium `railsentinel-app` utworzyłem za Twoją zgodą. Jeśli railsentinel.pl nie otwiera się, użyj tego adresu.
+>
 > **Ważne:** sprawdziłem, że strona działa w internecie (HTTPS, certyfikat wystawiony), ale **sieć, z której korzysta Twój
 > komputer (prawdopodobnie akademik), blokuje świeżo zarejestrowane domeny** – na tym komputerze railsentinel.pl może
 > się nie otwierać („Web Page Blocked” / zerwane połączenie). **Sprawdź na telefonie przez dane komórkowe (wyłącz Wi-Fi).**
