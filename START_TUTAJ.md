@@ -11,7 +11,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 | **API do integracji** | https://railsentinel.pl/api/v1/alarms.json (też `.geojson`, `.csv`, `lines.json`) | Opis: `docs/API.md` |
 | **Na telefonie** | ten sam adres w Chrome / Safari | „Moja linia” → wpisz np. `276` albo „📍 Gdzie jestem”; zainstaluj: menu → „Dodaj do ekranu głównego” |
 | **Strona projektu z filmem** | https://railsentinel.pl/about.html | Odtwarza się film, linki do PDF i kodu |
-| **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, trzy fragmenty wywiadu z dyżurnym ruchu (z napisami) i scena „Co zmieniliśmy po rozmowach z kolejarzami”; 4:50, 42 MB. **Posłuchaj całości i sprawdź napisy ze słuchu** |
+| **Film** | `video/RailSentinel_film.mp4` | Lektor, muzyka, przejścia, trzy fragmenty wywiadu z dyżurnym ruchu (z napisami) i scena „Co zmieniliśmy po rozmowach z kolejarzami”; 4:54, 42 MB. **Posłuchaj całości i sprawdź napisy ze słuchu** |
 | **Praca konkursowa** | `docs/RailSentinel_praca_konkursowa.pdf` | 15 stron (limit 15) i `docs/RailSentinel_zalacznik_techniczny.pdf`; przeczytaj całość – Komisja może zaprosić na prezentację |
 | **Kod** | https://github.com/maciejonisiewicz/railsentinel | Publiczne repozytorium |
 
@@ -72,7 +72,7 @@ Wszystko jest gotowe do wysłania na konkurs PKP PLK „Kolej na bezpieczeństwo
 
 ### Co dodałem 15.11.2026 (po rozmowach z kolejarzami)
 
-- **Film (4:50, 42 MB, limit 5:00 i 50 MB):** trzy fragmenty wywiadu z dyżurnym ruchu (10 lat stażu, z twarzą, napisy z transkrypcji Whisper liczonej lokalnie, w nazwach „oblodzenie” i „wyboczenie” poprawione ręcznie), scena „Co zmieniliśmy po rozmowach z kolejarzami” i krótsza narracja pozostałych scen. Logo firmy na kalendarzu w tle nagrań jest rozmyte automatycznie (`video/redact.py`).
+- **Film (4:54, 42 MB, limit 5:00 i 50 MB):** trzy fragmenty wywiadu z dyżurnym ruchu (10 lat stażu, z twarzą, napisy z transkrypcji Whisper liczonej lokalnie, w nazwach „oblodzenie” i „wyboczenie” poprawione ręcznie), scena „Co zmieniliśmy po rozmowach z kolejarzami”, krótsza narracja pozostałych scen i nowe zakończenie (podsumowanie wyników, adresy strony i kopii, kod QR, podziękowanie, wygaszenie do czerni). Z pierwszego fragmentu wycięto „Na bieżąco”, bo to mówił autor, a nie dyżurny. Logo firmy na kalendarzu w tle nagrań jest zasłaniane automatycznie (`video/redact.py`: tło zamiast rozmycia, żeby nie było widać plamy).
 - **Obiekty i służby:** filtr „Tor i nasyp / Sieć trakcyjna / Rozjazdy i srk” obok filtra zagrożeń (widok na żywo, „Moja linia”, „Mój rejon”), obiekt i służba w raporcie, oknie odcinka, karcie obchodu, eksporcie CSV/GeoJSON i API. Sieć trakcyjna tylko na odcinkach zelektryfikowanych (3 186).
 - **Rozjazdy i srk:** wskaźnik ekspozycji (47,7 tys. rozjazdów i wykolejnic z OSM, razem ze śniegiem, marznącym opadem, mrozem z opadem i upałem). To **nie prognoza awarii**; progi to założenia robocze do kalibracji na rejestrze usterek srk PLK. Nie wchodzi do ogólnego ryzyka ani alarmów.
 - **Mój rejon:** widok wokół stacji (5, 10, 20 km albo sąsiednie stacje), zapisywany jak linie, działa na telefonie.

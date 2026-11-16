@@ -19,7 +19,7 @@ FF = imageio_ffmpeg.get_ffmpeg_exe()
 BASE = "http://127.0.0.1:8765"
 SR = 48000
 XF = 0.7
-LEAD, TAIL = 0.6, 0.9
+LEAD, TAIL, TAIL_END, FADE_END, XF_INT = 0.6, 0.9, 3.0, 1.3, 0.3
 VOICE = "pl-PL-MarekNeural"
 
 
@@ -113,10 +113,11 @@ def script(v):
     ] + interview_scenes() + [
         ("changes", "html", "Po rozmowach z kolejarzami dodaliśmy sieć trakcyjną, bo wiatr i oblodzenie grożą także jej. "
                             "Dodaliśmy wskaźnik dla rozjazdów i srk: to nie prognoza awarii, tylko liczba rozjazdów zestawiona ze śniegiem, "
-                            "marznącym opadem i upałem. Powstał widok Mój rejon, wokół stacji dyżurnego, a telefon dostał większe przyciski.", None),
-        ("whom", "html", "RailSentinel rozwiązuje problemy dyżurnych ruchu, zakładów linii kolejowych, sztabów kryzysowych i planistów inwestycji. "
-                         "Wszystko na otwartych danych, bez montowania czegokolwiek w torze.", None),
-        ("outro", "html", "RailSentinel pomaga zdecydować, gdzie w pierwszej kolejności zweryfikować zagrożenie.", None),
+                            "marznącym opadem i upałem. Powstał też widok Mój rejon, a telefon dostał większe przyciski.", None),
+        ("whom", "html", "RailSentinel pomaga dyżurnym ruchu, zakładom linii kolejowych, sztabom kryzysowym i planistom inwestycji. "
+                         "Wszystko na otwartych danych, bez niczego w torze.", None),
+        ("outro", "html", "Prognoza działa już dziś i sama sprawdza swoją trafność. Chcę ją przetestować w pilotażu na jednej linii. "
+                          "RailSentinel pomaga zdecydować, gdzie najpierw zweryfikować zagrożenie. Dziękuję za uwagę.", None),
     ]
 
 
@@ -221,7 +222,7 @@ def interview_scenes():
     ii = interviews()
     if not ii:
         return []
-    return [("voices", "html", "Zapytałem dyżurnego ruchu z dziesięcioletnim stażem, czy takie narzędzie ma sens. Oto jego odpowiedzi.", None)] + \
+    return [("voices", "html", "Zapytałem dyżurnego ruchu, czy takie narzędzie ma sens.", None)] + \
            [(f"int{k}", "interview", e, None) for k, e in enumerate(ii)]
 
 
@@ -289,7 +290,7 @@ def prep_interview(sid, e):
     wav = TMP / f"a_{sid}.wav"
     ff("-ss", f"{t0:.2f}", "-t", f"{dur:.2f}", "-i", str(src), "-af",
        f"highpass=f=80,afftdn=nf=-25,acompressor=threshold=-20dB:ratio=2.5:attack=8:release=200:makeup=3,"
-       f"loudnorm=I=-17:TP=-2:LRA=9,afade=in:d=0.15,afade=out:st={dur - 0.35:.2f}:d=0.35,aresample=48000",
+       f"loudnorm=I=-17:TP=-2:LRA=9,afade=in:d=0.04,afade=out:st={dur - 0.25:.2f}:d=0.25,aresample=48000",
        "-ac", "1", str(wav))
     return mp4, wav, dur
 
@@ -436,7 +437,7 @@ def main():
         prev = texts[i - 1] if i > 0 and isinstance(texts[i - 1], str) else ""
         nxt = texts[i + 1] if i + 1 < len(texts) and isinstance(texts[i + 1], str) else ""
         wav, d = tts(i, text, prev, nxt)
-        dur = LEAD + d + TAIL
+        dur = LEAD + d + (TAIL_END if sid == "outro" else TAIL)
         durs.append(dur)
         auds.append((wav, LEAD, False))
         print(f"scena {sid}: lektor {d:.1f} s -> {dur:.1f} s", flush=True)
@@ -444,28 +445,33 @@ def main():
     trans = ["fade", "smoothleft", "fadeblack", "circleopen", "slideleft", "fade", "smoothup", "fade",
              "wipeleft", "fade", "smoothleft", "circleopen", "fadeblack"]
     inputs = sum([["-i", str(c)] for c in clips], [])
+    kinds = [k for _, k, _, _ in sc]
+    xfs = [0.0] + [XF_INT if kinds[i - 1] == "interview" and kinds[i] == "interview" else XF for i in range(1, len(sc))]
     fc, last, acc = [], "[0:v]", durs[0]
     for i in range(1, len(clips)):
-        off = acc - XF
+        off = acc - xfs[i]
         lab = f"[x{i}]"
-        fc.append(f"{last}[{i}:v]xfade=transition={trans[(i - 1) % len(trans)]}:duration={XF}:offset={off:.3f}{lab}")
-        last, acc = lab, acc + durs[i] - XF
+        name = "fade" if xfs[i] == XF_INT else trans[(i - 1) % len(trans)]
+        fc.append(f"{last}[{i}:v]xfade=transition={name}:duration={xfs[i]}:offset={off:.3f}{lab}")
+        last, acc = lab, acc + durs[i] - xfs[i]
     total = acc
-    ff(*inputs, "-filter_complex", ";".join(fc), "-map", last, "-c:v", "libx264", "-preset", "slow", "-crf", "23",
+    fc.append(f"{last}fade=t=out:st={total - FADE_END:.3f}:d={FADE_END}[vend]")
+    ff(*inputs, "-filter_complex", ";".join(fc), "-map", "[vend]", "-c:v", "libx264", "-preset", "slow", "-crf", "23",
        "-pix_fmt", "yuv420p", str(TMP / "video_noaudio.mp4"))
     n = int(total * SR) + SR
     voice = np.zeros(n, np.float32)
     quiet = np.ones(n, np.float32)
     start = 0.0
-    for (wav, off, is_int), d in zip(auds, durs):
+    for k, ((wav, off, is_int), d) in enumerate(zip(auds, durs)):
         x = read_wav(wav)
         s = int((start + off) * SR)
         voice[s:s + len(x)] += x[: max(0, n - s)]
         if is_int:
             quiet[s:s + int(d * SR)] = 0.25
-        start += d - XF
+        start += d - (xfs[k + 1] if k + 1 < len(xfs) else XF)
     quiet = np.convolve(quiet, np.ones(SR) / SR, mode="same").astype(np.float32)
     mus = music(n / SR)
+    mus = np.pad(mus, (0, max(0, n - len(mus))))[:n]
     env = np.convolve(np.abs(voice), np.ones(int(0.25 * SR)) / int(0.25 * SR), mode="same")
     env = np.clip(env / (env.max() + 1e-9) * 4, 0, 1)
     env = np.convolve(env, np.ones(int(0.4 * SR)) / int(0.4 * SR), mode="same")

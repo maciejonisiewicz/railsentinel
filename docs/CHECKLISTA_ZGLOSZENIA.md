@@ -10,7 +10,7 @@
 - [ ] **Film i pliki na Google Drive lub OneDrive** (link „każdy, kto ma link”, z możliwością pobrania, bez logowania; § 5 ust. 5 Regulaminu). Wstaw link do maila w miejsce `[WSTAW LINK…]`. Film z railsentinel.pl może być zablokowany w sieci PLK.
 - [ ] **Zgłoś domenę do rekategoryzacji** u dostawców filtrów (gotowe teksty: `docs/DOSTEPNOSC_I_BLOKADY.md`). Opcjonalnie poproś PWr o odblokowanie.
 - [ ] **Sprawdź railsentinel.pl z telefonu na danych komórkowych** (Wi-Fi wyłączone).
-- [x] **Film ≤ 5 minut i ≤ 50 MB** – 4:50, 42 MB (wywiady wmontowane). Posłuchaj całości i sprawdź napisy ze słuchu.
+- [x] **Film ≤ 5 minut i ≤ 50 MB** – 4:54, 42 MB (wywiady wmontowane). Posłuchaj całości i sprawdź napisy ze słuchu.
 - [ ] **Załączniki w mailu ≤ 50 MB** (PDF ok. 5 MB + załącznik ok. 2 MB + podpisane dokumenty) – film tylko jako link
 - [ ] **Zgoda dyżurnego ruchu** – na nagraniu jest krótka zgoda ustna (wizerunek w projekcie), bez filmu, strony, YouTube i „we własnym imieniu”. Poproś o potwierdzenie pełnym zdaniem na WhatsAppie i zachowaj zrzut ekranu. W filmie jest tylko wariant z twarzą, na który się zgodził.
 - [ ] **Licencje i źródła** – rozdz. 16 pracy (wymóg §10 ust. 9); zdanie o autorstwie kodu w rozdz. 16 – zdecyduj o brzmieniu

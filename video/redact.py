@@ -5,15 +5,16 @@ from pathlib import Path
 import imageio_ffmpeg
 import numpy as np
 from PIL import Image, ImageFilter
-from scipy.ndimage import binary_closing, binary_opening, label
+from scipy.ndimage import binary_closing, binary_dilation, binary_erosion, binary_opening, gaussian_filter, label
 from scipy.signal import fftconvolve
 
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 HERE = Path(__file__).resolve().parent
 REF = HERE / "wywiady" / "ref_kalendarz.png"
 W, H, FPS = 478, 850, 30
-ZONES = [((4, 25, 34, 42), False), ((68, 214, 94, 232), True), ((54, 222, 112, 254), True)]
-PAD = 5
+PLATE = (3, 24, 35, 44)
+FLAP = (50, 213, 118, 242)
+PAD = 3
 MARGIN = 40
 SCALES = [round(0.8 + 0.025 * k, 3) for k in range(21)]
 BLUR = 7
@@ -88,41 +89,78 @@ def skin_mask(rgb):
 
 def blur_allowed(skin):
     h, w = skin.shape
+    skin = binary_erosion(binary_opening(skin, iterations=2), iterations=1)
     edge = np.full(h, -1, dtype=int)
     for r in range(h):
         xs = np.flatnonzero(skin[r])
         if xs.size:
             edge[r] = xs[-1]
     pad = np.pad(edge, 1, mode="edge")
-    edge = np.max(np.stack([pad[k:k + h] for k in range(3)]), axis=0)
+    edge = np.median(np.stack([pad[k:k + h] for k in range(3)]), axis=0).astype(int)
     cols = np.arange(w)[None, :]
-    return cols > (edge[:, None] + 1)
+    return cols > edge[:, None]
 
 
-def ramp(h, w, k=5):
+def ramp(h, w, k=4):
     yy = np.minimum(np.arange(h), np.arange(h)[::-1])[:, None]
     xx = np.minimum(np.arange(w), np.arange(w)[::-1])[None, :]
     return np.clip(np.minimum(yy, xx) / k, 0, 1).astype(np.float32)
 
 
-def blur_frame(frame, pos):
+def rect(box, pos, pad=0):
     x, y, s = pos
+    dx0, dy0, dx1, dy1 = box
+    return (max(0, round(x + dx0 * s) - pad), max(0, round(y + dy0 * s) - pad),
+            min(W, round(x + dx1 * s) + pad), min(H, round(y + dy1 * s) + pad))
+
+
+def hsv_v(f):
+    return f.max(-1)
+
+
+def fill_plate(frame, pos):
+    x0, y0, x1, y1 = rect(PLATE, pos, PAD)
+    if x1 <= x0 or y1 <= y0:
+        return frame
+    crop = frame[y0:y1, x0:x1].astype(np.float32) / 255.0
+    v = hsv_v(crop)
+    local = gaussian_filter(v, 3)
+    red = (crop[..., 0] > 0.5) & (crop[..., 1] < 0.4) & (crop[..., 2] < 0.4)
+    text = binary_dilation(((v - local > 0.13) & (v > 0.55)) | red, iterations=1)
+    keep = (~text).astype(np.float32)
+    num = np.stack([gaussian_filter(crop[..., c] * keep, 2.5) for c in range(3)], -1)
+    den = gaussian_filter(keep, 2.5)[..., None]
+    fill = num / np.maximum(den, 1e-3)
+    alpha = (text.astype(np.float32) * ramp(y1 - y0, x1 - x0, 2))[..., None]
     out = frame.copy()
-    for (dx0, dy0, dx1, dy1), use_mask in ZONES:
-        x0, y0 = max(0, round(x + dx0 * s) - PAD), max(0, round(y + dy0 * s) - PAD)
-        x1, y1 = min(W, round(x + dx1 * s) + PAD), min(H, round(y + dy1 * s) + PAD)
-        if x1 <= x0 or y1 <= y0:
-            continue
-        src = frame[y0:y1, x0:x1].astype(np.float32)
-        bl = np.asarray(Image.fromarray(frame[y0:y1, x0:x1]).filter(ImageFilter.GaussianBlur(BLUR))).astype(np.float32)
-        alpha = ramp(y1 - y0, x1 - x0)
-        if use_mask:
-            X0, Y0 = max(0, x0 - MARGIN), max(0, y0 - MARGIN)
-            Y1 = min(H, y1 + MARGIN)
-            allowed = blur_allowed(skin_mask(frame[Y0:Y1, X0:x1]))[y0 - Y0:y1 - Y0, x0 - X0:]
-            alpha = alpha * allowed
-        out[y0:y1, x0:x1] = (alpha[..., None] * bl + (1 - alpha[..., None]) * src).astype(np.uint8)
+    out[y0:y1, x0:x1] = ((alpha * fill + (1 - alpha) * crop) * 255).astype(np.uint8)
     return out
+
+
+def clean_flap(frame, pos):
+    x0, y0, x1, y1 = rect(FLAP, pos)
+    if x1 <= x0 or y1 <= y0:
+        return frame
+    X0, Y0, Y1 = max(0, x0 - MARGIN), max(0, y0 - MARGIN), min(H, y1 + MARGIN)
+    allowed = blur_allowed(skin_mask(frame[Y0:Y1, X0:x1]))[y0 - Y0:y1 - Y0, x0 - X0:]
+    crop = frame[y0:y1, x0:x1].astype(np.float32) / 255.0
+    cool = (crop[..., 2] > crop[..., 0] + 0.03) & (crop.max(-1) - crop.min(-1) > 0.08)
+    cool = binary_dilation(cool, iterations=2)
+    sx0, sx1 = min(W - 2, x1 + 10), min(W, x1 + 22)
+    side = frame[y0:y1, sx0:sx1].astype(np.float32) / 255.0
+    wall = np.median(side, axis=1)
+    k = 5
+    padded = np.pad(wall, ((k, k), (0, 0)), mode="edge")
+    wall = np.median(np.stack([padded[i:i + len(wall)] for i in range(2 * k + 1)]), axis=0)
+    alpha = (allowed & ~cool).astype(np.float32) * ramp(y1 - y0, x1 - x0, 3)
+    alpha = gaussian_filter(alpha, 0.8)[..., None]
+    out = frame.copy()
+    out[y0:y1, x0:x1] = ((alpha * wall[:, None, :] + (1 - alpha) * crop) * 255).astype(np.uint8)
+    return out
+
+
+def blur_frame(frame, pos):
+    return clean_flap(fill_plate(frame, pos), pos)
 
 
 def redact(src, t0, dur, out, report=None):
