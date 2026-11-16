@@ -78,6 +78,10 @@ praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka 
 | `mirror/` | zestaw kopii lustrzanej strony na github.io (workflow, skrypt `setup_mirror.sh`); kopia działa: https://maciejonisiewicz.github.io/railsentinel-app/ |
 | gałąź `logs` | dziennik przebiegów prognozy (JSON), źródło weryfikacji prospektywnej |
 
+## Prawa autorskie
+
+© 2026 Maciej Onisiewicz. Wszelkie prawa zastrzeżone (plik [LICENSE](LICENSE)). Repozytorium jest publiczne tylko do wglądu: kod, modele i dokumentację wolno kopiować, zmieniać i wdrażać wyłącznie za pisemną zgodą autora. Organizator konkursu korzysta z projektu w zakresie Regulaminu, a opublikowane prognozy są na licencji CC BY 4.0 ([docs/API.md](docs/API.md)).
+
 ## Źródła danych i licencje (§10 ust. 9 Regulaminu)
 
 | Źródło | Zastosowanie | Licencja |

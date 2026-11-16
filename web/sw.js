@@ -1,4 +1,4 @@
-const VERSION = "rs-v15";
+const VERSION = "rs-v16";
 const SHELL = ["./", "index.html", "about.html", "status.html", "offline.html", "style.css", "app.js", "manifest.webmanifest",
   "vendor/leaflet/leaflet.min.js", "vendor/leaflet/leaflet.min.css",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/favicon.png",

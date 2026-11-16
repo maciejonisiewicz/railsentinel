@@ -1,0 +1,39 @@
+RailSentinel
+Copyright (c) 2026 Maciej Onisiewicz. Wszelkie prawa zastrzeżone.
+
+Kod źródłowy, modele, skrypty, dokumentacja, grafiki i film zawarte w tym
+repozytorium są utworem chronionym ustawą z dnia 4 lutego 1994 r. o prawie
+autorskim i prawach pokrewnych. Publiczne udostępnienie repozytorium służy
+wyłącznie prezentacji projektu i nie jest udzieleniem licencji.
+
+Bez uprzedniej pisemnej zgody autora nie wolno kopiować, modyfikować,
+rozpowszechniać, sprzedawać, wdrażać ani w inny sposób wykorzystywać kodu,
+modeli ani dokumentacji (w całości, w części ani w postaci opracowań), ani
+w celach komercyjnych, ani niekomercyjnych, poza dozwolonym użytkiem
+przewidzianym w ustawie.
+
+Wyjątki:
+1. Organizator konkursu „Kolej na bezpieczeństwo” (PKP Polskie Linie
+   Kolejowe S.A.) korzysta z projektu w zakresie określonym w Regulaminie
+   konkursu.
+2. Prognozy publikowane na stronie railsentinel.pl i w katalogu api/ są
+   udostępniane na licencji CC BY 4.0 (docs/API.md). Ta licencja obejmuje
+   wyłącznie opublikowane wyniki prognoz, nie kod ani modele.
+3. Biblioteki i dane osób trzecich zachowują własne licencje (README,
+   sekcja „Źródła danych i licencje”).
+
+Zapytania o licencję lub współpracę: przez profil autora na GitHubie
+(github.com/maciejonisiewicz).
+
+-------------------------------------------------------------------------
+
+Copyright (c) 2026 Maciej Onisiewicz. All rights reserved.
+
+The source code, models, scripts, documentation, graphics and video in this
+repository are protected by copyright. The repository is public for
+presentation only; no licence is granted. Copying, modifying, distributing,
+selling, deploying or otherwise using any part of it, commercially or not,
+requires the author's prior written permission. Exceptions: the organiser of
+the PKP PLK "Kolej na bezpieczeństwo" competition within the scope of the
+competition rules; published forecast outputs (CC BY 4.0, see docs/API.md);
+third-party libraries and data under their own licences.
