@@ -15,6 +15,7 @@ cp docs/RailSentinel_praca_konkursowa.pdf "$SITE/" 2>/dev/null || true
 mkdir -p "$SITE/video"
 [ -f video/RailSentinel_film.mp4 ] && cp video/RailSentinel_film.mp4 "$SITE/video/railsentinel.mp4"
 [ -f video/poster.jpg ] && cp video/poster.jpg "$SITE/video/poster.jpg"
+find "$SITE" -name .DS_Store -delete
 echo "railsentinel.pl" > "$SITE/CNAME"
 touch "$SITE/.nojekyll"
 cd "$SITE"

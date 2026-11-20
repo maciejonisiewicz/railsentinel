@@ -71,7 +71,7 @@ praca bez zasięgu (ostatnia prognoza), szybki start na telefonie (wyszukiwarka 
 | `data/labels_flood_1997.json` | etykiety zniszczeń 07.1997 ze źródłami (niezależny test) |
 | `data/processed/metrics.json` | wyniki walidacji |
 | `web/` | dashboard (Leaflet, statyczny) + `sim.js` – model ML w przeglądarce (symulator) |
-| `docs/` | praca konkursowa, załącznik techniczny, opis API, odpowiedzi dla jury |
+| `docs/` | praca konkursowa, załącznik techniczny, opis API, rysunki |
 | `video/` | film: `build_video.py` (montaż), `transkrypcja.py` (Whisper lokalnie), `redact.py` (zasłanianie logo w tle nagrań kolorem ściany); surowe nagrania z twarzą i modele są poza repozytorium (`.gitignore`) |
 | `tests/` | testy jednostkowe i testy aplikacji w przeglądarce |
 | `web/vendor/leaflet/` | biblioteka mapy Leaflet 1.9.4 (BSD-2, kopia lokalna, suma SHA-512 zgodna z cdnjs) |
