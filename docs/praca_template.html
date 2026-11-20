@@ -151,8 +151,8 @@
 
 <section class="page">
   <h2><span class="n">05</span>Wyniki 2024: backtest na prawdziwych prognozach</h2>
-  <p>Dla każdego dnia 9–15 września odtworzyłem stan wiedzy z wieczora poprzedniego dnia: obserwacje do tego momentu, <b>archiwalną prognozę ECMWF IFS</b> na 3 dni (opad w przyszłości pochodzi wyłącznie z prognozy) oraz ostatni pomiar wodowskazów. Każdy odcinek ocenia model, który nie widział jego linii w treningu.</p>
-  <figure><img src="fig/backtest.png" style="max-height:52mm"><figcaption>Rys. 3. Odsetek odcinków w alarmie w zależności od daty wydania prognozy: czerwone słupki to odcinki faktycznie zniszczone, szare to reszta sieci.</figcaption></figure>
+  <p>Dla każdego dnia 9–15 września odtworzyłem stan wiedzy z wieczora poprzedniego dnia: obserwacje do tego momentu, <b>archiwalną prognozę ECMWF IFS</b> na 3 dni (opad w przyszłości pochodzi wyłącznie z prognozy) oraz ostatni pomiar wodowskazów. Każdy odcinek ocenia model, który nie widział jego linii w treningu (walidacja krzyżowa po liniach); jej ograniczenia opisuję pod tabelą.</p>
+  <figure><img src="fig/backtest.png" style="max-height:34mm"><figcaption>Rys. 3. Odsetek odcinków w alarmie w zależności od daty wydania prognozy: czerwone słupki to odcinki faktycznie zniszczone, szare to reszta sieci.</figcaption></figure>
   <div class="kpis">
     <div class="kpi"><b>{{detected}}/{{damaged}}</b><small>zniszczonych odcinków z alarmem (sam model ML: {{det_ml}})</small></div>
     <div class="kpi"><b>{{median_lead}} h</b><small>mediana wyprzedzenia przed pierwszymi zniszczeniami (14.09)</small></div>
@@ -161,7 +161,7 @@
   </div>
   <h3>Walidacja krzyżowa po liniach (GroupKFold) i porównanie z regułą progową</h3>
   <p>Punkt odniesienia to reguła „alarm, gdy opad 3-dobowy przekracza próg”, odpowiadająca dzisiejszym ostrzeżeniom meteorologicznym. Najważniejszy jest środkowy wykres. W dniach powodzi wszystkie odcinki w strefie ulewy mają „dużo deszczu”, a model dzięki terenowi i infrastrukturze lepiej wskazuje te, które faktycznie ulegną zniszczeniu, i <b>o połowę rzadziej alarmuje niepotrzebnie</b>.</p>
-  <figure><img src="fig/metrics.png" style="max-height:46mm"><figcaption>Rys. 4. Model (moduł A) vs reguła opadowa, walidacja krzyżowa 2024.</figcaption></figure>
+  <figure><img src="fig/metrics.png" style="max-height:30mm"><figcaption>Rys. 4. Model (moduł A) vs reguła opadowa, walidacja krzyżowa 2024.</figcaption></figure>
   <table>
     <tr><th>Wariant (moduł A)</th><th>PR-AUC</th><th>AUC w strefie ulewy</th><th>Sieć w alarmie (dni powodzi)</th><th>AUC – test 1997</th></tr>
     <tr><td><b>ERA5 + cechy fizyczne (wybrany)</b></td><td><b>{{v_pr_e}}</b></td><td><b>{{v_ev_e}}</b></td><td><b>{{v_oa_e}}%</b></td><td>{{v_97_e}}</td></tr>
@@ -169,7 +169,8 @@
     <tr><td>Posterunki IMGW + cechy fizyczne</td><td>{{v_pr_g}}</td><td>{{v_ev_g}}</td><td>{{v_oa_g}}%</td><td>{{v_97_g}}</td></tr>
     <tr><td>Reguła opadowa (ERA5)</td><td>{{pr_auc_baseline}}</td><td>{{event_auc_baseline}}</td><td>{{oa_baseline}}%</td><td>{{v_97_b}}</td></tr>
   </table>
-  <p class="small muted">Wybór cech nie zawyżył wyniku: na niezależnym teście 1997 oba zestawy cech wypadają podobnie. Gęstsze dane z posterunków poprawiają samą regułę opadową (AUC w strefie ulewy 0,880 wobec 0,863), ale nie model, bo interpolacja z 2–3 posterunków jest zaszumiona. Prawdziwy zysk przyniosła hydrologia (rozdz. 06).</p>
+  <p class="small muted">Wybór cech nie zawyżył wyniku: na niezależnym teście 1997 oba zestawy cech wypadają podobnie. Gęstsze dane z posterunków poprawiają samą regułę opadową (AUC w strefie ulewy 0,880 wobec 0,863), ale nie model. Prawdziwy zysk przyniosła hydrologia (rozdz. 06).</p>
+  <p class="small"><b>Ograniczenia tej walidacji.</b> (1) Sąsiednie linie w jednej dolinie mają niemal te same dane pogodowe i etykiety, więc podział po liniach nie daje w pełni niezależnych zbiorów, a wyniki 2024 są optymistyczne. (2) Etykiety pochodzą z jednego zdarzenia, więc nie da się podzielić danych w czasie; jedyny test poza nim to 1997 (sam model ulewy: {{s97ml}} z 3, system: {{s97}} z 3). (3) Próg alarmu dobrałem na etykietach 2024 (ok. 80% dni zniszczeń), więc liczba wykrytych odcinków w 2024 nie jest niezależnym wynikiem; niezależne są test 1997 i dziennik na żywo (rozdz. 15).</p>
 </section>
 
 <section class="page">
@@ -341,7 +342,7 @@
     <tr><th style="width:27%">Granica obecnej wersji</th><th style="width:36%">Jak system sobie z nią radzi już dziś</th><th>Następny krok</th></tr>
     <tr><td>Przy wielkiej powodzi alarm obejmuje wiele odcinków</td><td>Ranking i osobna kategoria fali; w prognozie z 11.09.2024 alarm objął {{rk_alarm_pct}}% sieci i {{rk_dmg}}/{{rk_nd}} zniszczeń</td><td>Kalibracja progów z zespołami utrzymania w pilotażu</td></tr>
     <tr><td>Burze lokalne mniejsze niż siatka 25 km</td><td>Moduł fali na wodowskazach IMGW; Bogatynia 2010 wykryta</td><td>Nowcasting radarowy IMGW (0–6 h)</td></tr>
-    <tr><td>Etykiety zniszczeń z publikacji prasowych i branżowych</td><td>Test na niezależnych zdarzeniach (1997, 2010) bez douczania</td><td>Douczenie na rejestrze zdarzeń i usterek PLK</td></tr>
+    <tr><td>Etykiety z publikacji prasowych; model ulewy uczony na jednym zdarzeniu, walidacja po liniach optymistyczna</td><td>Test na niezależnych zdarzeniach (1997, 2010) bez douczania; dziennik na żywo</td><td>Rejestr zdarzeń i usterek PLK; walidacja blokowa po zlewniach</td></tr>
     <tr><td>Upał, wiatr i oblodzenie to moduły regułowe</td><td>Progi IMGW i fizyka szyny; test na 7 orkanach i upale 2025</td><td>Kalibracja na zdarzeniach PLK, mapa zadrzewień (Sentinel-2, LiDAR)</td></tr>
     <tr><td>Dane infrastruktury z OSM</td><td>Kontrola spójności; kilometraż dla {{km_pct}}% odcinków</td><td>Ewidencja infrastruktury PLK (kilometraż, prędkości, obiekty)</td></tr>
     <tr><td>Rozjazdy i srk: wskaźnik, nie prognoza awarii</td><td>Liczba rozjazdów z OSM (niepełna) i pogoda; progi jako nazwane stałe, opis „założenia robocze”</td><td>Kalibracja na rejestrze usterek srk PLK i ewidencji urządzeń</td></tr>
