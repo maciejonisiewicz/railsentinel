@@ -142,11 +142,11 @@
   <h3>Jak dane są wykorzystywane</h3>
   <ol>
     <li>Sieć dzielę na odcinki ok. 4–5 km (numer linii × kafel siatki) i dla każdego liczę cechy terenu i infrastruktury.</li>
-    <li>Posterunki IMGW lokalizuję automatycznie. Ich wykaz nie zawiera współrzędnych, ale 9-cyfrowy kod stacji koduje stopień szerokości i długości geograficznej, więc nazwę stacji dopasowuję do miejscowości z OSM w tym kwadracie. Tak zlokalizowałem 464 posterunki opadowe i 208 wodowskazów.</li>
+    <li>Posterunki IMGW lokalizuję automatycznie. Ich wykaz nie zawiera współrzędnych, ale 9-cyfrowy kod stacji koduje stopień szerokości i długości geograficznej, więc nazwę stacji dopasowuję do miejscowości z OSM w tym kwadracie. Tak zlokalizowałem 464 posterunki opadowe (309 z danymi pomiarowymi); współrzędne wodowskazów biorę z API IMGW, a brakujące ustalam tą samą metodą.</li>
     <li>Etykiety 2024 to bufory korytarzy zniszczeń opisanych w komunikatach, a etykiety 1997 to odcinki przy trzech zniszczonych mostach. Każdy korytarz ma w repozytorium źródło (<code>data/labels_flood_*.json</code>). Linii zlikwidowanych po 1997 r. (Kędzierzyn – Baborów, Kamieniec Ząbk. – Złoty Stok) nie uwzględniam, bo nie istnieją w dzisiejszej sieci.</li>
     <li>Model uczę na wszystkich odcinko-dniach kwiecień–październik. Zwykłe lata uczą go, kiedy deszcz <i>nie</i> niszczy toru. Rok 1997 nie bierze udziału w treningu ani w doborze parametrów.</li>
   </ol>
-  <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Aplikacja nie wymaga konta, a lokalizacja z przycisku „Gdzie jestem” jest używana tylko w przeglądarce i nie trafia na serwer. System wyłącznie odczytuje dane publiczne i niczym nie steruje. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 15 i w pliku README.</div>
+  <div class="box"><b>Odpowiedzialne wykorzystanie danych:</b> system nie przetwarza danych osobowych ani informacji o ruchu pociągów. Aplikacja nie wymaga konta, a lokalizacja z przycisku „Gdzie jestem” jest używana tylko w przeglądarce i nie trafia na serwer. System wyłącznie odczytuje dane publiczne i niczym nie steruje. Prototyp nie zawiera informacji niejawnych ani tajemnicy przedsiębiorstwa. Wszystkie źródła i licencje są w rozdz. 16 i w pliku README.</div>
 </section>
 
 <section class="page">
@@ -279,7 +279,7 @@
   </table>
   <p class="small"><b>Model użycia: wyjątek zamiast rutyny.</b> RailSentinel nie dodaje dyżurnemu ruchu codziennego obowiązku. W swoim rejonie dyżurny widzi tylko UWAGĘ albo ALARM (dzień bez nich to „bez zagrożeń”), więc reaguje na wyjątki, a poranny przegląd całej sieci robi dyspozytor lub zakład. Toromistrz, służba trakcji i automatyka dostają własne listy: filtr „obiekt” oraz kolumna „kto sprawdza” w raporcie i na karcie obchodu.</p>
   <h3>Test z praktykami</h3>
-  <p class="small">To mały test, nie badanie reprezentatywne: nagrana rozmowa z <b>dyżurnym ruchu (10 lat stażu)</b> (listopad 2026) oraz uwagi drugiego kolejarza. Dyżurny wyraził na nagraniu zgodę na udostępnienie wizerunku w projekcie; jego wypowiedzi przedstawiam jako opinię praktyka, nie stanowisko pracodawcy. Obejrzał film z aplikacji i odpowiedział na trzy pytania; nie mierzyłem czasu zadań, więc nie podaję wyników użyteczności. Cytaty pochodzą z automatycznej transkrypcji (poprawiłem tylko nazwy „oblodzenie” i „wyboczenie”).</p>
+  <p class="small">To mały test, nie badanie reprezentatywne: nagrana w listopadzie 2026 rozmowa z <b>dyżurnym ruchu (10 lat stażu)</b> oraz uwagi drugiego kolejarza. Dyżurny wyraził na nagraniu zgodę na udostępnienie wizerunku w projekcie; jego wypowiedzi przedstawiam jako opinię praktyka, nie stanowisko pracodawcy. Obejrzał film z aplikacji i odpowiedział na trzy pytania; nie mierzyłem czasu zadań, więc nie podaję wyników użyteczności. Cytaty pochodzą z automatycznej transkrypcji (poprawiłem tylko nazwy „oblodzenie” i „wyboczenie”).</p>
   <table class="small">
     <tr><th style="width:62%">Co powiedział dyżurny ruchu</th><th>Co zmieniłem po rozmowie</th></tr>
     <tr><td>„Pogoda jest zmienna, zmienia to się w każdej chwili. Z deszczu może pojawić się śnieg i oblodzenie trakcji.”</td><td>Sieć trakcyjna jako osobny obiekt (wiatr, oblodzenie)</td></tr>
@@ -337,7 +337,7 @@
   </table>
   <p class="small"><b>Koszt po stronie systemu jest niski, bo działa na otwartych danych.</b> Prototyp od 11.11.2026 liczy prognozę dla całej Polski na bezpłatnej infrastrukturze (GitHub Actions, dane IMGW, ECMWF i OSM); koszt to tylko domena. Wersja produkcyjna wymaga serwera, płatnego API pogodowego i zespołu; ceny w tabeli to założenie, które to pokrywa. Przy powodzi raz na dekadę PLK odzyskuje wydatek, unikając ok. 1–3% średniorocznych strat; dochodzą wichury, upały i najważniejsza, niepoliczalna korzyść: uniknięcie wypadku z pasażerami.</p>
   <p class="small"><b>Klienci:</b> PKP PLK (kluczowy), zarządcy regionalni, bocznice, zarządcy w Czechach i na Słowacji. <b>Przychody (dopiero przy komercjalizacji):</b> subskrypcja za km linii, wdrożenie, moduły dodatkowe (nowcasting, analizy inwestycyjne, symulator). <b>Koszty:</b> dane pogodowe, chmura, zespół 2–4 osób. <b>Przewaga:</b> dwa mechanizmy powodzi, testy na wielu zdarzeniach, wyjaśnialność, brak sprzętu w torze.</p>
-  <div class="box">Prawa autorskie pozostają przy autorze, a Organizator otrzymuje licencję na analizę, testy i pilotaż (§10 Regulaminu). Jestem gotowy rozwijać system wspólnie z ekspertami PLK.</div>
+  <div class="box">Prawa autorskie pozostają przy autorze, a Organizator otrzymuje licencję na zasadach określonych w § 10 Regulaminu. Jestem gotowy rozwijać system wspólnie z ekspertami PLK.</div>
   <h2 style="margin-top:10px"><span class="n">14</span>Ograniczenia i plan rozwoju</h2>
   <table class="small">
     <tr><th style="width:27%">Granica obecnej wersji</th><th style="width:36%">Jak system sobie z nią radzi już dziś</th><th>Następny krok</th></tr>
