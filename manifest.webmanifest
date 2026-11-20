@@ -1,0 +1,23 @@
+{
+  "name": "RailSentinel – prognoza zagrożeń infrastruktury kolejowej",
+  "short_name": "RailSentinel",
+  "description": "Prognoza zagrożeń pogodowych dla każdego odcinka sieci kolejowej w Polsce na 72 h: podmycie, fala wezbraniowa, upał, wiatr, oblodzenie.",
+  "lang": "pl",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0f14",
+  "theme_color": "#0b0f14",
+  "categories": ["utilities", "weather", "navigation"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Moja linia", "url": "./#mode=line", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "Prognoza na żywo", "url": "./#mode=live", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]}
+  ]
+}
