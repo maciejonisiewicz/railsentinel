@@ -325,28 +325,29 @@
 
 <section class="page">
   <h2><span class="n">13</span>Model rozwoju i model biznesowy</h2>
-  <p class="small">RailSentinel może być narzędziem wewnętrznym PLK albo produktem SaaS dla zarządców infrastruktury. Rachunek opieram na <b>opublikowanych danych</b>; założenia zaznaczam wprost.</p>
+  <p class="small">RailSentinel może być narzędziem PLK albo produktem SaaS dla zarządców; rachunek opieram na <b>opublikowanych danych</b>.</p>
   <p class="small"><b>Fakty:</b> PKP PLK eksploatuje 18 806,7 km linii (raport za 2023, PAP). Wstępne straty infrastruktury PLK po powodzi 2024 to <b>880 mln zł</b> (PAP, 19.09.2024). Orkan Eunice wywołał 400 zdarzeń pogodowych na sieci w jeden dzień (PLK za Polsat News), a ograniczenia upałowe 3.07.2025 opóźniły 133 pociągi (odpowiedź na interpelację).</p>
-  <h3>Próg opłacalności (break-even)</h3>
-  <table>
-    <tr><th>Cena subskrypcji (założenie)</th><th>Koszt roczny dla całej sieci PLK</th><th>System zwraca się, jeśli rocznie pozwoli uniknąć…</th></tr>
-    <tr><td>50 zł / km / rok</td><td>0,94 mln zł</td><td>0,11% strat jednej powodzi na skalę 2024</td></tr>
-    <tr><td>100 zł / km / rok</td><td>1,88 mln zł</td><td>0,21% strat jednej powodzi na skalę 2024</td></tr>
-    <tr><td>150 zł / km / rok</td><td>2,82 mln zł</td><td>0,32% strat jednej powodzi na skalę 2024</td></tr>
+  <h3>Próg opłacalności dla PLK (break-even)</h3>
+  <p class="small">To rachunek opłacalności po stronie odbiorcy, czyli PKP PLK, a nie zysków autora; prototyp jest bezpłatny.</p>
+  <table class="small">
+    <tr><th style="width:19%">Przykładowa cena dla PLK</th><th style="width:19%">Roczny wydatek PLK (cała sieć)</th><th style="width:31%">PLK wychodzi na zero, jeśli system uchroni przed… stratami jednej powodzi 2024 (880 mln zł)</th><th>…lub średniorocznymi stratami przy takiej powodzi raz na 10 lat (88 mln zł)</th></tr>
+    <tr><td>50 zł / km / rok</td><td>0,94 mln zł</td><td>0,11%</td><td>ok. 1,1%</td></tr>
+    <tr><td>100 zł / km / rok</td><td>1,88 mln zł</td><td>0,21%</td><td>ok. 2,1%</td></tr>
+    <tr><td>150 zł / km / rok</td><td>2,82 mln zł</td><td>0,32%</td><td>ok. 3,2%</td></tr>
   </table>
-  <p class="small"><b>Koszt po stronie systemu jest niski, bo działa na otwartych danych.</b> Prototyp od 11.11.2026 liczy prognozę dla całej Polski na bezpłatnej infrastrukturze (GitHub Actions, dane IMGW, ECMWF i OSM); koszt to tylko domena, a hosting 0 zł. Wersja produkcyjna wymaga serwera, płatnego API pogodowego i zespołu; ceny w tabeli to założenie, które to pokrywa. Nie są potrzebne czujniki w torze. Nawet przy powodzi na skalę 2024 raz na dekadę system zwraca się przy uniknięciu ok. 2–3% jej strat, a dochodzą wichury, upały i najważniejsza, niepoliczalna korzyść: uniknięcie wypadku z pasażerami.</p>
-  <p class="small"><b>Klienci:</b> PKP PLK (kluczowy), zarządcy regionalni, bocznice, zarządcy w Czechach i na Słowacji. <b>Przychody:</b> subskrypcja za km linii, wdrożenie, moduły dodatkowe (nowcasting, analizy inwestycyjne, symulator). <b>Koszty:</b> dane pogodowe, chmura, zespół 2–4 osób. <b>Przewaga:</b> dwa mechanizmy powodzi, testy na wielu zdarzeniach, wyjaśnialność, brak sprzętu w torze.</p>
+  <p class="small"><b>Koszt po stronie systemu jest niski, bo działa na otwartych danych.</b> Prototyp od 11.11.2026 liczy prognozę dla całej Polski na bezpłatnej infrastrukturze (GitHub Actions, dane IMGW, ECMWF i OSM); koszt to tylko domena. Wersja produkcyjna wymaga serwera, płatnego API pogodowego i zespołu; ceny w tabeli to założenie, które to pokrywa. Przy powodzi raz na dekadę PLK odzyskuje wydatek, unikając ok. 1–3% średniorocznych strat; dochodzą wichury, upały i najważniejsza, niepoliczalna korzyść: uniknięcie wypadku z pasażerami.</p>
+  <p class="small"><b>Klienci:</b> PKP PLK (kluczowy), zarządcy regionalni, bocznice, zarządcy w Czechach i na Słowacji. <b>Przychody (dopiero przy komercjalizacji):</b> subskrypcja za km linii, wdrożenie, moduły dodatkowe (nowcasting, analizy inwestycyjne, symulator). <b>Koszty:</b> dane pogodowe, chmura, zespół 2–4 osób. <b>Przewaga:</b> dwa mechanizmy powodzi, testy na wielu zdarzeniach, wyjaśnialność, brak sprzętu w torze.</p>
   <div class="box">Prawa autorskie pozostają przy autorze, a Organizator otrzymuje licencję na analizę, testy i pilotaż (§10 Regulaminu). Jestem gotowy rozwijać system wspólnie z ekspertami PLK.</div>
   <h2 style="margin-top:10px"><span class="n">14</span>Ograniczenia i plan rozwoju</h2>
   <table class="small">
     <tr><th style="width:27%">Granica obecnej wersji</th><th style="width:36%">Jak system sobie z nią radzi już dziś</th><th>Następny krok</th></tr>
     <tr><td>Przy wielkiej powodzi alarm obejmuje wiele odcinków</td><td>Ranking i osobna kategoria fali; w prognozie z 11.09.2024 alarm objął {{rk_alarm_pct}}% sieci i {{rk_dmg}}/{{rk_nd}} zniszczeń</td><td>Kalibracja progów z zespołami utrzymania w pilotażu</td></tr>
     <tr><td>Burze lokalne mniejsze niż siatka 25 km</td><td>Moduł fali na wodowskazach IMGW; Bogatynia 2010 wykryta</td><td>Nowcasting radarowy IMGW (0–6 h)</td></tr>
-    <tr><td>Etykiety z publikacji prasowych; model ulewy uczony na jednym zdarzeniu, walidacja po liniach optymistyczna</td><td>Test na niezależnych zdarzeniach (1997, 2010) bez douczania; dziennik na żywo</td><td>Rejestr zdarzeń i usterek PLK; walidacja blokowa po zlewniach</td></tr>
+    <tr><td>Etykiety z prasy; model ulewy uczony na jednym zdarzeniu, walidacja po liniach optymistyczna</td><td>Test na niezależnych zdarzeniach (1997, 2010) bez douczania; dziennik na żywo</td><td>Rejestr zdarzeń i usterek PLK; walidacja blokowa po zlewniach</td></tr>
     <tr><td>Upał, wiatr i oblodzenie to moduły regułowe</td><td>Progi IMGW i fizyka szyny; test na 7 orkanach i upale 2025</td><td>Kalibracja na zdarzeniach PLK, mapa zadrzewień (Sentinel-2, LiDAR)</td></tr>
     <tr><td>Dane infrastruktury z OSM</td><td>Kontrola spójności; kilometraż dla {{km_pct}}% odcinków</td><td>Ewidencja infrastruktury PLK (kilometraż, prędkości, obiekty)</td></tr>
-    <tr><td>Rozjazdy i srk: wskaźnik, nie prognoza awarii</td><td>Liczba rozjazdów z OSM (niepełna) i pogoda; progi jako nazwane stałe, opis „założenia robocze”</td><td>Kalibracja na rejestrze usterek srk PLK i ewidencji urządzeń</td></tr>
-    <tr><td>Brak danych lub dane nieaktualne</td><td>Komunikat „prognoza nieaktualna”, odcinki bez oceny na szaro; nigdy jako niskie ryzyko</td><td>Monitoring automatu i powiadomienie administratora</td></tr>
+    <tr><td>Rozjazdy i srk: wskaźnik, nie prognoza awarii</td><td>Liczba rozjazdów z OSM (niepełna) i pogoda; opis „założenia robocze”</td><td>Kalibracja na rejestrze usterek srk PLK i ewidencji urządzeń</td></tr>
+    <tr><td>Brak danych lub dane nieaktualne</td><td>Komunikat „prognoza nieaktualna”, odcinki na szaro, nigdy jako niskie ryzyko</td><td>Monitoring automatu i powiadomienie administratora</td></tr>
   </table>
 </section>
 
