@@ -1,9 +1,9 @@
 {
- "updated": "2026-11-22 22:06",
- "runs": 33,
- "days": 11,
+ "updated": "2026-11-23 13:27",
+ "runs": 34,
+ "days": 12,
  "first": "2026-11-12",
- "last": "2026-11-22 22:06",
+ "last": "2026-11-23 13:26",
  "runs_per_day": {
   "2026-11-12": 4,
   "2026-11-13": 2,
@@ -15,15 +15,16 @@
   "2026-11-19": 3,
   "2026-11-20": 6,
   "2026-11-21": 2,
-  "2026-11-22": 2
+  "2026-11-22": 2,
+  "2026-11-23": 1
  },
  "river": {
   "1": {
-   "n": 7788,
-   "days": 10,
-   "mae_model": 0.0666,
-   "mae_persist": 0.0661,
-   "gain_pct": -0.8,
+   "n": 8566,
+   "days": 11,
+   "mae_model": 0.0659,
+   "mae_persist": 0.0651,
+   "gain_pct": -1.2,
    "events": 0,
    "pod_system": null,
    "pod_persist": null,
@@ -31,11 +32,11 @@
    "far_persist": null
   },
   "2": {
-   "n": 7000,
-   "days": 9,
-   "mae_model": 0.0794,
-   "mae_persist": 0.0839,
-   "gain_pct": 5.4,
+   "n": 7780,
+   "days": 10,
+   "mae_model": 0.0817,
+   "mae_persist": 0.0853,
+   "gain_pct": 4.2,
    "events": 0,
    "pod_system": null,
    "pod_persist": null,
@@ -43,11 +44,11 @@
    "far_persist": null
   },
   "3": {
-   "n": 6217,
-   "days": 8,
-   "mae_model": 0.0897,
-   "mae_persist": 0.0976,
-   "gain_pct": 8.1,
+   "n": 6995,
+   "days": 9,
+   "mae_model": 0.0901,
+   "mae_persist": 0.0967,
+   "gain_pct": 6.8,
    "events": 0,
    "pod_system": null,
    "pod_persist": null,
@@ -242,10 +243,27 @@
    "snow_max": 2.7,
    "gauges": 779,
    "cells_ok": 562
+  },
+  {
+   "date": "2026-11-23",
+   "generated": "2026-11-23 13:26",
+   "alarm": 0,
+   "warn": 4,
+   "km_alarm": 0.0,
+   "imgw_powiats": 82,
+   "imgw_segments": 894,
+   "rs_in": 0,
+   "rs_out": 4,
+   "p1_max": 23.6,
+   "gust_max": 77.4,
+   "tmin_min": -10.1,
+   "snow_max": 7.7,
+   "gauges": 783,
+   "cells_ok": 562
   }
  ],
  "imgw_overlap": {
   "rs_in": 69,
-  "rs_out": 79
+  "rs_out": 83
  }
 }
