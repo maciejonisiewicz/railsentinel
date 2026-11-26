@@ -1,9 +1,9 @@
 {
- "updated": "2026-11-26 13:23",
- "runs": 40,
- "days": 15,
+ "updated": "2026-11-27 00:55",
+ "runs": 41,
+ "days": 16,
  "first": "2026-11-12",
- "last": "2026-11-26 13:23",
+ "last": "2026-11-27 00:55",
  "runs_per_day": {
   "2026-11-12": 4,
   "2026-11-13": 2,
@@ -19,42 +19,43 @@
   "2026-11-23": 1,
   "2026-11-24": 2,
   "2026-11-25": 2,
-  "2026-11-26": 2
+  "2026-11-26": 2,
+  "2026-11-27": 1
  },
  "river": {
   "1": {
-   "n": 10911,
-   "days": 14,
-   "mae_model": 0.0609,
-   "mae_persist": 0.0592,
-   "gain_pct": -3.0,
-   "events": 0,
-   "pod_system": null,
-   "pod_persist": null,
+   "n": 11693,
+   "days": 15,
+   "mae_model": 0.0596,
+   "mae_persist": 0.0578,
+   "gain_pct": -3.1,
+   "events": 2,
+   "pod_system": 0.0,
+   "pod_persist": 0.0,
    "far_system": 1.0,
    "far_persist": null
   },
   "2": {
-   "n": 10120,
-   "days": 13,
-   "mae_model": 0.0787,
-   "mae_persist": 0.0804,
-   "gain_pct": 2.1,
-   "events": 0,
-   "pod_system": null,
-   "pod_persist": null,
+   "n": 10902,
+   "days": 14,
+   "mae_model": 0.0769,
+   "mae_persist": 0.0789,
+   "gain_pct": 2.6,
+   "events": 2,
+   "pod_system": 0.0,
+   "pod_persist": 0.0,
    "far_system": null,
    "far_persist": null
   },
   "3": {
-   "n": 9332,
-   "days": 12,
-   "mae_model": 0.0909,
-   "mae_persist": 0.0953,
-   "gain_pct": 4.6,
-   "events": 0,
-   "pod_system": null,
-   "pod_persist": null,
+   "n": 10114,
+   "days": 13,
+   "mae_model": 0.0901,
+   "mae_persist": 0.0938,
+   "gain_pct": 3.9,
+   "events": 2,
+   "pod_system": 0.0,
+   "pod_persist": 0.0,
    "far_system": null,
    "far_persist": null
   }
@@ -314,10 +315,27 @@
    "snow_max": 14.9,
    "gauges": 782,
    "cells_ok": 562
+  },
+  {
+   "date": "2026-11-27",
+   "generated": "2026-11-27 00:55",
+   "alarm": 0,
+   "warn": 4,
+   "km_alarm": 0.0,
+   "imgw_powiats": 88,
+   "imgw_segments": 1281,
+   "rs_in": 0,
+   "rs_out": 4,
+   "p1_max": 12.8,
+   "gust_max": 67.3,
+   "tmin_min": -8.2,
+   "snow_max": 9.0,
+   "gauges": 785,
+   "cells_ok": 562
   }
  ],
  "imgw_overlap": {
   "rs_in": 77,
-  "rs_out": 95
+  "rs_out": 99
  }
 }
