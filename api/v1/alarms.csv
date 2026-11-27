@@ -1,5 +1,9 @@
 ﻿priorytet;dzien;linia;km_od;km_do;od;do;miejscowosc;rzeka;powiat;poziom;ryzyko_proc;zagrozenie;woda_proc;upal_proc;wiatr_proc;lod_proc;opad_1d_mm;opad_3d_mm;porywy_kmh;szyna_C;pewnosc;ostrzezenia_imgw;prognoza_wydana;id;obiekt;sluzba;tor_proc;trakcja_proc;rozjazdy_wskaznik_proc;rozjazdy_liczba;elektryfikacja_proc
-1;2026-11-29;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;ALARM;72;wiatr;0;0;72;0;0,0;2,5;92,0;5,5;niższa;;2026-11-27 13:10;L340_1016_315;tor i nasyp;toromistrz (utrzymanie toru);73;0;0;3;0
-2;2026-11-29;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;ALARM;72;wiatr;0;0;72;0;0,0;2,5;92,0;5,5;niższa;;2026-11-27 13:10;L308_1016_315;tor i nasyp;toromistrz (utrzymanie toru);73;0;0;0;0
-3;2026-11-29;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;ALARM;72;wiatr;0;0;72;0;0,0;2,5;92,0;5,5;niższa;;2026-11-27 13:10;L340_1015_315;tor i nasyp;toromistrz (utrzymanie toru);73;0;0;2;0
-4;2026-11-29;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;ALARM;72;wiatr;0;0;72;0;0,0;2,5;92,0;5,5;niższa;;2026-11-27 13:10;L308_1016_316;tor i nasyp;toromistrz (utrzymanie toru);73;0;0;0;0
+1;2026-11-29;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;ALARM;91;wiatr;0;0;91;0;0,0;2,5;102,0;6,7;średnia;;2026-11-28 00:29;L340_1016_315;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;3;0
+2;2026-11-29;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;ALARM;91;wiatr;0;0;91;0;0,0;2,5;102,0;6,7;średnia;;2026-11-28 00:29;L308_1016_315;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;0;0
+3;2026-11-29;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;ALARM;91;wiatr;0;0;91;0;0,0;2,5;102,0;6,7;średnia;;2026-11-28 00:29;L340_1015_315;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;2;0
+4;2026-11-29;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;ALARM;91;wiatr;0;0;91;0;0,0;2,5;102,0;6,7;średnia;;2026-11-28 00:29;L308_1016_316;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;0;0
+1;2026-11-30;340;;;Mysłakowice;Miłków;Kowary;Łomnica;jeleniogórski;ALARM;90;wiatr;0;0;90;0;0,0;0,0;101,0;2,3;niższa;;2026-11-28 00:29;L340_1016_315;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;3;0
+2;2026-11-30;308;;;Kowary;Łomnica;Kowary;Jedlica;jeleniogórski;ALARM;90;wiatr;0;0;90;0;0,0;0,0;101,0;2,3;niższa;;2026-11-28 00:29;L308_1016_315;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;0;0
+3;2026-11-30;340;;;Miłków;Karpacz;Karpacz;Łomnica;jeleniogórski;ALARM;90;wiatr;0;0;90;0;0,0;0,0;101,0;2,3;niższa;;2026-11-28 00:29;L340_1015_315;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;2;0
+4;2026-11-30;308;;;Kowary;Kowary;Kowary;Jedlica;jeleniogórski;ALARM;90;wiatr;0;0;90;0;0,0;0,0;101,0;2,3;niższa;;2026-11-28 00:29;L308_1016_316;tor i nasyp;toromistrz (utrzymanie toru);91;0;0;0;0
